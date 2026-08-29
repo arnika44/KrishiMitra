@@ -18,33 +18,32 @@ type LanguageCode =
   | "as"
   | "ur";
 
-type Translation = {
-  title: string;
-  subtitle: string;
-  fullName: string;
-  fullNamePlaceholder: string;
-  mobile: string;
-  mobilePlaceholder: string;
-  locationDetails: string;
-  pinCode: string;
-  pinCodePlaceholder: string;
-  state: string;
-  statePlaceholder: string;
-  district: string;
-  districtPlaceholder: string;
-  villageCityTown: string;
-  villageCityTownPlaceholder: string;
-  save: string;
-  back: string;
-  saved: string;
-  fetchingLocation: string;
-  locationFound: string;
-  locationNotFound: string;
-  selectState: string;
-  selectDistrict: string;
+type StateItem = {
+  name: string;
+  slug: string;
 };
 
-const translations: Record<LanguageCode, Translation> = {
+type DistrictItem = {
+  name: string;
+  slug: string;
+};
+
+type PostOffice = {
+  Name?: string;
+  District?: string;
+  State?: string;
+  Block?: string;
+  BranchType?: string;
+  DeliveryStatus?: string;
+};
+
+type PinApiResponse = {
+  Message?: string;
+  Status?: string;
+  PostOffice?: PostOffice[] | null;
+};
+
+const translations: Record<LanguageCode, any> = {
   en: {
     title: "Farmer Profile",
     subtitle: "Tell us about yourself",
@@ -52,23 +51,35 @@ const translations: Record<LanguageCode, Translation> = {
     fullNamePlaceholder: "Enter your full name",
     mobile: "Mobile Number",
     mobilePlaceholder: "9876543210",
-    locationDetails: "Location Details",
+
     pinCode: "PIN Code",
     pinCodePlaceholder: "Enter 6-digit PIN code",
-    state: "State",
-    statePlaceholder: "Type or select state",
+
+    village: "Village / City / Town",
+    villagePlaceholder: "Enter or select village, city or town",
+
     district: "District",
-    districtPlaceholder: "Type or select district",
-    villageCityTown: "Village / City / Town",
-    villageCityTownPlaceholder: "Enter village, city or town",
+    districtPlaceholder: "Start typing district",
+
+    state: "State",
+    statePlaceholder: "Start typing state",
+
     save: "Save Profile",
     back: "Back to Dashboard",
     saved: "Profile saved successfully!",
-    fetchingLocation: "Finding your location...",
-    locationFound: "Location found from PIN code",
-    locationNotFound: "PIN code location not found. Please select state and district manually.",
-    selectState: "Select State",
-    selectDistrict: "Select District",
+
+    searchingPin: "Finding location...",
+    pinFound: "Location found",
+    invalidPin: "PIN code not found. Please check the PIN code.",
+    loadingStates: "Loading states...",
+    loadingDistricts: "Loading districts...",
+    noSuggestions: "No matching suggestions found.",
+    selectSuggestion: "Select from suggestions",
+
+    enterPinFirst: "Enter PIN code first",
+    districtAfterState: "Select a state to see districts",
+    locationHelp:
+      "Enter your PIN code first. State, district and nearby postal locations will be suggested automatically.",
   },
 
   hi: {
@@ -78,24 +89,35 @@ const translations: Record<LanguageCode, Translation> = {
     fullNamePlaceholder: "अपना पूरा नाम दर्ज करें",
     mobile: "मोबाइल नंबर",
     mobilePlaceholder: "9876543210",
-    locationDetails: "स्थान की जानकारी",
+
     pinCode: "पिन कोड",
     pinCodePlaceholder: "6 अंकों का पिन कोड दर्ज करें",
-    state: "राज्य",
-    statePlaceholder: "राज्य टाइप या चुनें",
+
+    village: "गाँव / शहर / कस्बा",
+    villagePlaceholder: "गाँव, शहर या कस्बा दर्ज करें",
+
     district: "जिला",
-    districtPlaceholder: "जिला टाइप या चुनें",
-    villageCityTown: "गाँव / शहर / कस्बा",
-    villageCityTownPlaceholder: "गाँव, शहर या कस्बे का नाम दर्ज करें",
+    districtPlaceholder: "जिले का नाम लिखें",
+
+    state: "राज्य",
+    statePlaceholder: "राज्य का नाम लिखें",
+
     save: "प्रोफाइल सेव करें",
     back: "डैशबोर्ड पर वापस जाएँ",
     saved: "प्रोफाइल सफलतापूर्वक सेव हो गई!",
-    fetchingLocation: "आपका स्थान खोजा जा रहा है...",
-    locationFound: "पिन कोड से स्थान मिल गया",
-    locationNotFound:
-      "पिन कोड का स्थान नहीं मिला। कृपया राज्य और जिला मैन्युअली चुनें।",
-    selectState: "राज्य चुनें",
-    selectDistrict: "जिला चुनें",
+
+    searchingPin: "स्थान खोजा जा रहा है...",
+    pinFound: "स्थान मिल गया",
+    invalidPin: "पिन कोड नहीं मिला। कृपया पिन कोड जाँचें।",
+    loadingStates: "राज्य लोड हो रहे हैं...",
+    loadingDistricts: "जिले लोड हो रहे हैं...",
+    noSuggestions: "कोई मिलान नहीं मिला।",
+    selectSuggestion: "सुझाव में से चुनें",
+
+    enterPinFirst: "पहले पिन कोड दर्ज करें",
+    districtAfterState: "जिले देखने के लिए पहले राज्य चुनें",
+    locationHelp:
+      "पहले पिन कोड दर्ज करें। राज्य, जिला और आसपास के स्थान अपने आप सुझाए जाएंगे।",
   },
 
   mr: {
@@ -105,24 +127,35 @@ const translations: Record<LanguageCode, Translation> = {
     fullNamePlaceholder: "तुमचे पूर्ण नाव टाका",
     mobile: "मोबाईल नंबर",
     mobilePlaceholder: "9876543210",
-    locationDetails: "स्थानाची माहिती",
+
     pinCode: "पिन कोड",
     pinCodePlaceholder: "6 अंकी पिन कोड टाका",
-    state: "राज्य",
-    statePlaceholder: "राज्य टाइप करा किंवा निवडा",
+
+    village: "गाव / शहर / नगर",
+    villagePlaceholder: "गाव, शहर किंवा नगर टाका",
+
     district: "जिल्हा",
-    districtPlaceholder: "जिल्हा टाइप करा किंवा निवडा",
-    villageCityTown: "गाव / शहर / नगर",
-    villageCityTownPlaceholder: "गाव, शहर किंवा नगराचे नाव टाका",
+    districtPlaceholder: "जिल्ह्याचे नाव टाका",
+
+    state: "राज्य",
+    statePlaceholder: "राज्याचे नाव टाका",
+
     save: "प्रोफाइल सेव्ह करा",
     back: "डॅशबोर्डवर परत जा",
     saved: "प्रोफाइल यशस्वीरित्या सेव्ह झाली!",
-    fetchingLocation: "तुमचे स्थान शोधत आहे...",
-    locationFound: "पिन कोडवरून स्थान मिळाले",
-    locationNotFound:
-      "पिन कोडचे स्थान सापडले नाही. कृपया राज्य आणि जिल्हा निवडा.",
-    selectState: "राज्य निवडा",
-    selectDistrict: "जिल्हा निवडा",
+
+    searchingPin: "स्थान शोधत आहे...",
+    pinFound: "स्थान सापडले",
+    invalidPin: "पिन कोड सापडला नाही.",
+    loadingStates: "राज्ये लोड होत आहेत...",
+    loadingDistricts: "जिल्हे लोड होत आहेत...",
+    noSuggestions: "कोणतेही जुळणारे पर्याय सापडले नाहीत.",
+    selectSuggestion: "पर्यायामधून निवडा",
+
+    enterPinFirst: "प्रथम पिन कोड टाका",
+    districtAfterState: "जिल्हे पाहण्यासाठी राज्य निवडा",
+    locationHelp:
+      "प्रथम पिन कोड टाका. राज्य, जिल्हा आणि जवळची ठिकाणे आपोआप सुचवली जातील.",
   },
 
   bn: {
@@ -132,24 +165,35 @@ const translations: Record<LanguageCode, Translation> = {
     fullNamePlaceholder: "আপনার পুরো নাম লিখুন",
     mobile: "মোবাইল নম্বর",
     mobilePlaceholder: "9876543210",
-    locationDetails: "ঠিকানার তথ্য",
+
     pinCode: "পিন কোড",
     pinCodePlaceholder: "৬ সংখ্যার পিন কোড লিখুন",
-    state: "রাজ্য",
-    statePlaceholder: "রাজ্য লিখুন বা নির্বাচন করুন",
+
+    village: "গ্রাম / শহর / টাউন",
+    villagePlaceholder: "গ্রাম, শহর বা টাউন লিখুন",
+
     district: "জেলা",
-    districtPlaceholder: "জেলা লিখুন বা নির্বাচন করুন",
-    villageCityTown: "গ্রাম / শহর / টাউন",
-    villageCityTownPlaceholder: "গ্রাম, শহর বা টাউনের নাম লিখুন",
+    districtPlaceholder: "জেলার নাম লিখুন",
+
+    state: "রাজ্য",
+    statePlaceholder: "রাজ্যের নাম লিখুন",
+
     save: "প্রোফাইল সংরক্ষণ করুন",
     back: "ড্যাশবোর্ডে ফিরে যান",
-    saved: "প্রোফাইল সফলভাবে সংরক্ষণ করা হয়েছে!",
-    fetchingLocation: "আপনার অবস্থান খোঁজা হচ্ছে...",
-    locationFound: "পিন কোড থেকে অবস্থান পাওয়া গেছে",
-    locationNotFound:
-      "পিন কোডের অবস্থান পাওয়া যায়নি। রাজ্য ও জেলা নির্বাচন করুন।",
-    selectState: "রাজ্য নির্বাচন করুন",
-    selectDistrict: "জেলা নির্বাচন করুন",
+    saved: "প্রোফাইল সফলভাবে সংরক্ষিত হয়েছে!",
+
+    searchingPin: "স্থান খোঁজা হচ্ছে...",
+    pinFound: "স্থান পাওয়া গেছে",
+    invalidPin: "পিন কোড পাওয়া যায়নি।",
+    loadingStates: "রাজ্য লোড হচ্ছে...",
+    loadingDistricts: "জেলা লোড হচ্ছে...",
+    noSuggestions: "কোনও মিল পাওয়া যায়নি।",
+    selectSuggestion: "পরামর্শ থেকে নির্বাচন করুন",
+
+    enterPinFirst: "প্রথমে পিন কোড দিন",
+    districtAfterState: "জেলা দেখতে রাজ্য নির্বাচন করুন",
+    locationHelp:
+      "প্রথমে পিন কোড দিন। রাজ্য, জেলা এবং কাছাকাছি স্থান স্বয়ংক্রিয়ভাবে সাজেস্ট হবে।",
   },
 
   ta: {
@@ -159,25 +203,35 @@ const translations: Record<LanguageCode, Translation> = {
     fullNamePlaceholder: "உங்கள் முழு பெயரை உள்ளிடவும்",
     mobile: "மொபைல் எண்",
     mobilePlaceholder: "9876543210",
-    locationDetails: "இருப்பிட விவரங்கள்",
+
     pinCode: "பின் குறியீடு",
     pinCodePlaceholder: "6 இலக்க பின் குறியீட்டை உள்ளிடவும்",
-    state: "மாநிலம்",
-    statePlaceholder: "மாநிலத்தை உள்ளிடவும் அல்லது தேர்ந்தெடுக்கவும்",
+
+    village: "கிராமம் / நகரம் / டவுன்",
+    villagePlaceholder: "கிராமம், நகரம் அல்லது டவுனை உள்ளிடவும்",
+
     district: "மாவட்டம்",
-    districtPlaceholder: "மாவட்டத்தை உள்ளிடவும் அல்லது தேர்ந்தெடுக்கவும்",
-    villageCityTown: "கிராமம் / நகரம் / டவுன்",
-    villageCityTownPlaceholder:
-      "கிராமம், நகரம் அல்லது டவுன் பெயரை உள்ளிடவும்",
+    districtPlaceholder: "மாவட்டத்தின் பெயரை உள்ளிடவும்",
+
+    state: "மாநிலம்",
+    statePlaceholder: "மாநிலத்தின் பெயரை உள்ளிடவும்",
+
     save: "சுயவிவரத்தை சேமிக்கவும்",
     back: "டாஷ்போர்டுக்குத் திரும்பு",
     saved: "சுயவிவரம் வெற்றிகரமாக சேமிக்கப்பட்டது!",
-    fetchingLocation: "உங்கள் இருப்பிடம் தேடப்படுகிறது...",
-    locationFound: "PIN குறியீட்டிலிருந்து இருப்பிடம் கிடைத்தது",
-    locationNotFound:
-      "PIN குறியீட்டின் இருப்பிடம் கிடைக்கவில்லை. மாநிலம் மற்றும் மாவட்டத்தைத் தேர்ந்தெடுக்கவும்.",
-    selectState: "மாநிலத்தைத் தேர்ந்தெடுக்கவும்",
-    selectDistrict: "மாவட்டத்தைத் தேர்ந்தெடுக்கவும்",
+
+    searchingPin: "இடம் தேடப்படுகிறது...",
+    pinFound: "இடம் கிடைத்தது",
+    invalidPin: "பின் குறியீடு கிடைக்கவில்லை.",
+    loadingStates: "மாநிலங்கள் ஏற்றப்படுகின்றன...",
+    loadingDistricts: "மாவட்டங்கள் ஏற்றப்படுகின்றன...",
+    noSuggestions: "பொருத்தமான பரிந்துரைகள் இல்லை.",
+    selectSuggestion: "பரிந்துரையிலிருந்து தேர்ந்தெடுக்கவும்",
+
+    enterPinFirst: "முதலில் பின் குறியீட்டை உள்ளிடவும்",
+    districtAfterState: "மாவட்டங்களை பார்க்க மாநிலத்தைத் தேர்ந்தெடுக்கவும்",
+    locationHelp:
+      "முதலில் பின் குறியீட்டை உள்ளிடவும். மாநிலம், மாவட்டம் மற்றும் அருகிலுள்ள இடங்கள் தானாக பரிந்துரைக்கப்படும்.",
   },
 
   te: {
@@ -187,25 +241,35 @@ const translations: Record<LanguageCode, Translation> = {
     fullNamePlaceholder: "మీ పూర్తి పేరు నమోదు చేయండి",
     mobile: "మొబైల్ నంబర్",
     mobilePlaceholder: "9876543210",
-    locationDetails: "ప్రాంత వివరాలు",
+
     pinCode: "పిన్ కోడ్",
     pinCodePlaceholder: "6 అంకెల పిన్ కోడ్ నమోదు చేయండి",
-    state: "రాష్ట్రం",
-    statePlaceholder: "రాష్ట్రాన్ని టైప్ చేయండి లేదా ఎంచుకోండి",
+
+    village: "గ్రామం / నగరం / పట్టణం",
+    villagePlaceholder: "గ్రామం, నగరం లేదా పట్టణం నమోదు చేయండి",
+
     district: "జిల్లా",
-    districtPlaceholder: "జిల్లాను టైప్ చేయండి లేదా ఎంచుకోండి",
-    villageCityTown: "గ్రామం / నగరం / పట్టణం",
-    villageCityTownPlaceholder:
-      "గ్రామం, నగరం లేదా పట్టణం పేరు నమోదు చేయండి",
+    districtPlaceholder: "జిల్లా పేరు నమోదు చేయండి",
+
+    state: "రాష్ట్రం",
+    statePlaceholder: "రాష్ట్రం పేరు నమోదు చేయండి",
+
     save: "ప్రొఫైల్ సేవ్ చేయండి",
     back: "డ్యాష్‌బోర్డ్‌కు తిరిగి వెళ్లండి",
     saved: "ప్రొఫైల్ విజయవంతంగా సేవ్ చేయబడింది!",
-    fetchingLocation: "మీ ప్రాంతాన్ని కనుగొంటున్నాము...",
-    locationFound: "పిన్ కోడ్ ద్వారా ప్రాంతం కనుగొనబడింది",
-    locationNotFound:
-      "పిన్ కోడ్ ప్రాంతం కనుగొనబడలేదు. రాష్ట్రం మరియు జిల్లాను ఎంచుకోండి.",
-    selectState: "రాష్ట్రాన్ని ఎంచుకోండి",
-    selectDistrict: "జిల్లాను ఎంచుకోండి",
+
+    searchingPin: "స్థానం వెతుకుతోంది...",
+    pinFound: "స్థానం కనుగొనబడింది",
+    invalidPin: "పిన్ కోడ్ కనుగొనబడలేదు.",
+    loadingStates: "రాష్ట్రాలు లోడ్ అవుతున్నాయి...",
+    loadingDistricts: "జిల్లాలు లోడ్ అవుతున్నాయి...",
+    noSuggestions: "సరిపోలే సూచనలు లేవు.",
+    selectSuggestion: "సూచనల నుండి ఎంచుకోండి",
+
+    enterPinFirst: "ముందుగా పిన్ కోడ్ నమోదు చేయండి",
+    districtAfterState: "జిల్లాలను చూడటానికి రాష్ట్రాన్ని ఎంచుకోండి",
+    locationHelp:
+      "ముందుగా పిన్ కోడ్ నమోదు చేయండి. రాష్ట్రం, జిల్లా మరియు సమీప ప్రాంతాలు ఆటోమేటిక్‌గా సూచించబడతాయి.",
   },
 
   gu: {
@@ -215,24 +279,35 @@ const translations: Record<LanguageCode, Translation> = {
     fullNamePlaceholder: "તમારું પૂરું નામ દાખલ કરો",
     mobile: "મોબાઇલ નંબર",
     mobilePlaceholder: "9876543210",
-    locationDetails: "સ્થાનની માહિતી",
+
     pinCode: "પિન કોડ",
     pinCodePlaceholder: "6 અંકનો પિન કોડ દાખલ કરો",
-    state: "રાજ્ય",
-    statePlaceholder: "રાજ્ય ટાઇપ કરો અથવા પસંદ કરો",
+
+    village: "ગામ / શહેર / ટાઉન",
+    villagePlaceholder: "ગામ, શહેર અથવા ટાઉન દાખલ કરો",
+
     district: "જિલ્લો",
-    districtPlaceholder: "જિલ્લો ટાઇપ કરો અથવા પસંદ કરો",
-    villageCityTown: "ગામ / શહેર / નગર",
-    villageCityTownPlaceholder: "ગામ, શહેર અથવા નગરનું નામ દાખલ કરો",
+    districtPlaceholder: "જિલ્લાનું નામ દાખલ કરો",
+
+    state: "રાજ્ય",
+    statePlaceholder: "રાજ્યનું નામ દાખલ કરો",
+
     save: "પ્રોફાઇલ સેવ કરો",
     back: "ડેશબોર્ડ પર પાછા જાઓ",
     saved: "પ્રોફાઇલ સફળતાપૂર્વક સેવ થઈ!",
-    fetchingLocation: "તમારું સ્થાન શોધી રહ્યા છીએ...",
-    locationFound: "પિન કોડ પરથી સ્થાન મળ્યું",
-    locationNotFound:
-      "પિન કોડનું સ્થાન મળ્યું નથી. કૃપા કરીને રાજ્ય અને જિલ્લો પસંદ કરો.",
-    selectState: "રાજ્ય પસંદ કરો",
-    selectDistrict: "જિલ્લો પસંદ કરો",
+
+    searchingPin: "સ્થાન શોધી રહ્યા છીએ...",
+    pinFound: "સ્થાન મળી ગયું",
+    invalidPin: "પિન કોડ મળ્યો નથી.",
+    loadingStates: "રાજ્યો લોડ થઈ રહ્યા છે...",
+    loadingDistricts: "જિલ્લાઓ લોડ થઈ રહ્યા છે...",
+    noSuggestions: "કોઈ મેળ ખાતા વિકલ્પો મળ્યા નથી.",
+    selectSuggestion: "સૂચનમાંથી પસંદ કરો",
+
+    enterPinFirst: "પહેલા પિન કોડ દાખલ કરો",
+    districtAfterState: "જિલ્લાઓ જોવા માટે રાજ્ય પસંદ કરો",
+    locationHelp:
+      "પહેલા પિન કોડ દાખલ કરો. રાજ્ય, જિલ્લો અને નજીકના સ્થળો આપમેળે સૂચવાશે.",
   },
 
   kn: {
@@ -242,25 +317,35 @@ const translations: Record<LanguageCode, Translation> = {
     fullNamePlaceholder: "ನಿಮ್ಮ ಪೂರ್ಣ ಹೆಸರನ್ನು ನಮೂದಿಸಿ",
     mobile: "ಮೊಬೈಲ್ ಸಂಖ್ಯೆ",
     mobilePlaceholder: "9876543210",
-    locationDetails: "ಸ್ಥಳದ ವಿವರಗಳು",
+
     pinCode: "ಪಿನ್ ಕೋಡ್",
     pinCodePlaceholder: "6 ಅಂಕಿಯ ಪಿನ್ ಕೋಡ್ ನಮೂದಿಸಿ",
-    state: "ರಾಜ್ಯ",
-    statePlaceholder: "ರಾಜ್ಯವನ್ನು ಟೈಪ್ ಮಾಡಿ ಅಥವಾ ಆಯ್ಕೆಮಾಡಿ",
+
+    village: "ಗ್ರಾಮ / ನಗರ / ಪಟ್ಟಣ",
+    villagePlaceholder: "ಗ್ರಾಮ, ನಗರ ಅಥವಾ ಪಟ್ಟಣ ನಮೂದಿಸಿ",
+
     district: "ಜಿಲ್ಲೆ",
-    districtPlaceholder: "ಜಿಲ್ಲೆಯನ್ನು ಟೈಪ್ ಮಾಡಿ ಅಥವಾ ಆಯ್ಕೆಮಾಡಿ",
-    villageCityTown: "ಗ್ರಾಮ / ನಗರ / ಪಟ್ಟಣ",
-    villageCityTownPlaceholder:
-      "ಗ್ರಾಮ, ನಗರ ಅಥವಾ ಪಟ್ಟಣದ ಹೆಸರನ್ನು ನಮೂದಿಸಿ",
+    districtPlaceholder: "ಜಿಲ್ಲೆಯ ಹೆಸರು ನಮೂದಿಸಿ",
+
+    state: "ರಾಜ್ಯ",
+    statePlaceholder: "ರಾಜ್ಯದ ಹೆಸರು ನಮೂದಿಸಿ",
+
     save: "ಪ್ರೊಫೈಲ್ ಉಳಿಸಿ",
     back: "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗೆ ಹಿಂತಿರುಗಿ",
     saved: "ಪ್ರೊಫೈಲ್ ಯಶಸ್ವಿಯಾಗಿ ಉಳಿಸಲಾಗಿದೆ!",
-    fetchingLocation: "ನಿಮ್ಮ ಸ್ಥಳವನ್ನು ಹುಡುಕಲಾಗುತ್ತಿದೆ...",
-    locationFound: "ಪಿನ್ ಕೋಡ್ ಮೂಲಕ ಸ್ಥಳ ಕಂಡುಬಂದಿದೆ",
-    locationNotFound:
-      "ಪಿನ್ ಕೋಡ್ ಸ್ಥಳ ಕಂಡುಬಂದಿಲ್ಲ. ದಯವಿಟ್ಟು ರಾಜ್ಯ ಮತ್ತು ಜಿಲ್ಲೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ.",
-    selectState: "ರಾಜ್ಯ ಆಯ್ಕೆಮಾಡಿ",
-    selectDistrict: "ಜಿಲ್ಲೆ ಆಯ್ಕೆಮಾಡಿ",
+
+    searchingPin: "ಸ್ಥಳ ಹುಡುಕಲಾಗುತ್ತಿದೆ...",
+    pinFound: "ಸ್ಥಳ ಕಂಡುಬಂದಿದೆ",
+    invalidPin: "ಪಿನ್ ಕೋಡ್ ಕಂಡುಬಂದಿಲ್ಲ.",
+    loadingStates: "ರಾಜ್ಯಗಳನ್ನು ಲೋಡ್ ಮಾಡಲಾಗುತ್ತಿದೆ...",
+    loadingDistricts: "ಜಿಲ್ಲೆಗಳನ್ನು ಲೋಡ್ ಮಾಡಲಾಗುತ್ತಿದೆ...",
+    noSuggestions: "ಯಾವುದೇ ಹೊಂದಾಣಿಕೆಯ ಸಲಹೆಗಳಿಲ್ಲ.",
+    selectSuggestion: "ಸಲಹೆಯಿಂದ ಆಯ್ಕೆಮಾಡಿ",
+
+    enterPinFirst: "ಮೊದಲು ಪಿನ್ ಕೋಡ್ ನಮೂದಿಸಿ",
+    districtAfterState: "ಜಿಲ್ಲೆಗಳನ್ನು ನೋಡಲು ರಾಜ್ಯ ಆಯ್ಕೆಮಾಡಿ",
+    locationHelp:
+      "ಮೊದಲು ಪಿನ್ ಕೋಡ್ ನಮೂದಿಸಿ. ರಾಜ್ಯ, ಜಿಲ್ಲೆ ಮತ್ತು ಹತ್ತಿರದ ಸ್ಥಳಗಳು ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಸೂಚಿಸಲಾಗುತ್ತದೆ.",
   },
 
   ml: {
@@ -270,25 +355,35 @@ const translations: Record<LanguageCode, Translation> = {
     fullNamePlaceholder: "നിങ്ങളുടെ പൂർണ്ണ പേര് നൽകുക",
     mobile: "മൊബൈൽ നമ്പർ",
     mobilePlaceholder: "9876543210",
-    locationDetails: "സ്ഥല വിവരങ്ങൾ",
+
     pinCode: "പിൻ കോഡ്",
     pinCodePlaceholder: "6 അക്ക പിൻ കോഡ് നൽകുക",
-    state: "സംസ്ഥാനം",
-    statePlaceholder: "സംസ്ഥാനം ടൈപ്പ് ചെയ്യുക അല്ലെങ്കിൽ തിരഞ്ഞെടുക്കുക",
+
+    village: "ഗ്രാമം / നഗരം / ടൗൺ",
+    villagePlaceholder: "ഗ്രാമം, നഗരം അല്ലെങ്കിൽ ടൗൺ നൽകുക",
+
     district: "ജില്ല",
-    districtPlaceholder: "ജില്ല ടൈപ്പ് ചെയ്യുക അല്ലെങ്കിൽ തിരഞ്ഞെടുക്കുക",
-    villageCityTown: "ഗ്രാമം / നഗരം / പട്ടണം",
-    villageCityTownPlaceholder:
-      "ഗ്രാമം, നഗരം അല്ലെങ്കിൽ പട്ടണത്തിന്റെ പേര് നൽകുക",
+    districtPlaceholder: "ജില്ലയുടെ പേര് നൽകുക",
+
+    state: "സംസ്ഥാനം",
+    statePlaceholder: "സംസ്ഥാനത്തിന്റെ പേര് നൽകുക",
+
     save: "പ്രൊഫൈൽ സേവ് ചെയ്യുക",
     back: "ഡാഷ്ബോർഡിലേക്ക് മടങ്ങുക",
     saved: "പ്രൊഫൈൽ വിജയകരമായി സേവ് ചെയ്തു!",
-    fetchingLocation: "നിങ്ങളുടെ സ്ഥലം കണ്ടെത്തുന്നു...",
-    locationFound: "പിൻ കോഡ് ഉപയോഗിച്ച് സ്ഥലം കണ്ടെത്തി",
-    locationNotFound:
-      "പിൻ കോഡ് സ്ഥലം കണ്ടെത്താനായില്ല. സംസ്ഥാനം, ജില്ല എന്നിവ തിരഞ്ഞെടുക്കുക.",
-    selectState: "സംസ്ഥാനം തിരഞ്ഞെടുക്കുക",
-    selectDistrict: "ജില്ല തിരഞ്ഞെടുക്കുക",
+
+    searchingPin: "സ്ഥലം കണ്ടെത്തുന്നു...",
+    pinFound: "സ്ഥലം കണ്ടെത്തി",
+    invalidPin: "പിൻ കോഡ് കണ്ടെത്താനായില്ല.",
+    loadingStates: "സംസ്ഥാനങ്ങൾ ലോഡ് ചെയ്യുന്നു...",
+    loadingDistricts: "ജില്ലകൾ ലോഡ് ചെയ്യുന്നു...",
+    noSuggestions: "പൊരുത്തപ്പെടുന്ന നിർദ്ദേശങ്ങളില്ല.",
+    selectSuggestion: "നിർദ്ദേശത്തിൽ നിന്ന് തിരഞ്ഞെടുക്കുക",
+
+    enterPinFirst: "ആദ്യം പിൻ കോഡ് നൽകുക",
+    districtAfterState: "ജില്ലകൾ കാണാൻ സംസ്ഥാനം തിരഞ്ഞെടുക്കുക",
+    locationHelp:
+      "ആദ്യം പിൻ കോഡ് നൽകുക. സംസ്ഥാനം, ജില്ല, സമീപ പ്രദേശങ്ങൾ എന്നിവ സ്വയം നിർദ്ദേശിക്കും.",
   },
 
   pa: {
@@ -298,25 +393,35 @@ const translations: Record<LanguageCode, Translation> = {
     fullNamePlaceholder: "ਆਪਣਾ ਪੂਰਾ ਨਾਮ ਦਰਜ ਕਰੋ",
     mobile: "ਮੋਬਾਈਲ ਨੰਬਰ",
     mobilePlaceholder: "9876543210",
-    locationDetails: "ਸਥਾਨ ਦੀ ਜਾਣਕਾਰੀ",
+
     pinCode: "ਪਿਨ ਕੋਡ",
     pinCodePlaceholder: "6 ਅੰਕਾਂ ਦਾ ਪਿਨ ਕੋਡ ਦਰਜ ਕਰੋ",
-    state: "ਰਾਜ",
-    statePlaceholder: "ਰਾਜ ਟਾਈਪ ਜਾਂ ਚੁਣੋ",
+
+    village: "ਪਿੰਡ / ਸ਼ਹਿਰ / ਕਸਬਾ",
+    villagePlaceholder: "ਪਿੰਡ, ਸ਼ਹਿਰ ਜਾਂ ਕਸਬਾ ਦਰਜ ਕਰੋ",
+
     district: "ਜ਼ਿਲ੍ਹਾ",
-    districtPlaceholder: "ਜ਼ਿਲ੍ਹਾ ਟਾਈਪ ਜਾਂ ਚੁਣੋ",
-    villageCityTown: "ਪਿੰਡ / ਸ਼ਹਿਰ / ਕਸਬਾ",
-    villageCityTownPlaceholder:
-      "ਪਿੰਡ, ਸ਼ਹਿਰ ਜਾਂ ਕਸਬੇ ਦਾ ਨਾਮ ਦਰਜ ਕਰੋ",
+    districtPlaceholder: "ਜ਼ਿਲ੍ਹੇ ਦਾ ਨਾਮ ਦਰਜ ਕਰੋ",
+
+    state: "ਰਾਜ",
+    statePlaceholder: "ਰਾਜ ਦਾ ਨਾਮ ਦਰਜ ਕਰੋ",
+
     save: "ਪ੍ਰੋਫਾਈਲ ਸੇਵ ਕਰੋ",
     back: "ਡੈਸ਼ਬੋਰਡ ਤੇ ਵਾਪਸ ਜਾਓ",
     saved: "ਪ੍ਰੋਫਾਈਲ ਸਫਲਤਾਪੂਰਵਕ ਸੇਵ ਹੋ ਗਈ!",
-    fetchingLocation: "ਤੁਹਾਡਾ ਸਥਾਨ ਲੱਭਿਆ ਜਾ ਰਿਹਾ ਹੈ...",
-    locationFound: "ਪਿਨ ਕੋਡ ਤੋਂ ਸਥਾਨ ਮਿਲ ਗਿਆ",
-    locationNotFound:
-      "ਪਿਨ ਕੋਡ ਦਾ ਸਥਾਨ ਨਹੀਂ ਮਿਲਿਆ। ਰਾਜ ਅਤੇ ਜ਼ਿਲ੍ਹਾ ਚੁਣੋ।",
-    selectState: "ਰਾਜ ਚੁਣੋ",
-    selectDistrict: "ਜ਼ਿਲ੍ਹਾ ਚੁਣੋ",
+
+    searchingPin: "ਸਥਾਨ ਲੱਭਿਆ ਜਾ ਰਿਹਾ ਹੈ...",
+    pinFound: "ਸਥਾਨ ਮਿਲ ਗਿਆ",
+    invalidPin: "ਪਿਨ ਕੋਡ ਨਹੀਂ ਮਿਲਿਆ।",
+    loadingStates: "ਰਾਜ ਲੋਡ ਹੋ ਰਹੇ ਹਨ...",
+    loadingDistricts: "ਜ਼ਿਲ੍ਹੇ ਲੋਡ ਹੋ ਰਹੇ ਹਨ...",
+    noSuggestions: "ਕੋਈ ਮਿਲਦਾ ਸੁਝਾਅ ਨਹੀਂ ਮਿਲਿਆ।",
+    selectSuggestion: "ਸੁਝਾਅ ਵਿੱਚੋਂ ਚੁਣੋ",
+
+    enterPinFirst: "ਪਹਿਲਾਂ ਪਿਨ ਕੋਡ ਦਰਜ ਕਰੋ",
+    districtAfterState: "ਜ਼ਿਲ੍ਹੇ ਦੇਖਣ ਲਈ ਰਾਜ ਚੁਣੋ",
+    locationHelp:
+      "ਪਹਿਲਾਂ ਪਿਨ ਕੋਡ ਦਰਜ ਕਰੋ। ਰਾਜ, ਜ਼ਿਲ੍ਹਾ ਅਤੇ ਨੇੜਲੇ ਸਥਾਨ ਆਪਣੇ ਆਪ ਸੁਝਾਏ ਜਾਣਗੇ।",
   },
 
   or: {
@@ -326,24 +431,35 @@ const translations: Record<LanguageCode, Translation> = {
     fullNamePlaceholder: "ଆପଣଙ୍କ ପୂର୍ଣ୍ଣ ନାମ ଦିଅନ୍ତୁ",
     mobile: "ମୋବାଇଲ୍ ନମ୍ବର",
     mobilePlaceholder: "9876543210",
-    locationDetails: "ସ୍ଥାନ ବିବରଣୀ",
+
     pinCode: "ପିନ୍ କୋଡ୍",
     pinCodePlaceholder: "6 ଅଙ୍କର ପିନ୍ କୋଡ୍ ଦିଅନ୍ତୁ",
-    state: "ରାଜ୍ୟ",
-    statePlaceholder: "ରାଜ୍ୟ ଲେଖନ୍ତୁ କିମ୍ବା ବାଛନ୍ତୁ",
+
+    village: "ଗାଁ / ସହର / ଟାଉନ୍",
+    villagePlaceholder: "ଗାଁ, ସହର କିମ୍ବା ଟାଉନ୍ ଦିଅନ୍ତୁ",
+
     district: "ଜିଲ୍ଲା",
-    districtPlaceholder: "ଜିଲ୍ଲା ଲେଖନ୍ତୁ କିମ୍ବା ବାଛନ୍ତୁ",
-    villageCityTown: "ଗାଁ / ସହର / ଟାଉନ",
-    villageCityTownPlaceholder: "ଗାଁ, ସହର କିମ୍ବା ଟାଉନର ନାମ ଦିଅନ୍ତୁ",
+    districtPlaceholder: "ଜିଲ୍ଲାର ନାମ ଦିଅନ୍ତୁ",
+
+    state: "ରାଜ୍ୟ",
+    statePlaceholder: "ରାଜ୍ୟର ନାମ ଦିଅନ୍ତୁ",
+
     save: "ପ୍ରୋଫାଇଲ୍ ସେଭ୍ କରନ୍ତୁ",
     back: "ଡ୍ୟାସବୋର୍ଡକୁ ଫେରନ୍ତୁ",
     saved: "ପ୍ରୋଫାଇଲ୍ ସଫଳତାର ସହ ସେଭ୍ ହୋଇଛି!",
-    fetchingLocation: "ଆପଣଙ୍କ ସ୍ଥାନ ଖୋଜାଯାଉଛି...",
-    locationFound: "ପିନ୍ କୋଡ୍ ଦ୍ୱାରା ସ୍ଥାନ ମିଳିଲା",
-    locationNotFound:
-      "ପିନ୍ କୋଡ୍ ସ୍ଥାନ ମିଳିଲା ନାହିଁ। ରାଜ୍ୟ ଏବଂ ଜିଲ୍ଲା ବାଛନ୍ତୁ।",
-    selectState: "ରାଜ୍ୟ ବାଛନ୍ତୁ",
-    selectDistrict: "ଜିଲ୍ଲା ବାଛନ୍ତୁ",
+
+    searchingPin: "ସ୍ଥାନ ଖୋଜାଯାଉଛି...",
+    pinFound: "ସ୍ଥାନ ମିଳିଲା",
+    invalidPin: "ପିନ୍ କୋଡ୍ ମିଳିଲା ନାହିଁ।",
+    loadingStates: "ରାଜ୍ୟ ଲୋଡ୍ ହେଉଛି...",
+    loadingDistricts: "ଜିଲ୍ଲା ଲୋଡ୍ ହେଉଛି...",
+    noSuggestions: "କୌଣସି ମେଳ ମିଳିଲା ନାହିଁ।",
+    selectSuggestion: "ପରାମର୍ଶରୁ ବାଛନ୍ତୁ",
+
+    enterPinFirst: "ପ୍ରଥମେ ପିନ୍ କୋଡ୍ ଦିଅନ୍ତୁ",
+    districtAfterState: "ଜିଲ୍ଲା ଦେଖିବା ପାଇଁ ରାଜ୍ୟ ବାଛନ୍ତୁ",
+    locationHelp:
+      "ପ୍ରଥମେ ପିନ୍ କୋଡ୍ ଦିଅନ୍ତୁ। ରାଜ୍ୟ, ଜିଲ୍ଲା ଏବଂ ନିକଟସ୍ଥ ସ୍ଥାନ ସ୍ୱୟଂଚାଳିତ ଭାବେ ସୁପାରିଶ ହେବ।",
   },
 
   as: {
@@ -353,24 +469,35 @@ const translations: Record<LanguageCode, Translation> = {
     fullNamePlaceholder: "আপোনাৰ সম্পূৰ্ণ নাম লিখক",
     mobile: "ম'বাইল নম্বৰ",
     mobilePlaceholder: "9876543210",
-    locationDetails: "স্থানৰ তথ্য",
+
     pinCode: "পিন কোড",
     pinCodePlaceholder: "6 সংখ্যাৰ পিন কোড লিখক",
-    state: "ৰাজ্য",
-    statePlaceholder: "ৰাজ্য লিখক বা বাছনি কৰক",
+
+    village: "গাঁও / চহৰ / টাউন",
+    villagePlaceholder: "গাঁও, চহৰ বা টাউন লিখক",
+
     district: "জিলা",
-    districtPlaceholder: "জিলা লিখক বা বাছনি কৰক",
-    villageCityTown: "গাঁও / চহৰ / নগৰ",
-    villageCityTownPlaceholder: "গাঁও, চহৰ বা নগৰৰ নাম লিখক",
+    districtPlaceholder: "জিলাৰ নাম লিখক",
+
+    state: "ৰাজ্য",
+    statePlaceholder: "ৰাজ্যৰ নাম লিখক",
+
     save: "প্ৰফাইল সংৰক্ষণ কৰক",
     back: "ডেশ্বব'ৰ্ডলৈ উভতি যাওক",
     saved: "প্ৰফাইল সফলভাৱে সংৰক্ষণ কৰা হৈছে!",
-    fetchingLocation: "আপোনাৰ স্থান বিচৰা হৈছে...",
-    locationFound: "পিন কোডৰ পৰা স্থান পোৱা গৈছে",
-    locationNotFound:
-      "পিন কোডৰ স্থান পোৱা নগ'ল। ৰাজ্য আৰু জিলা বাছনি কৰক।",
-    selectState: "ৰাজ্য বাছনি কৰক",
-    selectDistrict: "জিলা বাছনি কৰক",
+
+    searchingPin: "স্থান বিচৰা হৈছে...",
+    pinFound: "স্থান পোৱা গ'ল",
+    invalidPin: "পিন কোড পোৱা নগ'ল।",
+    loadingStates: "ৰাজ্যসমূহ লোড হৈ আছে...",
+    loadingDistricts: "জিলাসমূহ লোড হৈ আছে...",
+    noSuggestions: "কোনো মিল থকা পৰামৰ্শ পোৱা নগ'ল।",
+    selectSuggestion: "পৰামৰ্শৰ পৰা বাছনি কৰক",
+
+    enterPinFirst: "প্ৰথমে পিন কোড দিয়ক",
+    districtAfterState: "জিলা চাবলৈ ৰাজ্য বাছনি কৰক",
+    locationHelp:
+      "প্ৰথমে পিন কোড দিয়ক। ৰাজ্য, জিলা আৰু ওচৰৰ স্থানসমূহ স্বয়ংক্ৰিয়ভাৱে পৰামৰ্শ দিয়া হ'ব।",
   },
 
   ur: {
@@ -380,918 +507,37 @@ const translations: Record<LanguageCode, Translation> = {
     fullNamePlaceholder: "اپنا پورا نام درج کریں",
     mobile: "موبائل نمبر",
     mobilePlaceholder: "9876543210",
-    locationDetails: "مقام کی معلومات",
+
     pinCode: "پن کوڈ",
     pinCodePlaceholder: "6 ہندسوں کا پن کوڈ درج کریں",
-    state: "ریاست",
-    statePlaceholder: "ریاست لکھیں یا منتخب کریں",
+
+    village: "گاؤں / شہر / قصبہ",
+    villagePlaceholder: "گاؤں، شہر یا قصبہ درج کریں",
+
     district: "ضلع",
-    districtPlaceholder: "ضلع لکھیں یا منتخب کریں",
-    villageCityTown: "گاؤں / شہر / قصبہ",
-    villageCityTownPlaceholder: "گاؤں، شہر یا قصبے کا نام درج کریں",
+    districtPlaceholder: "ضلع کا نام درج کریں",
+
+    state: "ریاست",
+    statePlaceholder: "ریاست کا نام درج کریں",
+
     save: "پروفائل محفوظ کریں",
     back: "ڈیش بورڈ پر واپس جائیں",
     saved: "پروفائل کامیابی سے محفوظ ہو گیا!",
-    fetchingLocation: "آپ کا مقام تلاش کیا جا رہا ہے...",
-    locationFound: "پن کوڈ سے مقام مل گیا",
-    locationNotFound:
-      "پن کوڈ کا مقام نہیں ملا۔ براہ کرم ریاست اور ضلع منتخب کریں۔",
-    selectState: "ریاست منتخب کریں",
-    selectDistrict: "ضلع منتخب کریں",
+
+    searchingPin: "مقام تلاش کیا جا رہا ہے...",
+    pinFound: "مقام مل گیا",
+    invalidPin: "پن کوڈ نہیں ملا۔",
+    loadingStates: "ریاستیں لوڈ ہو رہی ہیں...",
+    loadingDistricts: "اضلاع لوڈ ہو رہے ہیں...",
+    noSuggestions: "کوئی مماثل تجویز نہیں ملی۔",
+    selectSuggestion: "تجویز میں سے منتخب کریں",
+
+    enterPinFirst: "پہلے پن کوڈ درج کریں",
+    districtAfterState: "اضلاع دیکھنے کے لیے ریاست منتخب کریں",
+    locationHelp:
+      "پہلے پن کوڈ درج کریں۔ ریاست، ضلع اور قریبی مقامات خودکار طور پر تجویز کیے جائیں گے۔",
   },
 };
-
-/*
-  All Indian States + Union Territories.
-
-  Districts are intentionally kept in a large local dataset so
-  district suggestions work even when the PIN API is unavailable.
-
-  PIN lookup will still provide the exact state/district whenever
-  the external PIN API returns it.
-*/
-const INDIA_LOCATIONS: Record<string, string[]> = {
-  "Andhra Pradesh": [
-    "Alluri Sitharama Raju",
-    "Anakapalli",
-    "Ananthapuramu",
-    "Annamayya",
-    "Bapatla",
-    "Chittoor",
-    "Dr. B. R. Ambedkar Konaseema",
-    "East Godavari",
-    "Eluru",
-    "Guntur",
-    "Kakinada",
-    "Krishna",
-    "Kurnool",
-    "Nandyal",
-    "NTR",
-    "Palnadu",
-    "Parvathipuram Manyam",
-    "Prakasam",
-    "SPSR Nellore",
-    "Sri Sathya Sai",
-    "Srikakulam",
-    "Tirupati",
-    "Visakhapatnam",
-    "Vizianagaram",
-    "West Godavari",
-    "YSR Kadapa",
-  ],
-
-  "Arunachal Pradesh": [
-    "Anjaw",
-    "Bichom",
-    "Changlang",
-    "Dibang Valley",
-    "East Kameng",
-    "East Siang",
-    "Itanagar Capital Complex",
-    "Kamle",
-    "Keyi Panyor",
-    "Kra Daadi",
-    "Kurung Kumey",
-    "Lepa Rada",
-    "Lohit",
-    "Longding",
-    "Lower Dibang Valley",
-    "Lower Siang",
-    "Lower Subansiri",
-    "Namsai",
-    "Pakke Kessang",
-    "Papum Pare",
-    "Shi Yomi",
-    "Siang",
-    "Tawang",
-    "Tirap",
-    "Upper Siang",
-    "Upper Subansiri",
-    "West Kameng",
-    "West Siang",
-  ],
-
-  Assam: [
-    "Baksa",
-    "Bajali",
-    "Barpeta",
-    "Biswanath",
-    "Bongaigaon",
-    "Cachar",
-    "Charaideo",
-    "Chirang",
-    "Darrang",
-    "Dhemaji",
-    "Dhubri",
-    "Dibrugarh",
-    "Dima Hasao",
-    "Goalpara",
-    "Golaghat",
-    "Hailakandi",
-    "Hojai",
-    "Jorhat",
-    "Kamrup",
-    "Kamrup Metropolitan",
-    "Karbi Anglong",
-    "Karimganj",
-    "Kokrajhar",
-    "Lakhimpur",
-    "Majuli",
-    "Morigaon",
-    "Nagaon",
-    "Nalbari",
-    "Sivasagar",
-    "Sonitpur",
-    "South Salmara-Mankachar",
-    "Tamulpur",
-    "Tinsukia",
-    "Udalguri",
-    "West Karbi Anglong",
-  ],
-
-  Bihar: [
-    "Araria",
-    "Arwal",
-    "Aurangabad",
-    "Banka",
-    "Begusarai",
-    "Bhagalpur",
-    "Bhojpur",
-    "Buxar",
-    "Darbhanga",
-    "East Champaran",
-    "Gaya",
-    "Gopalganj",
-    "Jamui",
-    "Jehanabad",
-    "Kaimur",
-    "Katihar",
-    "Khagaria",
-    "Kishanganj",
-    "Lakhisarai",
-    "Madhepura",
-    "Madhubani",
-    "Munger",
-    "Muzaffarpur",
-    "Nalanda",
-    "Nawada",
-    "Patna",
-    "Purnia",
-    "Rohtas",
-    "Saharsa",
-    "Samastipur",
-    "Saran",
-    "Sheikhpura",
-    "Sheohar",
-    "Sitamarhi",
-    "Siwan",
-    "Supaul",
-    "Vaishali",
-    "West Champaran",
-  ],
-
-  Chhattisgarh: [
-    "Balod",
-    "Baloda Bazar",
-    "Balrampur-Ramanujganj",
-    "Bastar",
-    "Bemetara",
-    "Bijapur",
-    "Bilaspur",
-    "Dantewada",
-    "Dhamtari",
-    "Durg",
-    "Gariaband",
-    "Gaurela-Pendra-Marwahi",
-    "Janjgir-Champa",
-    "Jashpur",
-    "Kabirdham",
-    "Kanker",
-    "Khairagarh-Chhuikhadan-Gandai",
-    "Kondagaon",
-    "Korba",
-    "Korea",
-    "Mahasamund",
-    "Manendragarh-Chirmiri-Bharatpur",
-    "Mohla-Manpur-Ambagarh Chowki",
-    "Mungeli",
-    "Narayanpur",
-    "Raigarh",
-    "Raipur",
-    "Rajnandgaon",
-    "Sakti",
-    "Sarangarh-Bilaigarh",
-    "Sukma",
-    "Surajpur",
-    "Surguja",
-  ],
-
-  Goa: ["North Goa", "South Goa"],
-
-  Gujarat: [
-    "Ahmedabad",
-    "Amreli",
-    "Anand",
-    "Aravalli",
-    "Banaskantha",
-    "Bharuch",
-    "Bhavnagar",
-    "Botad",
-    "Chhota Udaipur",
-    "Dahod",
-    "Dang",
-    "Devbhumi Dwarka",
-    "Gandhinagar",
-    "Gir Somnath",
-    "Jamnagar",
-    "Junagadh",
-    "Kachchh",
-    "Kheda",
-    "Mahisagar",
-    "Mehsana",
-    "Morbi",
-    "Narmada",
-    "Navsari",
-    "Panchmahal",
-    "Patan",
-    "Porbandar",
-    "Rajkot",
-    "Sabarkantha",
-    "Surat",
-    "Surendranagar",
-    "Tapi",
-    "Vadodara",
-    "Valsad",
-  ],
-
-  Haryana: [
-    "Ambala",
-    "Bhiwani",
-    "Charkhi Dadri",
-    "Faridabad",
-    "Fatehabad",
-    "Gurugram",
-    "Hisar",
-    "Jhajjar",
-    "Jind",
-    "Kaithal",
-    "Karnal",
-    "Kurukshetra",
-    "Mahendragarh",
-    "Nuh",
-    "Palwal",
-    "Panchkula",
-    "Panipat",
-    "Rewari",
-    "Rohtak",
-    "Sirsa",
-    "Sonipat",
-    "Yamunanagar",
-  ],
-
-  "Himachal Pradesh": [
-    "Bilaspur",
-    "Chamba",
-    "Hamirpur",
-    "Kangra",
-    "Kinnaur",
-    "Kullu",
-    "Lahaul and Spiti",
-    "Mandi",
-    "Shimla",
-    "Sirmaur",
-    "Solan",
-    "Una",
-  ],
-
-  Jharkhand: [
-    "Bokaro",
-    "Chatra",
-    "Deoghar",
-    "Dhanbad",
-    "Dumka",
-    "East Singhbhum",
-    "Garhwa",
-    "Giridih",
-    "Godda",
-    "Gumla",
-    "Hazaribagh",
-    "Jamtara",
-    "Khunti",
-    "Koderma",
-    "Latehar",
-    "Lohardaga",
-    "Pakur",
-    "Palamu",
-    "Ramgarh",
-    "Ranchi",
-    "Sahibganj",
-    "Seraikela Kharsawan",
-    "Simdega",
-    "West Singhbhum",
-  ],
-
-  Karnataka: [
-    "Bagalkot",
-    "Ballari",
-    "Belagavi",
-    "Bengaluru Rural",
-    "Bengaluru Urban",
-    "Bidar",
-    "Chamarajanagar",
-    "Chikkaballapur",
-    "Chikkamagaluru",
-    "Chitradurga",
-    "Dakshina Kannada",
-    "Davanagere",
-    "Dharwad",
-    "Gadag",
-    "Hassan",
-    "Haveri",
-    "Kalaburagi",
-    "Kodagu",
-    "Kolar",
-    "Koppal",
-    "Mandya",
-    "Mysuru",
-    "Raichur",
-    "Ramanagara",
-    "Shivamogga",
-    "Tumakuru",
-    "Udupi",
-    "Uttara Kannada",
-    "Vijayanagara",
-    "Vijayapura",
-    "Yadgir",
-  ],
-
-  Kerala: [
-    "Alappuzha",
-    "Ernakulam",
-    "Idukki",
-    "Kannur",
-    "Kasaragod",
-    "Kollam",
-    "Kottayam",
-    "Kozhikode",
-    "Malappuram",
-    "Palakkad",
-    "Pathanamthitta",
-    "Thiruvananthapuram",
-    "Thrissur",
-    "Wayanad",
-  ],
-
-  "Madhya Pradesh": [
-    "Agar Malwa",
-    "Alirajpur",
-    "Anuppur",
-    "Ashoknagar",
-    "Balaghat",
-    "Barwani",
-    "Betul",
-    "Bhind",
-    "Bhopal",
-    "Burhanpur",
-    "Chhatarpur",
-    "Chhindwara",
-    "Damoh",
-    "Datia",
-    "Dewas",
-    "Dhar",
-    "Dindori",
-    "Guna",
-    "Gwalior",
-    "Harda",
-    "Indore",
-    "Jabalpur",
-    "Jhabua",
-    "Katni",
-    "Khandwa",
-    "Khargone",
-    "Maihar",
-    "Mandla",
-    "Mandsaur",
-    "Mauganj",
-    "Morena",
-    "Narmadapuram",
-    "Narsinghpur",
-    "Neemuch",
-    "Niwari",
-    "Panna",
-    "Pandhurna",
-    "Raisen",
-    "Rajgarh",
-    "Ratlam",
-    "Rewa",
-    "Sagar",
-    "Satna",
-    "Sehore",
-    "Seoni",
-    "Shahdol",
-    "Shajapur",
-    "Sheopur",
-    "Shivpuri",
-    "Sidhi",
-    "Singrauli",
-    "Tikamgarh",
-    "Ujjain",
-    "Umaria",
-    "Vidisha",
-  ],
-
-  Maharashtra: [
-    "Ahmednagar",
-    "Akola",
-    "Amravati",
-    "Beed",
-    "Bhandara",
-    "Buldhana",
-    "Chandrapur",
-    "Chhatrapati Sambhajinagar",
-    "Dharashiv",
-    "Dhule",
-    "Gadchiroli",
-    "Gondia",
-    "Hingoli",
-    "Jalgaon",
-    "Jalna",
-    "Kolhapur",
-    "Latur",
-    "Mumbai City",
-    "Mumbai Suburban",
-    "Nagpur",
-    "Nanded",
-    "Nandurbar",
-    "Nashik",
-    "Palghar",
-    "Parbhani",
-    "Pune",
-    "Raigad",
-    "Ratnagiri",
-    "Sangli",
-    "Satara",
-    "Sindhudurg",
-    "Solapur",
-    "Thane",
-    "Wardha",
-    "Washim",
-    "Yavatmal",
-  ],
-
-  Manipur: [
-    "Bishnupur",
-    "Chandel",
-    "Churachandpur",
-    "Imphal East",
-    "Imphal West",
-    "Jiribam",
-    "Kakching",
-    "Kamjong",
-    "Kangpokpi",
-    "Noney",
-    "Pherzawl",
-    "Senapati",
-    "Tamenglong",
-    "Tengnoupal",
-    "Thoubal",
-    "Ukhrul",
-  ],
-
-  Meghalaya: [
-    "East Garo Hills",
-    "East Jaintia Hills",
-    "East Khasi Hills",
-    "Eastern West Khasi Hills",
-    "North Garo Hills",
-    "Ri-Bhoi",
-    "South Garo Hills",
-    "South West Garo Hills",
-    "South West Khasi Hills",
-    "West Garo Hills",
-    "West Jaintia Hills",
-    "West Khasi Hills",
-  ],
-
-  Mizoram: [
-    "Aizawl",
-    "Champhai",
-    "Hnahthial",
-    "Khawzawl",
-    "Kolasib",
-    "Lawngtlai",
-    "Lunglei",
-    "Mamit",
-    "Saiha",
-    "Saitual",
-    "Serchhip",
-  ],
-
-  Nagaland: [
-    "Chumoukedima",
-    "Dimapur",
-    "Kiphire",
-    "Kohima",
-    "Longleng",
-    "Mokokchung",
-    "Mon",
-    "Niuland",
-    "Noklak",
-    "Peren",
-    "Phek",
-    "Shamator",
-    "Tuensang",
-    "Tseminyu",
-    "Wokha",
-    "Zunheboto",
-  ],
-
-  Odisha: [
-    "Angul",
-    "Balangir",
-    "Balasore",
-    "Bargarh",
-    "Bhadrak",
-    "Boudh",
-    "Cuttack",
-    "Deogarh",
-    "Dhenkanal",
-    "Gajapati",
-    "Ganjam",
-    "Jagatsinghpur",
-    "Jajpur",
-    "Jharsuguda",
-    "Kalahandi",
-    "Kandhamal",
-    "Kendrapara",
-    "Kendujhar",
-    "Khordha",
-    "Koraput",
-    "Malkangiri",
-    "Mayurbhanj",
-    "Nabarangpur",
-    "Nayagarh",
-    "Nuapada",
-    "Puri",
-    "Rayagada",
-    "Sambalpur",
-    "Subarnapur",
-    "Sundargarh",
-  ],
-
-  Punjab: [
-    "Amritsar",
-    "Barnala",
-    "Bathinda",
-    "Faridkot",
-    "Fatehgarh Sahib",
-    "Fazilka",
-    "Ferozepur",
-    "Gurdaspur",
-    "Hoshiarpur",
-    "Jalandhar",
-    "Kapurthala",
-    "Ludhiana",
-    "Malerkotla",
-    "Mansa",
-    "Moga",
-    "Pathankot",
-    "Patiala",
-    "Rupnagar",
-    "Sahibzada Ajit Singh Nagar",
-    "Sangrur",
-    "Shaheed Bhagat Singh Nagar",
-    "Sri Muktsar Sahib",
-    "Tarn Taran",
-  ],
-
-  Rajasthan: [
-    "Ajmer",
-    "Alwar",
-    "Anupgarh",
-    "Balotra",
-    "Banswara",
-    "Baran",
-    "Barmer",
-    "Beawar",
-    "Bharatpur",
-    "Bhilwara",
-    "Bikaner",
-    "Bundi",
-    "Chittorgarh",
-    "Churu",
-    "Dausa",
-    "Deeg",
-    "Dholpur",
-    "Didwana-Kuchaman",
-    "Dudu",
-    "Dungarpur",
-    "Gangapur City",
-    "Hanumangarh",
-    "Jaipur",
-    "Jaisalmer",
-    "Jalore",
-    "Jhalawar",
-    "Jhunjhunu",
-    "Jodhpur",
-    "Karauli",
-    "Kekri",
-    "Khairthal-Tijara",
-    "Kota",
-    "Kotputli-Behror",
-    "Nagaur",
-    "Neem Ka Thana",
-    "Pali",
-    "Phalodi",
-    "Pratapgarh",
-    "Rajsamand",
-    "Salumbar",
-    "Sawai Madhopur",
-    "Shahpura",
-    "Sikar",
-    "Sirohi",
-    "Sri Ganganagar",
-    "Tonk",
-    "Udaipur",
-  ],
-
-  Sikkim: [
-    "Gangtok",
-    "Gyalshing",
-    "Mangan",
-    "Namchi",
-    "Pakyong",
-    "Soreng",
-  ],
-
-  "Tamil Nadu": [
-    "Ariyalur",
-    "Chengalpattu",
-    "Chennai",
-    "Coimbatore",
-    "Cuddalore",
-    "Dharmapuri",
-    "Dindigul",
-    "Erode",
-    "Kallakurichi",
-    "Kancheepuram",
-    "Karur",
-    "Krishnagiri",
-    "Madurai",
-    "Mayiladuthurai",
-    "Nagapattinam",
-    "Namakkal",
-    "Nilgiris",
-    "Perambalur",
-    "Pudukkottai",
-    "Ramanathapuram",
-    "Ranipet",
-    "Salem",
-    "Sivaganga",
-    "Tenkasi",
-    "Thanjavur",
-    "Theni",
-    "Thoothukudi",
-    "Tiruchirappalli",
-    "Tirunelveli",
-    "Tirupathur",
-    "Tiruppur",
-    "Tiruvallur",
-    "Tiruvannamalai",
-    "Tiruvarur",
-    "Vellore",
-    "Viluppuram",
-    "Virudhunagar",
-  ],
-
-  Telangana: [
-    "Adilabad",
-    "Bhadradri Kothagudem",
-    "Hanamkonda",
-    "Hyderabad",
-    "Jagtial",
-    "Jangaon",
-    "Jayashankar Bhupalpally",
-    "Jogulamba Gadwal",
-    "Kamareddy",
-    "Karimnagar",
-    "Khammam",
-    "Komaram Bheem Asifabad",
-    "Mahabubabad",
-    "Mahbubnagar",
-    "Mancherial",
-    "Medak",
-    "Medchal-Malkajgiri",
-    "Mulugu",
-    "Nagarkurnool",
-    "Nalgonda",
-    "Narayanpet",
-    "Nirmal",
-    "Nizamabad",
-    "Peddapalli",
-    "Rajanna Sircilla",
-    "Rangareddy",
-    "Sangareddy",
-    "Siddipet",
-    "Suryapet",
-    "Vikarabad",
-    "Wanaparthy",
-    "Warangal",
-    "Yadadri Bhuvanagiri",
-  ],
-
-  Tripura: [
-    "Dhalai",
-    "Gomati",
-    "Khowai",
-    "North Tripura",
-    "Sepahijala",
-    "South Tripura",
-    "Unakoti",
-    "West Tripura",
-  ],
-
-  "Uttar Pradesh": [
-    "Agra",
-    "Aligarh",
-    "Ambedkar Nagar",
-    "Amethi",
-    "Amroha",
-    "Auraiya",
-    "Ayodhya",
-    "Azamgarh",
-    "Baghpat",
-    "Bahraich",
-    "Ballia",
-    "Balrampur",
-    "Banda",
-    "Barabanki",
-    "Bareilly",
-    "Basti",
-    "Bhadohi",
-    "Bijnor",
-    "Budaun",
-    "Bulandshahr",
-    "Chandauli",
-    "Chitrakoot",
-    "Deoria",
-    "Etah",
-    "Etawah",
-    "Farrukhabad",
-    "Fatehpur",
-    "Firozabad",
-    "Gautam Buddha Nagar",
-    "Ghaziabad",
-    "Ghazipur",
-    "Gonda",
-    "Gorakhpur",
-    "Hamirpur",
-    "Hapur",
-    "Hardoi",
-    "Hathras",
-    "Jalaun",
-    "Jaunpur",
-    "Jhansi",
-    "Kannauj",
-    "Kanpur Dehat",
-    "Kanpur Nagar",
-    "Kasganj",
-    "Kaushambi",
-    "Kheri",
-    "Kushinagar",
-    "Lalitpur",
-    "Lucknow",
-    "Maharajganj",
-    "Mahoba",
-    "Mainpuri",
-    "Mathura",
-    "Mau",
-    "Meerut",
-    "Mirzapur",
-    "Moradabad",
-    "Muzaffarnagar",
-    "Pilibhit",
-    "Pratapgarh",
-    "Prayagraj",
-    "Raebareli",
-    "Rampur",
-    "Saharanpur",
-    "Sambhal",
-    "Sant Kabir Nagar",
-    "Shahjahanpur",
-    "Shamli",
-    "Shravasti",
-    "Siddharthnagar",
-    "Sitapur",
-    "Sonbhadra",
-    "Sultanpur",
-    "Unnao",
-    "Varanasi",
-  ],
-
-  Uttarakhand: [
-    "Almora",
-    "Bageshwar",
-    "Chamoli",
-    "Champawat",
-    "Dehradun",
-    "Haridwar",
-    "Nainital",
-    "Pauri Garhwal",
-    "Pithoragarh",
-    "Rudraprayag",
-    "Tehri Garhwal",
-    "Udham Singh Nagar",
-    "Uttarkashi",
-  ],
-
-  "West Bengal": [
-    "Alipurduar",
-    "Bankura",
-    "Paschim Bardhaman",
-    "Purba Bardhaman",
-    "Birbhum",
-    "Cooch Behar",
-    "Dakshin Dinajpur",
-    "Darjeeling",
-    "Hooghly",
-    "Howrah",
-    "Jalpaiguri",
-    "Jhargram",
-    "Kalimpong",
-    "Kolkata",
-    "Maldah",
-    "Murshidabad",
-    "Nadia",
-    "North 24 Parganas",
-    "Paschim Medinipur",
-    "Purba Medinipur",
-    "South 24 Parganas",
-    "Uttar Dinajpur",
-  ],
-
-  "Andaman and Nicobar Islands": [
-    "Nicobar",
-    "North and Middle Andaman",
-    "South Andaman",
-  ],
-
-  Chandigarh: ["Chandigarh"],
-
-  "Dadra and Nagar Haveli and Daman and Diu": [
-    "Dadra and Nagar Haveli",
-    "Daman",
-    "Diu",
-  ],
-
-  Delhi: [
-    "Central Delhi",
-    "East Delhi",
-    "New Delhi",
-    "North Delhi",
-    "North East Delhi",
-    "North West Delhi",
-    "Shahdara",
-    "South Delhi",
-    "South East Delhi",
-    "South West Delhi",
-    "West Delhi",
-  ],
-
-  "Jammu and Kashmir": [
-    "Anantnag",
-    "Bandipora",
-    "Baramulla",
-    "Budgam",
-    "Doda",
-    "Ganderbal",
-    "Jammu",
-    "Kathua",
-    "Kishtwar",
-    "Kulgam",
-    "Kupwara",
-    "Poonch",
-    "Pulwama",
-    "Rajouri",
-    "Ramban",
-    "Reasi",
-    "Samba",
-    "Shopian",
-    "Srinagar",
-    "Udhampur",
-  ],
-
-  Ladakh: ["Kargil", "Leh"],
-
-  Lakshadweep: ["Lakshadweep"],
-
-  Puducherry: ["Karaikal", "Mahe", "Puducherry", "Yanam"],
-};
-
-/*
-  These are all keys from INDIA_LOCATIONS.
-*/
-const STATES = Object.keys(INDIA_LOCATIONS).sort();
 
 export default function FarmerProfile() {
   const router = useRouter();
@@ -1307,32 +553,41 @@ export default function FarmerProfile() {
     village: "",
   });
 
-  const [stateQuery, setStateQuery] = useState("");
-  const [districtQuery, setDistrictQuery] = useState("");
+  const [states, setStates] = useState<StateItem[]>([]);
+  const [districts, setDistricts] = useState<DistrictItem[]>([]);
+  const [postOffices, setPostOffices] = useState<PostOffice[]>([]);
 
-  const [showStateSuggestions, setShowStateSuggestions] =
-    useState(false);
+  const [loadingStates, setLoadingStates] = useState(false);
+  const [loadingDistricts, setLoadingDistricts] = useState(false);
+  const [searchingPin, setSearchingPin] = useState(false);
 
+  const [showStateSuggestions, setShowStateSuggestions] = useState(false);
   const [showDistrictSuggestions, setShowDistrictSuggestions] =
     useState(false);
+  const [showVillageSuggestions, setShowVillageSuggestions] =
+    useState(false);
 
-  const [fetchingLocation, setFetchingLocation] = useState(false);
-
-  const [locationMessage, setLocationMessage] = useState("");
+  const [pinMessage, setPinMessage] = useState("");
 
   const t = translations[language] || translations.en;
 
-  /*
-    Load language and previously saved farmer profile.
-  */
+  /* ---------------------------------------------------------
+     LOAD LANGUAGE + SAVED PROFILE
+  --------------------------------------------------------- */
+
   useEffect(() => {
-    const savedLanguage = localStorage.getItem("selectedLanguage");
+    const savedLanguage = localStorage.getItem(
+      "selectedLanguage"
+    ) as LanguageCode | null;
 
     if (
       savedLanguage &&
-      Object.prototype.hasOwnProperty.call(translations, savedLanguage)
+      Object.prototype.hasOwnProperty.call(
+        translations,
+        savedLanguage
+      )
     ) {
-      setLanguage(savedLanguage as LanguageCode);
+      setLanguage(savedLanguage);
     }
 
     const savedProfile = localStorage.getItem("farmerProfile");
@@ -1341,167 +596,298 @@ export default function FarmerProfile() {
       try {
         const profile = JSON.parse(savedProfile);
 
-        const savedState = profile.state || "";
-        const savedDistrict = profile.district || "";
-
         setForm({
           name: profile.name || "",
           phone: profile.phone || "",
           pinCode: profile.pinCode || "",
-          state: savedState,
-          district: savedDistrict,
+          state: profile.state || "",
+          district: profile.district || "",
           village: profile.village || "",
         });
-
-        setStateQuery(savedState);
-        setDistrictQuery(savedDistrict);
       } catch {
         // Ignore invalid saved profile
       }
     }
   }, []);
 
-  /*
-    PIN CODE LOOKUP
+  /* ---------------------------------------------------------
+     LOAD ALL STATES
+  --------------------------------------------------------- */
 
-    Uses India Post PIN API:
-    https://api.postalpincode.in/pincode/{PIN}
-
-    Example:
-    244901 -> State + District will be filled automatically
-  */
   useEffect(() => {
-    const pin = form.pinCode;
+    const loadStates = async () => {
+      try {
+        setLoadingStates(true);
 
-    if (!/^\d{6}$/.test(pin)) {
-      setLocationMessage("");
-      setFetchingLocation(false);
+        const response = await fetch(
+          "https://aniket-thapa.github.io/india-pincode-api/states.json"
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to load states");
+        }
+
+        const data = await response.json();
+
+        const cleanedStates: StateItem[] = Array.isArray(data)
+          ? data.map((item: any) => ({
+              name: String(item.name || "").trim(),
+              slug: String(item.slug || "").trim(),
+            }))
+          : [];
+
+        setStates(cleanedStates);
+      } catch (error) {
+        console.error("State loading error:", error);
+      } finally {
+        setLoadingStates(false);
+      }
+    };
+
+    loadStates();
+  }, []);
+
+  /* ---------------------------------------------------------
+     FETCH DISTRICTS WHEN STATE CHANGES
+  --------------------------------------------------------- */
+
+  useEffect(() => {
+    const selectedState = states.find(
+      (item) =>
+        item.name.toLowerCase() ===
+        form.state.trim().toLowerCase()
+    );
+
+    if (!selectedState) {
+      setDistricts([]);
       return;
     }
 
-    let cancelled = false;
-
-    const fetchPinLocation = async () => {
+    const loadDistricts = async () => {
       try {
-        setFetchingLocation(true);
-        setLocationMessage("");
+        setLoadingDistricts(true);
 
         const response = await fetch(
-          `https://api.postalpincode.in/pincode/${pin}`
+          `https://aniket-thapa.github.io/india-pincode-api/states/${selectedState.slug}.json`
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to load districts");
+        }
+
+        const data = await response.json();
+
+        const districtList: DistrictItem[] = Array.isArray(
+          data?.districts
+        )
+          ? data.districts.map((item: any) => ({
+              name: String(item.name || "").trim(),
+              slug: String(item.slug || "").trim(),
+            }))
+          : [];
+
+        setDistricts(districtList);
+      } catch (error) {
+        console.error("District loading error:", error);
+        setDistricts([]);
+      } finally {
+        setLoadingDistricts(false);
+      }
+    };
+
+    loadDistricts();
+  }, [form.state, states]);
+
+  /* ---------------------------------------------------------
+     PIN CODE LOOKUP
+  --------------------------------------------------------- */
+
+  useEffect(() => {
+    const pin = form.pinCode.trim();
+
+    if (!/^\d{6}$/.test(pin)) {
+      setPostOffices([]);
+      setPinMessage("");
+      return;
+    }
+
+    const controller = new AbortController();
+
+    const lookupPin = async () => {
+      try {
+        setSearchingPin(true);
+        setPinMessage("");
+
+        const response = await fetch(
+          `https://api.pincodeapi.in/api/v1/pincode/${pin}`,
+          {
+            signal: controller.signal,
+          }
         );
 
         if (!response.ok) {
           throw new Error("PIN lookup failed");
         }
 
-        const data = await response.json();
+        const data: PinApiResponse | any = await response.json();
 
-        if (cancelled) return;
+        /*
+          API formats can differ slightly.
+          We support both:
+          { PostOffice: [...] }
+          and direct arrays.
+        */
 
-        const result = data?.[0];
+        let offices: PostOffice[] = [];
 
-        if (
-          result?.Status === "Success" &&
-          Array.isArray(result?.PostOffice) &&
-          result.PostOffice.length > 0
-        ) {
-          const postOffice = result.PostOffice[0];
+        if (Array.isArray(data)) {
+          offices = data;
+        } else if (Array.isArray(data?.PostOffice)) {
+          offices = data.PostOffice;
+        } else if (Array.isArray(data?.data)) {
+          offices = data.data;
+        }
 
-          const apiState = String(postOffice?.State || "").trim();
-          const apiDistrict = String(postOffice?.District || "").trim();
+        if (!offices.length) {
+          setPostOffices([]);
+          setPinMessage(t.invalidPin);
+          return;
+        }
 
+        setPostOffices(offices);
+
+        const firstOffice = offices[0];
+
+        const detectedState =
+          firstOffice?.State?.trim() || "";
+
+        const detectedDistrict =
+          firstOffice?.District?.trim() || "";
+
+        if (detectedState) {
           setForm((prev) => ({
             ...prev,
-            state: apiState || prev.state,
-            district: apiDistrict || prev.district,
+            state: detectedState,
+            district: detectedDistrict || prev.district,
           }));
-
-          setStateQuery(apiState);
-          setDistrictQuery(apiDistrict);
-
-          setLocationMessage(t.locationFound);
-        } else {
-          setLocationMessage(t.locationNotFound);
+        } else if (detectedDistrict) {
+          setForm((prev) => ({
+            ...prev,
+            district: detectedDistrict,
+          }));
         }
-      } catch {
-        if (!cancelled) {
-          setLocationMessage(t.locationNotFound);
+
+        setPinMessage(t.pinFound);
+      } catch (error: any) {
+        if (error?.name === "AbortError") {
+          return;
         }
+
+        console.error("PIN lookup error:", error);
+
+        setPostOffices([]);
+        setPinMessage(t.invalidPin);
       } finally {
-        if (!cancelled) {
-          setFetchingLocation(false);
-        }
+        setSearchingPin(false);
       }
     };
 
-    fetchPinLocation();
+    lookupPin();
 
-    return () => {
-      cancelled = true;
-    };
-  }, [form.pinCode, t.locationFound, t.locationNotFound]);
+    return () => controller.abort();
+  }, [form.pinCode, t.invalidPin, t.pinFound]);
 
-  /*
-    STATE SUGGESTIONS
-  */
+  /* ---------------------------------------------------------
+     STATE SUGGESTIONS
+  --------------------------------------------------------- */
+
   const filteredStates = useMemo(() => {
-    const query = stateQuery.trim().toLowerCase();
+    const query = form.state.trim().toLowerCase();
 
     if (!query) {
-      return STATES.slice(0, 12);
+      return states.slice(0, 15);
     }
 
-    return STATES.filter((state) =>
-      state.toLowerCase().includes(query)
-    ).slice(0, 12);
-  }, [stateQuery]);
+    return states
+      .filter((item) =>
+        item.name.toLowerCase().startsWith(query)
+      )
+      .slice(0, 15);
+  }, [states, form.state]);
 
-  /*
-    DISTRICT SUGGESTIONS
+  /* ---------------------------------------------------------
+     DISTRICT SUGGESTIONS
+  --------------------------------------------------------- */
 
-    IMPORTANT:
-    District list comes ONLY from selected state.
-  */
   const filteredDistricts = useMemo(() => {
-    const districts = INDIA_LOCATIONS[form.state] || [];
-    const query = districtQuery.trim().toLowerCase();
+    const query = form.district.trim().toLowerCase();
 
     if (!query) {
-      return districts.slice(0, 15);
+      return districts.slice(0, 20);
     }
 
     return districts
-      .filter((district) =>
-        district.toLowerCase().includes(query)
+      .filter((item) =>
+        item.name.toLowerCase().startsWith(query)
       )
-      .slice(0, 15);
-  }, [form.state, districtQuery]);
+      .slice(0, 20);
+  }, [districts, form.district]);
 
-  /*
-    Generic form change.
-  */
+  /* ---------------------------------------------------------
+     VILLAGE / CITY / TOWN SUGGESTIONS
+  --------------------------------------------------------- */
+
+  const filteredPostOffices = useMemo(() => {
+    const query = form.village.trim().toLowerCase();
+
+    const unique = new Map<string, PostOffice>();
+
+    postOffices.forEach((office) => {
+      const name = String(office.Name || "").trim();
+
+      if (!name) return;
+
+      if (
+        !query ||
+        name.toLowerCase().startsWith(query)
+      ) {
+        unique.set(name.toLowerCase(), office);
+      }
+    });
+
+    return Array.from(unique.values()).slice(0, 20);
+  }, [postOffices, form.village]);
+
+  /* ---------------------------------------------------------
+     CHANGE HANDLER
+  --------------------------------------------------------- */
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
     const { name, value } = e.target;
 
     if (name === "phone") {
-      const onlyNumbers = value.replace(/\D/g, "").slice(0, 10);
+      const numericValue = value
+        .replace(/\D/g, "")
+        .slice(0, 10);
 
       setForm((prev) => ({
         ...prev,
-        phone: onlyNumbers,
+        phone: numericValue,
       }));
 
       return;
     }
 
     if (name === "pinCode") {
-      const onlyNumbers = value.replace(/\D/g, "").slice(0, 6);
+      const numericValue = value
+        .replace(/\D/g, "")
+        .slice(0, 6);
 
       setForm((prev) => ({
         ...prev,
-        pinCode: onlyNumbers,
+        pinCode: numericValue,
       }));
 
       return;
@@ -1511,89 +897,87 @@ export default function FarmerProfile() {
       ...prev,
       [name]: value,
     }));
+
+    if (name === "state") {
+      setShowStateSuggestions(true);
+
+      /*
+        When user manually changes state,
+        old district may no longer belong to it.
+      */
+      setForm((prev) => ({
+        ...prev,
+        state: value,
+        district: "",
+      }));
+    }
+
+    if (name === "district") {
+      setShowDistrictSuggestions(true);
+    }
+
+    if (name === "village") {
+      setShowVillageSuggestions(true);
+    }
   };
 
-  /*
-    State typing.
-  */
-  const handleStateChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const value = e.target.value;
+  /* ---------------------------------------------------------
+     STATE SELECT
+  --------------------------------------------------------- */
 
-    setStateQuery(value);
-    setShowStateSuggestions(true);
-
-    /*
-      If farmer changes state manually,
-      district should be cleared because the old district
-      may belong to another state.
-    */
+  const selectState = (stateName: string) => {
     setForm((prev) => ({
       ...prev,
-      state: value,
+      state: stateName,
       district: "",
+      village: "",
     }));
-
-    setDistrictQuery("");
-  };
-
-  /*
-    State selection.
-  */
-  const selectState = (state: string) => {
-    setForm((prev) => ({
-      ...prev,
-      state,
-      district: "",
-    }));
-
-    setStateQuery(state);
-    setDistrictQuery("");
 
     setShowStateSuggestions(false);
     setShowDistrictSuggestions(false);
   };
 
-  /*
-    District typing.
-  */
-  const handleDistrictChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const value = e.target.value;
+  /* ---------------------------------------------------------
+     DISTRICT SELECT
+  --------------------------------------------------------- */
 
-    setDistrictQuery(value);
-
+  const selectDistrict = (districtName: string) => {
     setForm((prev) => ({
       ...prev,
-      district: value,
+      district: districtName,
     }));
 
-    setShowDistrictSuggestions(true);
-  };
-
-  /*
-    District selection.
-  */
-  const selectDistrict = (district: string) => {
-    setForm((prev) => ({
-      ...prev,
-      district,
-    }));
-
-    setDistrictQuery(district);
     setShowDistrictSuggestions(false);
   };
 
-  /*
-    Save profile.
-  */
+  /* ---------------------------------------------------------
+     VILLAGE / CITY / TOWN SELECT
+  --------------------------------------------------------- */
+
+  const selectVillage = (office: PostOffice) => {
+    const name = String(office.Name || "").trim();
+
+    setForm((prev) => ({
+      ...prev,
+      village: name,
+      district:
+        office.District?.trim() || prev.district,
+      state:
+        office.State?.trim() || prev.state,
+    }));
+
+    setShowVillageSuggestions(false);
+  };
+
+  /* ---------------------------------------------------------
+     SUBMIT
+  --------------------------------------------------------- */
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!form.name.trim()) {
-      alert("Please enter your full name.");
+      alert(t.fullNamePlaceholder);
       return;
     }
 
@@ -1603,22 +987,22 @@ export default function FarmerProfile() {
     }
 
     if (!/^\d{6}$/.test(form.pinCode)) {
-      alert("Please enter a valid 6-digit PIN code.");
+      alert(t.pinCodePlaceholder);
       return;
     }
 
     if (!form.state.trim()) {
-      alert("Please select or enter your state.");
+      alert(t.statePlaceholder);
       return;
     }
 
     if (!form.district.trim()) {
-      alert("Please select or enter your district.");
+      alert(t.districtPlaceholder);
       return;
     }
 
     if (!form.village.trim()) {
-      alert("Please enter village, city or town.");
+      alert(t.villagePlaceholder);
       return;
     }
 
@@ -1632,6 +1016,10 @@ export default function FarmerProfile() {
     router.push("/crops");
   };
 
+  /* ---------------------------------------------------------
+     UI
+  --------------------------------------------------------- */
+
   return (
     <main
       className="min-h-screen bg-green-50 px-5 py-10"
@@ -1639,9 +1027,8 @@ export default function FarmerProfile() {
     >
       <div className="max-w-3xl mx-auto">
 
-        {/* Back */}
+        {/* BACK */}
         <button
-          type="button"
           onClick={() => router.push("/crops")}
           className="text-green-700 font-semibold mb-6 hover:text-green-900"
         >
@@ -1650,7 +1037,7 @@ export default function FarmerProfile() {
 
         <div className="bg-white rounded-3xl shadow-lg p-7">
 
-          {/* Header */}
+          {/* HEADER */}
           <div className="text-center mb-8">
             <div className="text-6xl mb-3">
               👨‍🌾
@@ -1667,7 +1054,10 @@ export default function FarmerProfile() {
 
           <form onSubmit={handleSubmit}>
 
-            {/* ================= FULL NAME ================= */}
+            {/* =================================================
+                FULL NAME
+            ================================================= */}
+
             <div className="mb-5">
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 {t.fullName}
@@ -1684,8 +1074,11 @@ export default function FarmerProfile() {
               />
             </div>
 
-            {/* ================= MOBILE ================= */}
-            <div className="mb-7">
+            {/* =================================================
+                MOBILE
+            ================================================= */}
+
+            <div className="mb-5">
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 {t.mobile}
               </label>
@@ -1703,174 +1096,259 @@ export default function FarmerProfile() {
               />
             </div>
 
-            {/* ================= LOCATION SECTION ================= */}
-            <div className="border-t border-gray-200 pt-7 mb-7">
+            {/* =================================================
+                PIN CODE — FIRST LOCATION FIELD
+            ================================================= */}
 
-              <h2 className="text-xl font-bold text-green-800 mb-5">
-                📍 {t.locationDetails}
-              </h2>
+            <div className="mb-5">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                {t.pinCode}
+              </label>
 
-              {/* ================= PIN CODE FIRST ================= */}
-              <div className="mb-5">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  {t.pinCode}
-                </label>
+              <input
+                name="pinCode"
+                value={form.pinCode}
+                onChange={handleChange}
+                type="text"
+                inputMode="numeric"
+                maxLength={6}
+                placeholder={t.pinCodePlaceholder}
+                required
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-green-500 text-gray-900 placeholder-gray-400"
+              />
 
-                <input
-                  name="pinCode"
-                  value={form.pinCode}
-                  onChange={handleChange}
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={6}
-                  placeholder={t.pinCodePlaceholder}
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-green-500 text-gray-900 placeholder-gray-400"
-                />
+              <p className="text-xs text-gray-500 mt-2">
+                {t.locationHelp}
+              </p>
 
-                {/* Loading */}
-                {fetchingLocation && (
-                  <p className="text-sm text-blue-600 mt-2">
-                    🔎 {t.fetchingLocation}
-                  </p>
-                )}
+              {searchingPin && (
+                <p className="text-sm text-blue-600 mt-2 font-medium">
+                  🔎 {t.searchingPin}
+                </p>
+              )}
 
-                {/* Success / Error */}
-                {!fetchingLocation &&
-                  locationMessage && (
-                    <p
-                      className={`text-sm mt-2 ${
-                        locationMessage === t.locationFound
-                          ? "text-green-600"
-                          : "text-orange-600"
-                      }`}
-                    >
-                      {locationMessage === t.locationFound
-                        ? "✓ "
-                        : "⚠️ "}
-                      {locationMessage}
-                    </p>
-                  )}
-              </div>
-
-              {/* ================= STATE ================= */}
-              <div className="mb-5 relative">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  {t.state}
-                </label>
-
-                <input
-                  name="state"
-                  value={stateQuery}
-                  onChange={handleStateChange}
-                  onFocus={() =>
-                    setShowStateSuggestions(true)
-                  }
-                  autoComplete="off"
-                  type="text"
-                  placeholder={t.statePlaceholder}
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-green-500 text-gray-900 placeholder-gray-400"
-                />
-
-                {/* State dropdown */}
-                {showStateSuggestions &&
-                  filteredStates.length > 0 && (
-                    <div className="absolute z-50 left-0 right-0 mt-2 bg-white border border-gray-200 rounded-2xl shadow-xl max-h-64 overflow-y-auto">
-
-                      {filteredStates.map((state) => (
-                        <button
-                          type="button"
-                          key={state}
-                          onMouseDown={(e) =>
-                            e.preventDefault()
-                          }
-                          onClick={() =>
-                            selectState(state)
-                          }
-                          className="w-full text-left px-4 py-3 hover:bg-green-50 text-gray-800 border-b border-gray-100 last:border-b-0"
-                        >
-                          {state}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-              </div>
-
-              {/* ================= DISTRICT ================= */}
-              <div className="mb-5 relative">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  {t.district}
-                </label>
-
-                <input
-                  name="district"
-                  value={districtQuery}
-                  onChange={handleDistrictChange}
-                  onFocus={() =>
-                    setShowDistrictSuggestions(true)
-                  }
-                  autoComplete="off"
-                  type="text"
-                  placeholder={
-                    form.state
-                      ? t.districtPlaceholder
-                      : "First select a state"
-                  }
-                  required
-                  disabled={!form.state}
-                  className={`w-full px-4 py-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-green-500 text-gray-900 placeholder-gray-400 ${
-                    !form.state
-                      ? "bg-gray-100 cursor-not-allowed"
-                      : "bg-white"
+              {!searchingPin && pinMessage && (
+                <p
+                  className={`text-sm mt-2 font-medium ${
+                    pinMessage === t.pinFound
+                      ? "text-green-600"
+                      : "text-red-600"
                   }`}
-                />
-
-                {/* District dropdown */}
-                {showDistrictSuggestions &&
-                  form.state &&
-                  filteredDistricts.length > 0 && (
-                    <div className="absolute z-40 left-0 right-0 mt-2 bg-white border border-gray-200 rounded-2xl shadow-xl max-h-64 overflow-y-auto">
-
-                      {filteredDistricts.map((district) => (
-                        <button
-                          type="button"
-                          key={district}
-                          onMouseDown={(e) =>
-                            e.preventDefault()
-                          }
-                          onClick={() =>
-                            selectDistrict(district)
-                          }
-                          className="w-full text-left px-4 py-3 hover:bg-green-50 text-gray-800 border-b border-gray-100 last:border-b-0"
-                        >
-                          {district}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-              </div>
-
-              {/* ================= VILLAGE / CITY / TOWN ================= */}
-              <div className="mb-2">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  {t.villageCityTown}
-                </label>
-
-                <input
-                  name="village"
-                  value={form.village}
-                  onChange={handleChange}
-                  type="text"
-                  placeholder={t.villageCityTownPlaceholder}
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-green-500 text-gray-900 placeholder-gray-400"
-                />
-              </div>
-
+                >
+                  {pinMessage === t.pinFound
+                    ? "✓ "
+                    : "⚠️ "}
+                  {pinMessage}
+                </p>
+              )}
             </div>
 
-            {/* ================= SAVE ================= */}
+            {/* =================================================
+                STATE
+            ================================================= */}
+
+            <div className="mb-5 relative">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                {t.state}
+              </label>
+
+              <input
+                name="state"
+                value={form.state}
+                onChange={handleChange}
+                onFocus={() =>
+                  setShowStateSuggestions(true)
+                }
+                autoComplete="off"
+                type="text"
+                placeholder={t.statePlaceholder}
+                required
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-green-500 text-gray-900 placeholder-gray-400"
+              />
+
+              {showStateSuggestions && (
+                <div className="absolute z-30 left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-xl max-h-64 overflow-y-auto">
+
+                  {loadingStates ? (
+                    <div className="px-4 py-3 text-gray-500">
+                      {t.loadingStates}
+                    </div>
+                  ) : filteredStates.length > 0 ? (
+                    <>
+                      <div className="px-4 py-2 text-xs text-gray-400 border-b">
+                        {t.selectSuggestion}
+                      </div>
+
+                      {filteredStates.map((item) => (
+                        <button
+                          type="button"
+                          key={item.slug}
+                          onMouseDown={(e) =>
+                            e.preventDefault()
+                          }
+                          onClick={() =>
+                            selectState(item.name)
+                          }
+                          className="w-full text-left px-4 py-3 hover:bg-green-50 text-gray-800"
+                        >
+                          {item.name}
+                        </button>
+                      ))}
+                    </>
+                  ) : (
+                    <div className="px-4 py-3 text-gray-500">
+                      {t.noSuggestions}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* =================================================
+                DISTRICT
+            ================================================= */}
+
+            <div className="mb-5 relative">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                {t.district}
+              </label>
+
+              <input
+                name="district"
+                value={form.district}
+                onChange={handleChange}
+                onFocus={() =>
+                  setShowDistrictSuggestions(true)
+                }
+                autoComplete="off"
+                type="text"
+                placeholder={
+                  form.state
+                    ? t.districtPlaceholder
+                    : t.districtAfterState
+                }
+                disabled={!form.state}
+                required
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-green-500 text-gray-900 placeholder-gray-400 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              />
+
+              {form.state &&
+                showDistrictSuggestions && (
+                  <div className="absolute z-20 left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-xl max-h-64 overflow-y-auto">
+
+                    {loadingDistricts ? (
+                      <div className="px-4 py-3 text-gray-500">
+                        {t.loadingDistricts}
+                      </div>
+                    ) : filteredDistricts.length > 0 ? (
+                      <>
+                        <div className="px-4 py-2 text-xs text-gray-400 border-b">
+                          {t.selectSuggestion}
+                        </div>
+
+                        {filteredDistricts.map((item) => (
+                          <button
+                            type="button"
+                            key={item.slug}
+                            onMouseDown={(e) =>
+                              e.preventDefault()
+                            }
+                            onClick={() =>
+                              selectDistrict(item.name)
+                            }
+                            className="w-full text-left px-4 py-3 hover:bg-green-50 text-gray-800"
+                          >
+                            {item.name}
+                          </button>
+                        ))}
+                      </>
+                    ) : (
+                      <div className="px-4 py-3 text-gray-500">
+                        {t.noSuggestions}
+                      </div>
+                    )}
+                  </div>
+                )}
+            </div>
+
+            {/* =================================================
+                VILLAGE / CITY / TOWN
+            ================================================= */}
+
+            <div className="mb-7 relative">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                {t.village}
+              </label>
+
+              <input
+                name="village"
+                value={form.village}
+                onChange={handleChange}
+                onFocus={() =>
+                  setShowVillageSuggestions(true)
+                }
+                autoComplete="off"
+                type="text"
+                placeholder={t.villagePlaceholder}
+                required
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-green-500 text-gray-900 placeholder-gray-400"
+              />
+
+              {/* Only show location suggestions after PIN */}
+              {postOffices.length > 0 &&
+                showVillageSuggestions && (
+                  <div className="absolute z-20 left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-xl max-h-64 overflow-y-auto">
+
+                    <div className="px-4 py-2 text-xs text-gray-400 border-b">
+                      {t.selectSuggestion}
+                    </div>
+
+                    {filteredPostOffices.length > 0 ? (
+                      filteredPostOffices.map(
+                        (office, index) => (
+                          <button
+                            type="button"
+                            key={`${office.Name}-${index}`}
+                            onMouseDown={(e) =>
+                              e.preventDefault()
+                            }
+                            onClick={() =>
+                              selectVillage(office)
+                            }
+                            className="w-full text-left px-4 py-3 hover:bg-green-50"
+                          >
+                            <div className="font-semibold text-gray-800">
+                              {office.Name}
+                            </div>
+
+                            <div className="text-xs text-gray-500 mt-1">
+                              {office.District
+                                ? `${office.District}, `
+                                : ""}
+                              {office.State || ""}
+                            </div>
+                          </button>
+                        )
+                      )
+                    ) : (
+                      <div className="px-4 py-3 text-gray-500">
+                        {t.noSuggestions}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+              {form.pinCode.length < 6 && (
+                <p className="text-xs text-gray-400 mt-2">
+                  {t.enterPinFirst}
+                </p>
+              )}
+            </div>
+
+            {/* =================================================
+                SAVE
+            ================================================= */}
+
             <button
               type="submit"
               className="w-full py-4 rounded-xl bg-green-700 hover:bg-green-800 text-white font-bold text-lg transition"
@@ -1881,6 +1359,19 @@ export default function FarmerProfile() {
           </form>
         </div>
       </div>
+
+      {/* =====================================================
+          CLOSE SUGGESTIONS WHEN CLICKING OUTSIDE
+      ===================================================== */}
+
+      <div
+        className="fixed inset-0 -z-10"
+        onClick={() => {
+          setShowStateSuggestions(false);
+          setShowDistrictSuggestions(false);
+          setShowVillageSuggestions(false);
+        }}
+      />
     </main>
   );
 }
