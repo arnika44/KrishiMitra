@@ -15,11 +15,15 @@ export default function CropDetailsPage() {
   const params = useParams();
 
   const [crop, setCrop] = useState<Crop | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const savedCrops = localStorage.getItem("farmerCrops");
 
-    if (!savedCrops) return;
+    if (!savedCrops) {
+      setLoading(false);
+      return;
+    }
 
     try {
       const crops: Crop[] = JSON.parse(savedCrops);
@@ -33,8 +37,28 @@ export default function CropDetailsPage() {
       }
     } catch {
       setCrop(null);
+    } finally {
+      setLoading(false);
     }
   }, [params.id]);
+
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-green-50 flex items-center justify-center px-5">
+        <div className="bg-white rounded-3xl shadow-lg p-8 text-center">
+          <div className="text-5xl mb-4">🌱</div>
+
+          <h1 className="text-2xl font-bold text-green-800">
+            Loading crop...
+          </h1>
+
+          <p className="text-gray-500 mt-2">
+            Please wait...
+          </p>
+        </div>
+      </main>
+    );
+  }
 
   if (!crop) {
     return (
@@ -178,6 +202,7 @@ export default function CropDetailsPage() {
               }}
               className="bg-white rounded-3xl p-6 text-left border-2 border-transparent hover:border-green-500 hover:shadow-xl transition"
             >
+
               <div className="text-4xl mb-4">
                 {feature.icon}
               </div>
@@ -193,6 +218,7 @@ export default function CropDetailsPage() {
               <div className="mt-5 text-green-700 font-bold">
                 Explore →
               </div>
+
             </button>
           ))}
 
