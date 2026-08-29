@@ -42,6 +42,17 @@ export default function CropDetailsPage() {
     }
   }, [params.id]);
 
+  const handleFeatureClick = (title: string) => {
+    if (!crop) return;
+
+    if (title === "Weather") {
+      router.push(`/crops/${crop.id}/weather`);
+      return;
+    }
+
+    alert(`${title} for ${crop.crop} will be connected next.`);
+  };
+
   if (loading) {
     return (
       <main className="min-h-screen bg-green-50 flex items-center justify-center px-5">
@@ -152,7 +163,6 @@ export default function CropDetailsPage() {
 
         {/* Crop Header */}
         <div className="bg-white rounded-3xl shadow-lg p-7 mb-8">
-
           <div className="flex flex-col sm:flex-row sm:items-center gap-5">
 
             <div className="w-20 h-20 bg-green-100 rounded-3xl flex items-center justify-center text-5xl">
@@ -195,11 +205,7 @@ export default function CropDetailsPage() {
           {features.map((feature) => (
             <button
               key={feature.title}
-              onClick={() => {
-                alert(
-                  `${feature.title} for ${crop.crop} will be connected next.`
-                );
-              }}
+              onClick={() => handleFeatureClick(feature.title)}
               className="bg-white rounded-3xl p-6 text-left border-2 border-transparent hover:border-green-500 hover:shadow-xl transition"
             >
 
