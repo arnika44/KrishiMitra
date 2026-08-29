@@ -191,6 +191,9 @@ export default function DashboardPage() {
 
   const [language, setLanguage] = useState("en");
 
+  // SIDEBAR STATE
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   useEffect(() => {
     const savedLanguage = localStorage.getItem("selectedLanguage");
 
@@ -201,23 +204,45 @@ export default function DashboardPage() {
 
   const t = dashboardText[language] || dashboardText.en;
 
+  // LOGOUT
+  const handleLogout = () => {
+    localStorage.removeItem("isLoggedIn");
+    router.push("/");
+  };
+
   return (
     <main
       className="min-h-screen bg-green-50"
       dir={language === "ur" ? "rtl" : "ltr"}
     >
-      {/* Header */}
-      <header className="bg-white border-b border-green-100">
-        <div className="max-w-7xl mx-auto px-5 py-4 flex items-center justify-between">
-          
-          {/* Logo */}
+
+      {/* ================= SIDEBAR ================= */}
+
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/30 z-40"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      <aside
+        className={`fixed top-0 left-0 h-full w-72 bg-white shadow-2xl z-50 transform transition-transform duration-300 ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+
+        {/* Sidebar Header */}
+        <div className="flex items-center justify-between px-5 py-5 border-b border-gray-100">
+
           <div className="flex items-center gap-3">
-            <div className="text-4xl">🌾</div>
+            <div className="text-3xl">
+              🌾
+            </div>
 
             <div>
-              <h1 className="text-2xl font-bold text-green-800">
+              <h2 className="text-xl font-bold text-green-800">
                 KrishiMitra
-              </h1>
+              </h2>
 
               <p className="text-xs text-gray-500">
                 {languages[language] || "English"}
@@ -225,8 +250,139 @@ export default function DashboardPage() {
             </div>
           </div>
 
+          <button
+            type="button"
+            onClick={() => setSidebarOpen(false)}
+            className="w-9 h-9 rounded-lg hover:bg-gray-100 flex items-center justify-center text-xl text-gray-600"
+            aria-label="Close menu"
+          >
+            ✕
+          </button>
+
+        </div>
+
+        {/* Sidebar Menu */}
+        <nav className="p-4">
+
+          {/* Profile */}
+          <button
+            type="button"
+            onClick={() => {
+              setSidebarOpen(false);
+              router.push("/profile");
+            }}
+            className="w-full flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-green-50 text-gray-700 transition"
+          >
+            <span className="text-2xl">👤</span>
+            <span className="font-semibold">Profile</span>
+          </button>
+
+          {/* User Selection */}
+          <button
+            type="button"
+            onClick={() => {
+              setSidebarOpen(false);
+              router.push("/role");
+            }}
+            className="w-full flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-green-50 text-gray-700 transition"
+          >
+            <span className="text-2xl">👥</span>
+            <span className="font-semibold">User Selection</span>
+          </button>
+
+          {/* My Crops */}
+          <button
+            type="button"
+            onClick={() => {
+              setSidebarOpen(false);
+              router.push("/crops");
+            }}
+            className="w-full flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-green-50 text-gray-700 transition"
+          >
+            <span className="text-2xl">🌱</span>
+            <span className="font-semibold">My Crops</span>
+          </button>
+
+          {/* Change Password */}
+          <button
+            type="button"
+            onClick={() => {
+              setSidebarOpen(false);
+              router.push("/change-password");
+            }}
+            className="w-full flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-green-50 text-gray-700 transition"
+          >
+            <span className="text-2xl">🔐</span>
+            <span className="font-semibold">Change Password</span>
+          </button>
+
+          {/* More Settings */}
+          <button
+            type="button"
+            onClick={() => {
+              setSidebarOpen(false);
+              router.push("/settings");
+            }}
+            className="w-full flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-green-50 text-gray-700 transition"
+          >
+            <span className="text-2xl">⚙️</span>
+            <span className="font-semibold">More Settings</span>
+          </button>
+
+          {/* Divider */}
+          <div className="border-t border-gray-100 my-4" />
+
+          {/* Logout */}
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="w-full flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-red-50 text-red-600 transition"
+          >
+            <span className="text-2xl">🚪</span>
+            <span className="font-semibold">Logout</span>
+          </button>
+
+        </nav>
+      </aside>
+
+      {/* ================= HEADER ================= */}
+
+      <header className="bg-white border-b border-green-100">
+        <div className="max-w-7xl mx-auto px-5 py-4 flex items-center justify-between">
+
+          {/* Left Side + Logo */}
+          <div className="flex items-center gap-3">
+
+            {/* HAMBURGER MENU */}
+            <button
+              type="button"
+              onClick={() => setSidebarOpen(true)}
+              className="w-11 h-11 rounded-xl bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 flex items-center justify-center text-2xl transition"
+              aria-label="Open menu"
+            >
+              ☰
+            </button>
+
+            {/* Logo */}
+            <div className="flex items-center gap-3">
+              <div className="text-4xl">🌾</div>
+
+              <div>
+                <h1 className="text-2xl font-bold text-green-800">
+                  KrishiMitra
+                </h1>
+
+                <p className="text-xs text-gray-500">
+                  {languages[language] || "English"}
+                </p>
+              </div>
+            </div>
+
+          </div>
+
           {/* Right Side */}
           <div className="flex items-center gap-3">
+
             {/* Profile */}
             <button
               onClick={() => router.push("/profile")}
@@ -240,13 +396,16 @@ export default function DashboardPage() {
             <div className="w-10 h-10 rounded-full bg-green-700 text-white flex items-center justify-center font-bold">
               K
             </div>
+
           </div>
+
         </div>
       </header>
 
-      {/* Main */}
+      {/* ================= MAIN ================= */}
+
       <section className="max-w-7xl mx-auto px-5 py-10">
-        
+
         {/* Welcome */}
         <div className="mb-10">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
@@ -264,9 +423,9 @@ export default function DashboardPage() {
           className="w-full text-left mb-8"
         >
           <div className="bg-green-700 rounded-3xl p-7 md:p-9 text-white shadow-lg hover:shadow-xl transition">
-            
+
             <div className="flex items-start justify-between gap-5">
-              
+
               <div>
                 <div className="text-5xl mb-4">
                   🤖
@@ -284,11 +443,13 @@ export default function DashboardPage() {
               <div className="hidden sm:block text-5xl">
                 🎤
               </div>
+
             </div>
 
             <div className="mt-7 inline-flex px-5 py-3 rounded-xl bg-white text-green-700 font-bold">
               {t.talkAi}
             </div>
+
           </div>
         </button>
 
@@ -312,6 +473,7 @@ export default function DashboardPage() {
           <div className="mt-5 text-green-700 font-bold text-lg">
             →
           </div>
+
         </button>
 
       </section>
