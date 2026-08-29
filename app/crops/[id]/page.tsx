@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 
 type Crop = {
   id: number;
@@ -10,341 +10,191 @@ type Crop = {
   land: string;
 };
 
-export default function CropsPage() {
+export default function CropDetailsPage() {
   const router = useRouter();
+  const params = useParams();
 
-  const [crops, setCrops] = useState<Crop[]>([]);
-  const [season, setSeason] = useState("");
-  const [crop, setCrop] = useState("");
-  const [land, setLand] = useState("");
-  const [showAddForm, setShowAddForm] = useState(true);
+  const [crop, setCrop] = useState<Crop | null>(null);
 
   useEffect(() => {
     const savedCrops = localStorage.getItem("farmerCrops");
 
-    if (!savedCrops) {
-      setCrops([]);
-      setShowAddForm(true);
-      return;
-    }
+    if (!savedCrops) return;
 
     try {
-      const parsedCrops: Crop[] = JSON.parse(savedCrops);
+      const crops: Crop[] = JSON.parse(savedCrops);
 
-      setCrops(parsedCrops);
+      const selectedCrop = crops.find(
+        (item) => item.id === Number(params.id)
+      );
 
-      // If crops already exist, show only the Add Crop button.
-      // If no crop exists, show the complete form.
-      setShowAddForm(parsedCrops.length === 0);
+      if (selectedCrop) {
+        setCrop(selectedCrop);
+      }
     } catch {
-      setCrops([]);
-      setShowAddForm(true);
+      setCrop(null);
     }
-  }, []);
+  }, [params.id]);
 
-  const addCrop = (e: React.FormEvent) => {
-    e.preventDefault();
+  if (!crop) {
+    return (
+      <main className="min-h-screen bg-green-50 flex items-center justify-center px-5">
+        <div className="bg-white rounded-3xl shadow-lg p-8 text-center">
+          <div className="text-5xl mb-4">🌱</div>
 
-    if (!season || !crop || !land) {
-      alert("Please fill all fields.");
-      return;
-    }
+          <h1 className="text-2xl font-bold text-gray-900">
+            Crop not found
+          </h1>
 
-    const newCrop: Crop = {
-      id: Date.now(),
-      season,
-      crop,
-      land,
-    };
-
-    const updatedCrops = [...crops, newCrop];
-
-    setCrops(updatedCrops);
-
-    localStorage.setItem(
-      "farmerCrops",
-      JSON.stringify(updatedCrops)
+          <button
+            onClick={() => router.push("/crops")}
+            className="mt-6 px-6 py-3 rounded-xl bg-green-700 text-white font-bold"
+          >
+            ← Back to Crops
+          </button>
+        </div>
+      </main>
     );
+  }
 
-    // Clear form fields
-    setSeason("");
-    setCrop("");
-    setLand("");
-
-    // After adding crop, hide the complete form
-    setShowAddForm(false);
-  };
-
-  const deleteCrop = (id: number) => {
-    const updatedCrops = crops.filter(
-      (item) => item.id !== id
-    );
-
-    setCrops(updatedCrops);
-
-    localStorage.setItem(
-      "farmerCrops",
-      JSON.stringify(updatedCrops)
-    );
-
-    // If there are no crops left,
-    // show the first-crop form again.
-    if (updatedCrops.length === 0) {
-      setShowAddForm(true);
-    }
-  };
-
-  const openAddCropForm = () => {
-    setShowAddForm(true);
-  };
+  const features = [
+    {
+      icon: "🏪",
+      title: "Mandi & Market",
+      description:
+        "Check mandi information, nearby markets and selling opportunities.",
+    },
+    {
+      icon: "♻️",
+      title: "Waste Utilization",
+      description:
+        "Learn how crop waste can be reused, recycled or converted into useful products.",
+    },
+    {
+      icon: "📦",
+      title: "Preservation & Storage",
+      description:
+        "Get guidance on proper storage, preservation and post-harvest handling.",
+    },
+    {
+      icon: "🦠",
+      title: "Disease & Pest Detection",
+      description:
+        "Identify possible crop diseases, pests and damage using AI-based detection.",
+    },
+    {
+      icon: "🤖",
+      title: "AI Crop Detector",
+      description:
+        "Upload a crop image to detect disease, damage and possible problems.",
+    },
+    {
+      icon: "💧",
+      title: "Irrigation",
+      description:
+        "Get irrigation guidance based on crop requirements and growing conditions.",
+    },
+    {
+      icon: "🌱",
+      title: "Fertilizer & Nutrients",
+      description:
+        "Get crop-specific information about nutrients and fertilizer management.",
+    },
+    {
+      icon: "🌦️",
+      title: "Weather",
+      description:
+        "View weather-related information useful for your crop management.",
+    },
+    {
+      icon: "💰",
+      title: "Price Information",
+      description:
+        "Explore crop price information and market trends.",
+    },
+  ];
 
   return (
     <main className="min-h-screen bg-green-50 px-5 py-10">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-5xl mx-auto">
 
         {/* Back */}
         <button
-          onClick={() => router.push("/dashboard")}
+          onClick={() => router.push("/crops")}
           className="text-green-700 font-semibold mb-6 hover:text-green-900"
         >
-          ← Back to Dashboard
+          ← Back to My Crops
         </button>
 
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="text-6xl mb-3">
-            🌾
-          </div>
+        {/* Crop Header */}
+        <div className="bg-white rounded-3xl shadow-lg p-7 mb-8">
 
-          <h1 className="text-3xl font-bold text-green-800">
-            My Crops
-          </h1>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-5">
+
+            <div className="w-20 h-20 bg-green-100 rounded-3xl flex items-center justify-center text-5xl">
+              🌾
+            </div>
+
+            <div>
+              <p className="text-sm text-green-600 font-semibold">
+                {crop.season} Season
+              </p>
+
+              <h1 className="text-3xl font-bold text-green-800 mt-1">
+                {crop.crop}
+              </h1>
+
+              <p className="text-gray-600 mt-2">
+                Land Area:{" "}
+                <span className="font-semibold">
+                  {crop.land} acres
+                </span>
+              </p>
+            </div>
+
+          </div>
+        </div>
+
+        {/* Features */}
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-green-800">
+            {crop.crop} Services
+          </h2>
 
           <p className="text-gray-600 mt-2">
-            Add your crops and land details for each season
+            Everything you need to manage your crop.
           </p>
         </div>
 
-        {/* ================================================= */}
-        {/* ADD CROP FORM */}
-        {/* ================================================= */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
 
-        {showAddForm && (
-          <div className="bg-white rounded-3xl shadow-lg p-7 mb-8">
-
-            <div className="flex items-center justify-between mb-6">
-
-              <h2 className="text-2xl font-bold text-green-800">
-                Add Crop
-              </h2>
-
-              {/* Close only when crops already exist */}
-              {crops.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setShowAddForm(false)}
-                  className="text-gray-500 hover:text-gray-800 font-semibold"
-                >
-                  ✕ Close
-                </button>
-              )}
-
-            </div>
-
-            <form onSubmit={addCrop}>
-
-              {/* Season */}
-              <div className="mb-5">
-
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Season
-                </label>
-
-                <select
-                  value={season}
-                  onChange={(e) => setSeason(e.target.value)}
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-green-500 text-gray-900 bg-white"
-                >
-                  <option value="">
-                    Select Season
-                  </option>
-
-                  <option value="Kharif">
-                    Kharif
-                  </option>
-
-                  <option value="Rabi">
-                    Rabi
-                  </option>
-
-                  <option value="Zaid">
-                    Zaid
-                  </option>
-
-                  <option value="Other">
-                    Other
-                  </option>
-                </select>
-
-              </div>
-
-              {/* Crop */}
-              <div className="mb-5">
-
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Crop
-                </label>
-
-                <input
-                  type="text"
-                  value={crop}
-                  onChange={(e) => setCrop(e.target.value)}
-                  placeholder="Example: Rice, Wheat, Maize"
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-green-500 text-gray-900 placeholder-gray-400"
-                />
-
-              </div>
-
-              {/* Land */}
-              <div className="mb-6">
-
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Land Area (in acres)
-                </label>
-
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={land}
-                  onChange={(e) => setLand(e.target.value)}
-                  placeholder="Example: 3"
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-green-500 text-gray-900 placeholder-gray-400"
-                />
-
-              </div>
-
-              {/* Add Crop */}
-              <button
-                type="submit"
-                className="w-full py-4 rounded-xl bg-green-700 hover:bg-green-800 text-white font-bold text-lg transition"
-              >
-                + Add Crop
-              </button>
-
-            </form>
-
-          </div>
-        )}
-
-        {/* ================================================= */}
-        {/* YOUR CROPS */}
-        {/* ================================================= */}
-
-        <div className="bg-white rounded-3xl shadow-lg p-7">
-
-          <h2 className="text-2xl font-bold text-green-800 mb-6">
-            Your Crops
-          </h2>
-
-          {crops.length === 0 ? (
-
-            <div className="text-center py-10 text-gray-500">
-
-              <div className="text-5xl mb-3">
-                🌱
-              </div>
-
-              <p>
-                No crops added yet.
-              </p>
-
-              <p className="text-sm mt-1">
-                Add your first crop above.
-              </p>
-
-            </div>
-
-          ) : (
-
-            <div className="space-y-4">
-
-              {crops.map((item) => (
-
-                <div
-                  key={item.id}
-                  className="border border-green-100 rounded-2xl p-5 hover:shadow-md transition"
-                >
-
-                  <div className="flex items-center justify-between gap-4">
-
-                    {/* Crop Details */}
-                    <button
-                      onClick={() =>
-                        router.push(`/crops/${item.id}`)
-                      }
-                      className="flex-1 text-left"
-                    >
-
-                      <div className="flex items-center gap-4">
-
-                        <div className="w-14 h-14 bg-green-100 rounded-2xl flex items-center justify-center text-3xl">
-                          🌾
-                        </div>
-
-                        <div>
-
-                          <h3 className="text-xl font-bold text-green-800">
-                            {item.crop}
-                          </h3>
-
-                          <p className="text-gray-600">
-                            {item.season} Season
-                          </p>
-
-                          <p className="text-sm text-gray-500 mt-1">
-                            Land: {item.land} acres
-                          </p>
-
-                        </div>
-
-                      </div>
-
-                    </button>
-
-                    {/* Delete */}
-                    <button
-                      onClick={() => deleteCrop(item.id)}
-                      className="px-4 py-2 rounded-lg bg-red-50 text-red-600 font-semibold hover:bg-red-100"
-                    >
-                      Delete
-                    </button>
-
-                  </div>
-
-                </div>
-
-              ))}
-
-            </div>
-
-          )}
-
-          {/* ================================================= */}
-          {/* ADD CROP BUTTON */}
-          {/* ================================================= */}
-
-          {crops.length > 0 && !showAddForm && (
+          {features.map((feature) => (
             <button
-              onClick={openAddCropForm}
-              className="w-full mt-6 py-3 rounded-xl bg-green-700 hover:bg-green-800 text-white font-bold text-lg transition"
+              key={feature.title}
+              onClick={() => {
+                alert(
+                  `${feature.title} for ${crop.crop} will be connected next.`
+                );
+              }}
+              className="bg-white rounded-3xl p-6 text-left border-2 border-transparent hover:border-green-500 hover:shadow-xl transition"
             >
-              + Add Crop
+              <div className="text-4xl mb-4">
+                {feature.icon}
+              </div>
+
+              <h3 className="text-xl font-bold text-gray-900">
+                {feature.title}
+              </h3>
+
+              <p className="text-gray-600 mt-2 leading-relaxed">
+                {feature.description}
+              </p>
+
+              <div className="mt-5 text-green-700 font-bold">
+                Explore →
+              </div>
             </button>
-          )}
+          ))}
 
         </div>
 
