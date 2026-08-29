@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -45,11 +46,19 @@ export default function CropDetailsPage() {
   const handleFeatureClick = (title: string) => {
     if (!crop) return;
 
+    // WEATHER
     if (title === "Weather") {
       router.push(`/crops/${crop.id}/weather`);
       return;
     }
 
+    // IRRIGATION
+    if (title === "Irrigation") {
+      router.push(`/crops/${crop.id}/irrigation`);
+      return;
+    }
+
+    // Other services - will be connected later
     alert(`${title} for ${crop.crop} will be connected next.`);
   };
 
@@ -189,7 +198,7 @@ export default function CropDetailsPage() {
           </div>
         </div>
 
-        {/* Features */}
+        {/* Features Heading */}
         <div className="mb-6">
           <h2 className="text-2xl font-bold text-green-800">
             {crop.crop} Services
@@ -200,6 +209,7 @@ export default function CropDetailsPage() {
           </p>
         </div>
 
+        {/* Features */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
 
           {features.map((feature) => (
