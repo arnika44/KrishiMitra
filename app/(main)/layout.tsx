@@ -13,6 +13,7 @@ const sidebarText: Record<
     language: string;
     changePassword: string;
     logout: string;
+    companion: string;
   }
 > = {
   hi: {
@@ -23,6 +24,7 @@ const sidebarText: Record<
     language: "भाषा",
     changePassword: "पासवर्ड बदलें",
     logout: "लॉगआउट",
+    companion: "आपका डिजिटल साथी",
   },
 
   en: {
@@ -33,6 +35,7 @@ const sidebarText: Record<
     language: "Language",
     changePassword: "Change Password",
     logout: "Logout",
+    companion: "Your digital companion",
   },
 
   bn: {
@@ -43,6 +46,7 @@ const sidebarText: Record<
     language: "ভাষা",
     changePassword: "পাসওয়ার্ড পরিবর্তন",
     logout: "লগআউট",
+    companion: "আপনার ডিজিটাল সঙ্গী",
   },
 
   mr: {
@@ -53,6 +57,7 @@ const sidebarText: Record<
     language: "भाषा",
     changePassword: "पासवर्ड बदला",
     logout: "लॉगआउट",
+    companion: "तुमचा डिजिटल साथीदार",
   },
 
   ta: {
@@ -63,6 +68,7 @@ const sidebarText: Record<
     language: "மொழி",
     changePassword: "கடவுச்சொல்லை மாற்று",
     logout: "வெளியேறு",
+    companion: "உங்கள் டிஜிட்டல் துணை",
   },
 
   te: {
@@ -73,6 +79,7 @@ const sidebarText: Record<
     language: "భాష",
     changePassword: "పాస్‌వర్డ్ మార్చండి",
     logout: "లాగౌట్",
+    companion: "మీ డిజిటల్ సహచరుడు",
   },
 
   gu: {
@@ -83,6 +90,7 @@ const sidebarText: Record<
     language: "ભાષા",
     changePassword: "પાસવર્ડ બદલો",
     logout: "લોગઆઉટ",
+    companion: "તમારો ડિજિટલ સાથી",
   },
 
   kn: {
@@ -93,6 +101,7 @@ const sidebarText: Record<
     language: "ಭಾಷೆ",
     changePassword: "ಪಾಸ್‌ವರ್ಡ್ ಬದಲಾಯಿಸಿ",
     logout: "ಲಾಗ್‌ಔಟ್",
+    companion: "ನಿಮ್ಮ ಡಿಜಿಟಲ್ ಸಂಗಾತಿ",
   },
 
   ml: {
@@ -103,6 +112,7 @@ const sidebarText: Record<
     language: "ഭാഷ",
     changePassword: "പാസ്‌വേഡ് മാറ്റുക",
     logout: "ലോഗൗട്ട്",
+    companion: "നിങ്ങളുടെ ഡിജിറ്റൽ സഹായി",
   },
 
   pa: {
@@ -113,6 +123,7 @@ const sidebarText: Record<
     language: "ਭਾਸ਼ਾ",
     changePassword: "ਪਾਸਵਰਡ ਬਦਲੋ",
     logout: "ਲੌਗਆਊਟ",
+    companion: "ਤੁਹਾਡਾ ਡਿਜੀਟਲ ਸਾਥੀ",
   },
 
   or: {
@@ -123,6 +134,7 @@ const sidebarText: Record<
     language: "ଭାଷା",
     changePassword: "ପାସୱାର୍ଡ ବଦଳାନ୍ତୁ",
     logout: "ଲଗଆଉଟ୍",
+    companion: "ଆପଣଙ୍କ ଡିଜିଟାଲ୍ ସାଥୀ",
   },
 
   as: {
@@ -133,6 +145,7 @@ const sidebarText: Record<
     language: "ভাষা",
     changePassword: "পাছৱৰ্ড সলনি কৰক",
     logout: "লগআউট",
+    companion: "আপোনাৰ ডিজিটেল সংগী",
   },
 
   ur: {
@@ -143,6 +156,7 @@ const sidebarText: Record<
     language: "زبان",
     changePassword: "پاس ورڈ تبدیل کریں",
     logout: "لاگ آؤٹ",
+    companion: "آپ کا ڈیجیٹل ساتھی",
   },
 };
 
@@ -173,6 +187,10 @@ export default function MainLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
+  // ===============================
+  // LOAD SAVED LANGUAGE
+  // ===============================
+
   useEffect(() => {
     const savedLanguage = localStorage.getItem("selectedLanguage");
 
@@ -183,6 +201,10 @@ export default function MainLayout({
 
   const t = sidebarText[language] || sidebarText.en;
 
+  // ===============================
+  // LANGUAGE CHANGE
+  // ===============================
+
   const handleLanguageChange = (
     e: React.ChangeEvent<HTMLSelectElement>
   ) => {
@@ -191,16 +213,25 @@ export default function MainLayout({
     setLanguage(newLanguage);
     localStorage.setItem("selectedLanguage", newLanguage);
 
+    // Language ko poore app me refresh ke baad apply karne ke liye
     window.location.reload();
   };
+
+  // ===============================
+  // CLOSE SIDEBAR
+  // ===============================
+
+  const closeSidebar = () => {
+    setSidebarOpen(false);
+  };
+
+  // ===============================
+  // LOGOUT
+  // ===============================
 
   const handleLogout = () => {
     localStorage.removeItem("isLoggedIn");
     router.push("/auth");
-  };
-
-  const closeSidebar = () => {
-    setSidebarOpen(false);
   };
 
   return (
@@ -208,12 +239,16 @@ export default function MainLayout({
       className="min-h-screen bg-green-50"
       dir={language === "ur" ? "rtl" : "ltr"}
     >
-      {/* MENU BUTTON */}
+      {/* =====================================================
+          MENU BUTTON
+      ====================================================== */}
 
       <button
         type="button"
         onClick={() => setSidebarOpen(true)}
-        className="fixed top-4 left-4 z-50 w-11 h-11 rounded-xl bg-white border border-gray-200 shadow-md flex flex-col items-center justify-center gap-1.5 hover:bg-gray-50 transition"
+        className={`fixed top-4 z-50 w-11 h-11 rounded-xl bg-white border border-gray-200 shadow-md flex flex-col items-center justify-center gap-1.5 hover:bg-gray-50 transition ${
+          language === "ur" ? "right-4" : "left-4"
+        }`}
         aria-label="Open Menu"
       >
         <span className="block w-5 h-0.5 bg-gray-700 rounded" />
@@ -221,7 +256,9 @@ export default function MainLayout({
         <span className="block w-5 h-0.5 bg-gray-700 rounded" />
       </button>
 
-      {/* OVERLAY */}
+      {/* =====================================================
+          OVERLAY
+      ====================================================== */}
 
       {sidebarOpen && (
         <button
@@ -232,16 +269,67 @@ export default function MainLayout({
         />
       )}
 
-      {/* SIDEBAR */}
+      {/* =====================================================
+          SIDEBAR
+      ====================================================== */}
 
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-50 w-80 max-w-[85vw] bg-white shadow-2xl transform transition-transform duration-300 ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        dir={language === "ur" ? "rtl" : "ltr"}
+        className={`fixed top-0 bottom-0 z-50 w-80 max-w-[85vw] bg-white shadow-2xl transform transition-transform duration-300 ${
+          language === "ur"
+            ? `right-0 ${
+                sidebarOpen
+                  ? "translate-x-0"
+                  : "translate-x-full"
+              }`
+            : `left-0 ${
+                sidebarOpen
+                  ? "translate-x-0"
+                  : "-translate-x-full"
+              }`
         }`}
       >
-        <div className="p-5 overflow-y-auto h-full">
+        {/* =================================================
+            SIDEBAR HEADER
+        ================================================== */}
 
-          {/* PROFILE */}
+        <div className="px-5 py-5 border-b border-green-100 flex items-center justify-between">
+          {/* KrishiMitra Logo + Name */}
+
+          <div className="flex items-center gap-3">
+            <div className="text-3xl">🌾</div>
+
+            <div>
+              <h2 className="text-xl font-bold text-green-800">
+                KrishiMitra
+              </h2>
+
+              <p className="text-xs text-gray-500">
+                {t.companion}
+              </p>
+            </div>
+          </div>
+
+          {/* Close */}
+
+          <button
+            type="button"
+            onClick={closeSidebar}
+            className="w-9 h-9 rounded-lg hover:bg-gray-100 text-gray-600 text-2xl flex items-center justify-center"
+            aria-label="Close Menu"
+          >
+            ×
+          </button>
+        </div>
+
+        {/* =================================================
+            SIDEBAR MENU
+        ================================================== */}
+
+        <div className="p-4 overflow-y-auto h-[calc(100vh-90px)]">
+          {/* =================================================
+              PROFILE
+          ================================================== */}
 
           <button
             type="button"
@@ -258,7 +346,9 @@ export default function MainLayout({
             </span>
           </button>
 
-          {/* CHANGE USER */}
+          {/* =================================================
+              CHANGE USER
+          ================================================== */}
 
           <button
             type="button"
@@ -275,7 +365,9 @@ export default function MainLayout({
             </span>
           </button>
 
-          {/* MY CROP */}
+          {/* =================================================
+              MY CROP
+          ================================================== */}
 
           <button
             type="button"
@@ -292,7 +384,9 @@ export default function MainLayout({
             </span>
           </button>
 
-          {/* MORE SETTINGS */}
+          {/* =================================================
+              MORE SETTINGS
+          ================================================== */}
 
           <div className="mt-2">
             <button
@@ -308,21 +402,30 @@ export default function MainLayout({
                 </span>
               </div>
 
-              <span className="text-gray-500">
+              <span className="text-gray-500 text-sm">
                 {settingsOpen ? "▲" : "▼"}
               </span>
             </button>
 
-            {/* SUB MENU */}
+            {/* =================================================
+                SETTINGS SUB MENU
+            ================================================== */}
 
             {settingsOpen && (
-              <div className="ml-8 pl-4 border-l-2 border-green-100">
-
-                {/* LANGUAGE */}
+              <div
+                className={`mt-1 border-green-100 ${
+                  language === "ur"
+                    ? "mr-8 pr-4 border-r-2"
+                    : "ml-8 pl-4 border-l-2"
+                }`}
+              >
+                {/* =================================================
+                    LANGUAGE
+                ================================================== */}
 
                 <div className="py-3">
                   <label className="block text-sm font-semibold text-gray-600 mb-2">
-                    {t.language}
+                    🌐 {t.language}
                   </label>
 
                   <select
@@ -340,7 +443,9 @@ export default function MainLayout({
                   </select>
                 </div>
 
-                {/* CHANGE PASSWORD */}
+                {/* =================================================
+                    CHANGE PASSWORD
+                ================================================== */}
 
                 <button
                   type="button"
@@ -356,12 +461,13 @@ export default function MainLayout({
                     {t.changePassword}
                   </span>
                 </button>
-
               </div>
             )}
           </div>
 
-          {/* LOGOUT */}
+          {/* =================================================
+              LOGOUT
+          ================================================== */}
 
           <div className="mt-3 border-t border-gray-100 pt-3">
             <button
@@ -376,11 +482,12 @@ export default function MainLayout({
               </span>
             </button>
           </div>
-
         </div>
       </aside>
 
-      {/* PAGE */}
+      {/* =====================================================
+          PAGE CONTENT
+      ====================================================== */}
 
       {children}
     </div>
