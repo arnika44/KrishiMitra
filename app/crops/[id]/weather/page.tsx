@@ -39,6 +39,8 @@ const translations = {
     rainShowers: "Rain Showers",
     thunderstorm: "Thunderstorm",
     unknown: "Unknown",
+    location: "Location",
+    coordinates: "Coordinates",
   },
 
   hi: {
@@ -76,6 +78,8 @@ const translations = {
     rainShowers: "बारिश की बौछार",
     thunderstorm: "आंधी-तूफान",
     unknown: "अज्ञात",
+    location: "स्थान",
+    coordinates: "निर्देशांक",
   },
 
   bn: {
@@ -113,6 +117,8 @@ const translations = {
     rainShowers: "বৃষ্টির ঝাপটা",
     thunderstorm: "বজ্রঝড়",
     unknown: "অজানা",
+    location: "অবস্থান",
+    coordinates: "স্থানাঙ্ক",
   },
 
   mr: {
@@ -150,6 +156,8 @@ const translations = {
     rainShowers: "पावसाच्या सरी",
     thunderstorm: "वादळ",
     unknown: "अज्ञात",
+    location: "स्थान",
+    coordinates: "निर्देशांक",
   },
 
   ta: {
@@ -187,6 +195,8 @@ const translations = {
     rainShowers: "மழைத்தூறல்",
     thunderstorm: "இடியுடன் கூடிய மழை",
     unknown: "தெரியவில்லை",
+    location: "இடம்",
+    coordinates: "ஆயத்தொலைவுகள்",
   },
 
   te: {
@@ -224,6 +234,8 @@ const translations = {
     rainShowers: "వర్షపు జల్లులు",
     thunderstorm: "ఉరుములతో కూడిన వర్షం",
     unknown: "తెలియదు",
+    location: "స్థానం",
+    coordinates: "కోఆర్డినేట్లు",
   },
 
   gu: {
@@ -261,6 +273,8 @@ const translations = {
     rainShowers: "વરસાદની ઝાપટ",
     thunderstorm: "વાવાઝોડું",
     unknown: "અજ્ઞાત",
+    location: "સ્થળ",
+    coordinates: "કોઓર્ડિનેટ્સ",
   },
 
   kn: {
@@ -298,6 +312,8 @@ const translations = {
     rainShowers: "ಮಳೆಯ ತುಂತುರು",
     thunderstorm: "ಗುಡುಗು ಸಹಿತ ಮಳೆ",
     unknown: "ತಿಳಿದಿಲ್ಲ",
+    location: "ಸ್ಥಳ",
+    coordinates: "ನಿರ್ದೇಶಾಂಕಗಳು",
   },
 
   ml: {
@@ -335,6 +351,8 @@ const translations = {
     rainShowers: "മഴച്ചാറ്റൽ",
     thunderstorm: "ഇടിമിന്നലോടുകൂടിയ മഴ",
     unknown: "അജ്ഞാതം",
+    location: "സ്ഥലം",
+    coordinates: "കോർഡിനേറ്റുകൾ",
   },
 
   pa: {
@@ -372,6 +390,8 @@ const translations = {
     rainShowers: "ਮੀਂਹ ਦੀਆਂ ਛਿੱਟਾਂ",
     thunderstorm: "ਤੂਫ਼ਾਨ",
     unknown: "ਅਣਜਾਣ",
+    location: "ਸਥਾਨ",
+    coordinates: "ਕੋਆਰਡੀਨੇਟ",
   },
 
   or: {
@@ -409,6 +429,8 @@ const translations = {
     rainShowers: "ବର୍ଷା ଛିଟା",
     thunderstorm: "ଘଡ଼ଘଡ଼ି ସହ ବର୍ଷା",
     unknown: "ଅଜ୍ଞାତ",
+    location: "ସ୍ଥାନ",
+    coordinates: "ସ୍ଥାନାଙ୍କ",
   },
 
   as: {
@@ -446,6 +468,8 @@ const translations = {
     rainShowers: "বৰষুণৰ চিটিকনি",
     thunderstorm: "বজ্ৰপাত",
     unknown: "অজ্ঞাত",
+    location: "স্থান",
+    coordinates: "স্থানাংক",
   },
 
   ur: {
@@ -483,6 +507,8 @@ const translations = {
     rainShowers: "بارش کی بوچھاڑ",
     thunderstorm: "گرج چمک کے ساتھ بارش",
     unknown: "نامعلوم",
+    location: "مقام",
+    coordinates: "مقام کے نقاط",
   },
 } as const;
 
@@ -504,6 +530,12 @@ type WeatherData = {
   };
 };
 
+type Coordinates = {
+  latitude: number;
+  longitude: number;
+  name: string;
+};
+
 const localeMap: Record<Language, string> = {
   en: "en-IN",
   hi: "hi-IN",
@@ -520,59 +552,324 @@ const localeMap: Record<Language, string> = {
   ur: "ur-IN",
 };
 
+/*
+  This function tries to find the farmer profile
+  from localStorage.
+
+  It supports common storage names and also scans
+  localStorage so you don't have to change profile page
+  immediately.
+*/
+function findFarmerLocation(): string {
+  if (typeof window === "undefined") {
+    return "";
+  }
+
+  const possibleKeys = [
+    "farmerProfile",
+    "farmerData",
+    "profile",
+    "userProfile",
+    "farmer",
+    "user",
+    "profileData",
+    "farmerDetails",
+    "userData",
+  ];
+
+  for (const key of possibleKeys) {
+    const value = localStorage.getItem(key);
+
+    if (!value) continue;
+
+    try {
+      const data = JSON.parse(value);
+
+      if (data && typeof data === "object") {
+        const location = extractLocation(data);
+
+        if (location) {
+          return location;
+        }
+      }
+    } catch {
+      // Ignore invalid JSON
+    }
+  }
+
+  // Fallback: scan every localStorage item.
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+
+    if (!key) continue;
+
+    const value = localStorage.getItem(key);
+
+    if (!value) continue;
+
+    try {
+      const data = JSON.parse(value);
+
+      if (data && typeof data === "object") {
+        const location = extractLocation(data);
+
+        if (location) {
+          return location;
+        }
+      }
+    } catch {
+      // Ignore non-JSON values
+    }
+  }
+
+  return "";
+}
+
+function extractLocation(data: Record<string, unknown>): string {
+  const getString = (...keys: string[]): string => {
+    for (const key of keys) {
+      const value = data[key];
+
+      if (typeof value === "string" && value.trim()) {
+        return value.trim();
+      }
+
+      if (typeof value === "number") {
+        return String(value);
+      }
+    }
+
+    return "";
+  };
+
+  const village = getString(
+    "village",
+    "Village",
+    "villageName",
+    "village_name"
+  );
+
+  const state = getString(
+    "state",
+    "State",
+    "stateName",
+    "state_name"
+  );
+
+  const pin = getString(
+    "pin",
+    "PIN",
+    "pincode",
+    "pinCode",
+    "postalCode",
+    "postal_code"
+  );
+
+  const location = getString(
+    "location",
+    "Location",
+    "address",
+    "Address",
+    "city",
+    "district"
+  );
+
+  const parts = [
+    village,
+    location,
+    state,
+    pin,
+    "India",
+  ].filter(Boolean);
+
+  return parts.join(", ");
+}
+
+/*
+  Convert farmer's village/state/PIN into latitude
+  and longitude using Open-Meteo Geocoding API.
+*/
+async function getCoordinates(
+  location: string
+): Promise<Coordinates | null> {
+  if (!location) {
+    return null;
+  }
+
+  const url =
+    "https://geocoding-api.open-meteo.com/v1/search" +
+    `?name=${encodeURIComponent(location)}` +
+    "&count=5" +
+    "&language=en" +
+    "&format=json";
+
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error("Location service unavailable");
+  }
+
+  const data = await response.json();
+
+  if (!data.results || data.results.length === 0) {
+    return null;
+  }
+
+  /*
+    Prefer an Indian result.
+  */
+  const indianResult =
+    data.results.find(
+      (item: {
+        country_code?: string;
+        latitude: number;
+        longitude: number;
+        name?: string;
+      }) => item.country_code === "IN"
+    ) || data.results[0];
+
+  return {
+    latitude: indianResult.latitude,
+    longitude: indianResult.longitude,
+    name: indianResult.name || location,
+  };
+}
+
+async function getWeather(
+  latitude: number,
+  longitude: number
+): Promise<WeatherData> {
+  const url =
+    "https://api.open-meteo.com/v1/forecast" +
+    `?latitude=${latitude}` +
+    `&longitude=${longitude}` +
+    "&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m" +
+    "&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max" +
+    "&timezone=auto" +
+    "&forecast_days=7";
+
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error("Weather service unavailable");
+  }
+
+  return response.json();
+}
+
 export default function WeatherPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
 
   const [language, setLanguage] = useState<Language>("en");
   const [weather, setWeather] = useState<WeatherData | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string>("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [farmerLocation, setFarmerLocation] = useState("");
+  const [coordinates, setCoordinates] =
+    useState<Coordinates | null>(null);
 
   useEffect(() => {
     const savedLanguage = localStorage.getItem("selectedLanguage");
 
     if (
       savedLanguage &&
-      Object.prototype.hasOwnProperty.call(translations, savedLanguage)
+      Object.prototype.hasOwnProperty.call(
+        translations,
+        savedLanguage
+      )
     ) {
       setLanguage(savedLanguage as Language);
     }
 
-    const getWeather = async () => {
+    const loadWeather = async () => {
       try {
-        const response = await fetch(
-          "https://api.open-meteo.com/v1/forecast?latitude=28.45&longitude=79.12&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto"
-        );
+        setLoading(true);
+        setError("");
 
-        if (!response.ok) {
-          throw new Error("Weather service unavailable");
+        /*
+          Get location saved in farmer profile.
+        */
+        const savedLocation = findFarmerLocation();
+
+        if (!savedLocation) {
+          throw new Error(
+            "Farmer location was not found in profile."
+          );
         }
 
-        const data: WeatherData = await response.json();
+        setFarmerLocation(savedLocation);
 
-        setWeather(data);
-      } catch {
-        setError("Weather information could not be loaded.");
+        /*
+          Convert village/state/PIN into coordinates.
+        */
+        const coords = await getCoordinates(savedLocation);
+
+        if (!coords) {
+          throw new Error(
+            "Could not find the farmer's location."
+          );
+        }
+
+        setCoordinates(coords);
+
+        /*
+          Get ACTUAL weather for those coordinates.
+        */
+        const weatherData = await getWeather(
+          coords.latitude,
+          coords.longitude
+        );
+
+        setWeather(weatherData);
+      } catch (err) {
+        console.error("Weather error:", err);
+
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Weather information could not be loaded."
+        );
       } finally {
         setLoading(false);
       }
     };
 
-    getWeather();
+    loadWeather();
   }, []);
 
   const t = translations[language];
 
   const getWeatherText = (code: number): string => {
     if (code === 0) return t.clearSky;
-    if ([1, 2, 3].includes(code)) return t.partlyCloudy;
-    if ([45, 48].includes(code)) return t.foggy;
-    if ([51, 53, 55].includes(code)) return t.drizzle;
-    if ([61, 63, 65].includes(code)) return t.rainText;
-    if ([71, 73, 75].includes(code)) return t.snow;
-    if ([80, 81, 82].includes(code)) return t.rainShowers;
-    if ([95, 96, 99].includes(code)) return t.thunderstorm;
+
+    if ([1, 2, 3].includes(code)) {
+      return t.partlyCloudy;
+    }
+
+    if ([45, 48].includes(code)) {
+      return t.foggy;
+    }
+
+    if ([51, 53, 55].includes(code)) {
+      return t.drizzle;
+    }
+
+    if ([61, 63, 65].includes(code)) {
+      return t.rainText;
+    }
+
+    if ([71, 73, 75].includes(code)) {
+      return t.snow;
+    }
+
+    if ([80, 81, 82].includes(code)) {
+      return t.rainShowers;
+    }
+
+    if ([95, 96, 99].includes(code)) {
+      return t.thunderstorm;
+    }
 
     return t.unknown;
   };
@@ -608,7 +905,7 @@ export default function WeatherPage() {
         className="min-h-screen bg-green-50 flex items-center justify-center px-5"
         dir={language === "ur" ? "rtl" : "ltr"}
       >
-        <div className="bg-white rounded-3xl shadow-lg p-8 text-center">
+        <div className="bg-white rounded-3xl shadow-lg p-8 text-center max-w-lg">
           <div className="text-5xl mb-4">⚠️</div>
 
           <h1 className="text-2xl font-bold text-gray-900">
@@ -616,7 +913,7 @@ export default function WeatherPage() {
           </h1>
 
           <p className="text-gray-600 mt-2">
-            {t.unavailableDesc}
+            {error || t.unavailableDesc}
           </p>
 
           <button
@@ -661,6 +958,25 @@ export default function WeatherPage() {
           <p className="text-gray-600 mt-2">
             {t.subtitle}
           </p>
+
+          {/* Farmer Location */}
+          <div className="mt-5 bg-white rounded-2xl shadow-sm p-5">
+            <p className="text-sm text-gray-500">
+              📍 {t.location}
+            </p>
+
+            <p className="text-lg font-bold text-green-800 mt-1">
+              {coordinates?.name || farmerLocation}
+            </p>
+
+            {coordinates && (
+              <p className="text-sm text-gray-500 mt-1">
+                {t.coordinates}:{" "}
+                {coordinates.latitude.toFixed(4)},{" "}
+                {coordinates.longitude.toFixed(4)}
+              </p>
+            )}
+          </div>
         </div>
 
         {/* Current Weather */}
@@ -792,7 +1108,7 @@ export default function WeatherPage() {
 
           <div className="space-y-3">
 
-            {daily.time.map((date: string, index: number) => (
+            {daily.time.map((date, index) => (
 
               <div
                 key={date}
@@ -819,8 +1135,7 @@ export default function WeatherPage() {
                     {Math.round(
                       daily.temperature_2m_max[index]
                     )}
-                    ° /
-                    {" "}
+                    ° /{" "}
                     {Math.round(
                       daily.temperature_2m_min[index]
                     )}
