@@ -393,7 +393,15 @@ export default function AuthPage() {
 
           {/* Submit */}
 <button
-  onClick={() => router.push("/role")}
+  onClick={() => {
+    const savedProfile = localStorage.getItem("farmerProfile");
+
+    if (savedProfile) {
+      router.push("/dashboard");
+    } else {
+      router.push("/role");
+    }
+  }}
   className="w-full py-4 rounded-xl bg-green-700 hover:bg-green-800 text-white font-bold text-lg transition"
 >
   {mode === "login" ? t.loginButton : t.registerButton}
