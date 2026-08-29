@@ -17,33 +17,27 @@ export default function CropsPage() {
   const [season, setSeason] = useState("");
   const [crop, setCrop] = useState("");
   const [land, setLand] = useState("");
-
-  // Controls whether Add Crop form is visible
   const [showAddForm, setShowAddForm] = useState(true);
 
   useEffect(() => {
     const savedCrops = localStorage.getItem("farmerCrops");
 
-    if (savedCrops) {
-      try {
-        const parsedCrops = JSON.parse(savedCrops);
+    if (!savedCrops) {
+      setCrops([]);
+      setShowAddForm(true);
+      return;
+    }
 
-        setCrops(parsedCrops);
+    try {
+      const parsedCrops: Crop[] = JSON.parse(savedCrops);
 
-        // If crops already exist, hide form initially.
-        // User can open it using Add Crop button.
-        if (parsedCrops.length > 0) {
-          setShowAddForm(false);
-        } else {
-          // First time farmer → show form automatically
-          setShowAddForm(true);
-        }
-      } catch {
-        setCrops([]);
-        setShowAddForm(true);
-      }
-    } else {
-      // No crop exists → first crop form should be visible
+      setCrops(parsedCrops);
+
+      // If crops already exist, show only the Add Crop button.
+      // If no crop exists, show the complete form.
+      setShowAddForm(parsedCrops.length === 0);
+    } catch {
+      setCrops([]);
       setShowAddForm(true);
     }
   }, []);
@@ -72,12 +66,12 @@ export default function CropsPage() {
       JSON.stringify(updatedCrops)
     );
 
-    // Clear form
+    // Clear form fields
     setSeason("");
     setCrop("");
     setLand("");
 
-    // After adding crop, hide the form
+    // After adding crop, hide the complete form
     setShowAddForm(false);
   };
 
@@ -93,10 +87,15 @@ export default function CropsPage() {
       JSON.stringify(updatedCrops)
     );
 
-    // If all crops are deleted, show the Add Crop form again
+    // If there are no crops left,
+    // show the first-crop form again.
     if (updatedCrops.length === 0) {
       setShowAddForm(true);
     }
+  };
+
+  const openAddCropForm = () => {
+    setShowAddForm(true);
   };
 
   return (
@@ -105,10 +104,10 @@ export default function CropsPage() {
 
         {/* Back */}
         <button
-          onClick={() => router.push("/profile")}
+          onClick={() => router.push("/dashboard")}
           className="text-green-700 font-semibold mb-6 hover:text-green-900"
         >
-          ← Back to Profile
+          ← Back to Dashboard
         </button>
 
         {/* Header */}
@@ -133,14 +132,13 @@ export default function CropsPage() {
         {showAddForm && (
           <div className="bg-white rounded-3xl shadow-lg p-7 mb-8">
 
-            {/* Form Header */}
             <div className="flex items-center justify-between mb-6">
 
               <h2 className="text-2xl font-bold text-green-800">
                 Add Crop
               </h2>
 
-              {/* Close button only appears when crops already exist */}
+              {/* Close only when crops already exist */}
               {crops.length > 0 && (
                 <button
                   type="button"
@@ -168,7 +166,6 @@ export default function CropsPage() {
                   required
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-green-500 text-gray-900 bg-white"
                 >
-
                   <option value="">
                     Select Season
                   </option>
@@ -188,7 +185,6 @@ export default function CropsPage() {
                   <option value="Other">
                     Other
                   </option>
-
                 </select>
 
               </div>
@@ -288,9 +284,7 @@ export default function CropsPage() {
                     {/* Crop Details */}
                     <button
                       onClick={() =>
-                        router.push(
-                          `/crops/${item.id}`
-                        )
+                        router.push(`/crops/${item.id}`)
                       }
                       className="flex-1 text-left"
                     >
@@ -323,9 +317,7 @@ export default function CropsPage() {
 
                     {/* Delete */}
                     <button
-                      onClick={() =>
-                        deleteCrop(item.id)
-                      }
+                      onClick={() => deleteCrop(item.id)}
                       className="px-4 py-2 rounded-lg bg-red-50 text-red-600 font-semibold hover:bg-red-100"
                     >
                       Delete
@@ -342,18 +334,16 @@ export default function CropsPage() {
           )}
 
           {/* ================================================= */}
-          {/* ADD ANOTHER CROP BUTTON */}
+          {/* ADD CROP BUTTON */}
           {/* ================================================= */}
 
           {crops.length > 0 && !showAddForm && (
-
             <button
-              onClick={() => setShowAddForm(true)}
-              className="w-full mt-8 py-5 rounded-2xl bg-green-700 hover:bg-green-800 text-white font-bold text-xl transition shadow-md"
+              onClick={openAddCropForm}
+              className="w-full mt-6 py-3 rounded-xl bg-green-700 hover:bg-green-800 text-white font-bold text-lg transition"
             >
-              + Add Another Crop
+              + Add Crop
             </button>
-
           )}
 
         </div>
