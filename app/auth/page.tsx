@@ -397,7 +397,7 @@ export default function AuthPage() {
     const savedProfile = localStorage.getItem("farmerProfile");
 
     if (savedProfile) {
-      router.push("/dashboard");
+      router.push("/crops");
     } else {
       router.push("/role");
     }
