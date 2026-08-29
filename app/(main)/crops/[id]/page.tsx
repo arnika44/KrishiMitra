@@ -109,7 +109,8 @@ const translations: Record<string, Translation> = {
     season: "सीजन",
     landArea: "जमीन का क्षेत्रफल",
     services: "सेवाएँ",
-    servicesDesc: "आपकी फसल को बेहतर तरीके से संभालने के लिए सभी जरूरी सेवाएँ।",
+    servicesDesc:
+      "आपकी फसल को बेहतर तरीके से संभालने के लिए सभी जरूरी सेवाएँ।",
     loading: "फसल लोड हो रही है...",
     pleaseWait: "कृपया प्रतीक्षा करें...",
     notFound: "फसल नहीं मिली",
@@ -211,7 +212,8 @@ const translations: Record<string, Translation> = {
     season: "हंगाम",
     landArea: "जमिनीचे क्षेत्रफळ",
     services: "सेवा",
-    servicesDesc: "तुमचे पीक व्यवस्थापित करण्यासाठी आवश्यक सर्व सेवा.",
+    servicesDesc:
+      "तुमचे पीक व्यवस्थापित करण्यासाठी आवश्यक सर्व सेवा.",
     loading: "पीक लोड होत आहे...",
     pleaseWait: "कृपया प्रतीक्षा करा...",
     notFound: "पीक सापडले नाही",
@@ -262,7 +264,8 @@ const translations: Record<string, Translation> = {
     season: "பருவம்",
     landArea: "நிலப்பரப்பு",
     services: "சேவைகள்",
-    servicesDesc: "உங்கள் பயிரை நிர்வகிக்க தேவையான அனைத்து சேவைகளும்.",
+    servicesDesc:
+      "உங்கள் பயிரை நிர்வகிக்க தேவையான அனைத்து சேவைகளும்.",
     loading: "பயிர் ஏற்றப்படுகிறது...",
     pleaseWait: "தயவுசெய்து காத்திருக்கவும்...",
     notFound: "பயிர் கிடைக்கவில்லை",
@@ -313,7 +316,8 @@ const translations: Record<string, Translation> = {
     season: "సీజన్",
     landArea: "భూమి విస్తీర్ణం",
     services: "సేవలు",
-    servicesDesc: "మీ పంటను నిర్వహించడానికి అవసరమైన అన్ని సేవలు.",
+    servicesDesc:
+      "మీ పంటను నిర్వహించడానికి అవసరమైన అన్ని సేవలు.",
     loading: "పంట లోడ్ అవుతోంది...",
     pleaseWait: "దయచేసి వేచి ఉండండి...",
     notFound: "పంట కనుగొనబడలేదు",
@@ -364,7 +368,8 @@ const translations: Record<string, Translation> = {
     season: "મોસમ",
     landArea: "જમીન વિસ્તાર",
     services: "સેવાઓ",
-    servicesDesc: "તમારા પાકનું સંચાલન કરવા માટે જરૂરી તમામ સેવાઓ.",
+    servicesDesc:
+      "તમારા પાકનું સંચાલન કરવા માટે જરૂરી તમામ સેવાઓ.",
     loading: "પાક લોડ થઈ રહ્યો છે...",
     pleaseWait: "કૃપા કરીને રાહ જુઓ...",
     notFound: "પાક મળ્યો નથી",
@@ -415,7 +420,8 @@ const translations: Record<string, Translation> = {
     season: "ಋತು",
     landArea: "ಭೂಮಿ ವಿಸ್ತೀರ್ಣ",
     services: "ಸೇವೆಗಳು",
-    servicesDesc: "ನಿಮ್ಮ ಬೆಳೆ ನಿರ್ವಹಿಸಲು ಅಗತ್ಯವಿರುವ ಎಲ್ಲಾ ಸೇವೆಗಳು.",
+    servicesDesc:
+      "ನಿಮ್ಮ ಬೆಳೆ ನಿರ್ವಹಿಸಲು ಅಗತ್ಯವಿರುವ ಎಲ್ಲಾ ಸೇವೆಗಳು.",
     loading: "ಬೆಳೆ ಲೋಡ್ ಆಗುತ್ತಿದೆ...",
     pleaseWait: "ದಯವಿಟ್ಟು ಕಾಯಿರಿ...",
     notFound: "ಬೆಳೆ ಕಂಡುಬಂದಿಲ್ಲ",
@@ -466,7 +472,8 @@ const translations: Record<string, Translation> = {
     season: "സീസൺ",
     landArea: "ഭൂവിസ്തീർണ്ണം",
     services: "സേവനങ്ങൾ",
-    servicesDesc: "നിങ്ങളുടെ വിള നിയന്ത്രിക്കാൻ ആവശ്യമായ എല്ലാ സേവനങ്ങളും.",
+    servicesDesc:
+      "നിങ്ങളുടെ വിള നിയന്ത്രിക്കാൻ ആവശ്യമായ എല്ലാ സേവനങ്ങളും.",
     loading: "വിള ലോഡ് ചെയ്യുന്നു...",
     pleaseWait: "ദയവായി കാത്തിരിക്കുക...",
     notFound: "വിള കണ്ടെത്തിയില്ല",
@@ -517,7 +524,8 @@ const translations: Record<string, Translation> = {
     season: "ਸੀਜ਼ਨ",
     landArea: "ਜ਼ਮੀਨ ਦਾ ਖੇਤਰਫਲ",
     services: "ਸੇਵਾਵਾਂ",
-    servicesDesc: "ਤੁਹਾਡੀ ਫਸਲ ਨੂੰ ਸੰਭਾਲਣ ਲਈ ਲੋੜੀਂਦੀਆਂ ਸਾਰੀਆਂ ਸੇਵਾਵਾਂ।",
+    servicesDesc:
+      "ਤੁਹਾਡੀ ਫਸਲ ਨੂੰ ਸੰਭਾਲਣ ਲਈ ਲੋੜੀਂਦੀਆਂ ਸਾਰੀਆਂ ਸੇਵਾਵਾਂ।",
     loading: "ਫਸਲ ਲੋਡ ਹੋ ਰਹੀ ਹੈ...",
     pleaseWait: "ਕਿਰਪਾ ਕਰਕੇ ਉਡੀਕ ਕਰੋ...",
     notFound: "ਫਸਲ ਨਹੀਂ ਮਿਲੀ",
@@ -568,7 +576,8 @@ const translations: Record<string, Translation> = {
     season: "ଋତୁ",
     landArea: "ଜମିର କ୍ଷେତ୍ରଫଳ",
     services: "ସେବା",
-    servicesDesc: "ଆପଣଙ୍କ ଫସଲ ପରିଚାଳନା ପାଇଁ ଆବଶ୍ୟକ ସମସ୍ତ ସେବା।",
+    servicesDesc:
+      "ଆପଣଙ୍କ ଫସଲ ପରିଚାଳନା ପାଇଁ ଆବଶ୍ୟକ ସମସ୍ତ ସେବା।",
     loading: "ଫସଲ ଲୋଡ୍ ହେଉଛି...",
     pleaseWait: "ଦୟାକରି ଅପେକ୍ଷା କରନ୍ତୁ...",
     notFound: "ଫସଲ ମିଳିଲା ନାହିଁ",
@@ -619,7 +628,8 @@ const translations: Record<string, Translation> = {
     season: "ঋতু",
     landArea: "মাটিৰ পৰিমাণ",
     services: "সেৱাসমূহ",
-    servicesDesc: "আপোনাৰ শস্য পৰিচালনাৰ বাবে প্ৰয়োজনীয় সকলো সেৱা।",
+    servicesDesc:
+      "আপোনাৰ শস্য পৰিচালনাৰ বাবে প্ৰয়োজনীয় সকলো সেৱা।",
     loading: "শস্য লোড হৈ আছে...",
     pleaseWait: "অনুগ্ৰহ কৰি অপেক্ষা কৰক...",
     notFound: "শস্য পোৱা নগ'ল",
@@ -670,7 +680,8 @@ const translations: Record<string, Translation> = {
     season: "موسم",
     landArea: "زمین کا رقبہ",
     services: "خدمات",
-    servicesDesc: "آپ کی فصل کو سنبھالنے کے لیے تمام ضروری خدمات۔",
+    servicesDesc:
+      "آپ کی فصل کو سنبھالنے کے لیے تمام ضروری خدمات۔",
     loading: "فصل لوڈ ہو رہی ہے...",
     pleaseWait: "براہ کرم انتظار کریں...",
     notFound: "فصل نہیں ملی",
@@ -758,23 +769,40 @@ export default function CropDetailsPage() {
 
   const t = translations[language] || translations.en;
 
-  const handleFeatureClick = (title: string) => {
+  const handleFeatureClick = (key: string) => {
     if (!crop) return;
 
-    if (title === "Weather") {
+    /*
+     * MANDI & MARKET
+     */
+    if (key === "Mandi") {
+      router.push(`/crops/${crop.id}/market`);
+      return;
+    }
+
+    /*
+     * WEATHER
+     */
+    if (key === "Weather") {
       router.push(`/crops/${crop.id}/weather`);
       return;
     }
 
-    if (title === "Irrigation") {
+    /*
+     * IRRIGATION
+     */
+    if (key === "Irrigation") {
       router.push(`/crops/${crop.id}/irrigation`);
       return;
     }
 
+    /*
+     * OTHER SERVICES
+     */
     alert(
       language === "en"
-        ? `${title} for ${crop.crop} ${t.alertMessage}`
-        : `${title} - ${crop.crop} ${t.alertMessage}`
+        ? `${key} for ${crop.crop} ${t.alertMessage}`
+        : `${key} - ${crop.crop} ${t.alertMessage}`
     );
   };
 
