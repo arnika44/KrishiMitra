@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 
 /* =========================================================
@@ -15,9 +15,24 @@ type Crop = {
   landUnit?: string;
 };
 
+type ProfileLocation = {
+  village?: string;
+  city?: string;
+  town?: string;
+  district?: string;
+  state?: string;
+  pincode?: string;
+  address?: string;
+  latitude?: number;
+  longitude?: number;
+};
+
 type MarketInfo = {
   crop: string;
   price: string;
+  minPrice: number;
+  maxPrice: number;
+  modalPrice: number;
   unit: string;
   trend: string;
   advice: string;
@@ -26,14 +41,14 @@ type MarketInfo = {
 type Mandi = {
   id: string;
   name: string;
-  address: string;
-  lat: number;
-  lon: number;
+  type: string;
+  latitude: number;
+  longitude: number;
   distance: number;
-  rate: string;
-  transportPerQuintal: number;
-  transportText: string;
-  effectiveRate: string;
+  cropPrice: number;
+  transportCost: number;
+  netPrice: number;
+  location: string;
 };
 
 type Translation = {
@@ -41,10 +56,8 @@ type Translation = {
   season: string;
   market: string;
   landArea: string;
-
   loadingTitle: string;
   loadingText: string;
-
   cropNotFound: string;
   backToCrops: string;
 
@@ -60,35 +73,38 @@ type Translation = {
   nearbyMarket: string;
   nearbyMarketDescription: string;
 
-  findMandi: string;
-  searchingMandi: string;
-
   profileLocation: string;
-  locationNotFound: string;
-  locationUsed: string;
+  searchingMandis: string;
+  searchMandis: string;
 
   distance: string;
-  km: string;
-
   mandiRate: string;
-  transportCharge: string;
-  estimatedTransport: string;
+  transportCost: string;
+  estimatedNetRate: string;
+  perQuintal: string;
 
-  effectivePrice: string;
+  kilometers: string;
+  estimated: string;
 
-  openMap: string;
+  noMandis: string;
+  locationMissing: string;
+  locationMissingDescription: string;
 
-  noMandiFound: string;
-  mandiSearchError: string;
+  locationFromProfile: string;
+  village: string;
+  city: string;
+  district: string;
+  state: string;
+  pincode: string;
 
   importantBeforeSelling: string;
-
   tip1: string;
   tip2: string;
   tip3: string;
   tip4: string;
 
-  estimateNote: string;
+  errorSearching: string;
+  tryAgain: string;
 
   seasonNames: {
     Kharif: string;
@@ -137,30 +153,33 @@ const translations: Record<string, Translation> = {
     nearbyMarketDescription:
       "Find agricultural markets near your saved profile location and compare selling opportunities.",
 
-    findMandi: "Find Nearby Mandi →",
-    searchingMandi: "Searching nearby mandis...",
-
     profileLocation: "Profile Location",
-    locationNotFound:
-      "Profile location was not found. Please add your village, city, district or pincode in your profile.",
-    locationUsed: "Mandis are being searched around your profile location.",
+    searchingMandis: "Searching nearby mandis...",
+    searchMandis: "Find Nearby Mandi →",
 
     distance: "Distance",
-    km: "km",
-
     mandiRate: "Mandi Rate",
-    transportCharge: "Transport",
-    estimatedTransport: "Estimated transport",
+    transportCost: "Estimated Transport",
+    estimatedNetRate: "Estimated Net Rate",
+    perQuintal: "per quintal",
 
-    effectivePrice: "Effective Price",
+    kilometers: "km",
+    estimated: "Estimated",
 
-    openMap: "Open Map",
+    noMandis:
+      "No nearby agricultural market was found around your saved profile location.",
 
-    noMandiFound:
-      "No nearby mandi was found around your saved profile location.",
+    locationMissing: "Profile Location Not Found",
+    locationMissingDescription:
+      "Please add your village, city, district and state in your profile first.",
 
-    mandiSearchError:
-      "Unable to find nearby mandis right now. Please try again.",
+    locationFromProfile: "Using location saved in your profile",
+
+    village: "Village",
+    city: "City / Town",
+    district: "District",
+    state: "State",
+    pincode: "Pincode",
 
     importantBeforeSelling: "⚠️ Important Before Selling",
 
@@ -176,8 +195,10 @@ const translations: Record<string, Translation> = {
     tip4:
       "Verify the latest mandi rate before making a final selling decision.",
 
-    estimateNote:
-      "Mandi rates shown here are indicative. Transport is an estimated amount and may vary by vehicle, quantity, road condition and distance.",
+    errorSearching:
+      "We could not search nearby markets right now. Please try again.",
+
+    tryAgain: "Try Again",
 
     seasonNames: {
       Kharif: "Kharif",
@@ -220,33 +241,35 @@ const translations: Record<string, Translation> = {
 
     nearbyMarket: "📍 नज़दीकी मंडी और बाज़ार",
     nearbyMarketDescription:
-      "आपके प्रोफाइल में सेव की गई जगह के आसपास की कृषि मंडियों को खोजें और बिक्री के विकल्पों की तुलना करें।",
+      "आपकी प्रोफ़ाइल में सेव स्थान के आसपास कृषि मंडियां खोजें और बिक्री के विकल्पों की तुलना करें।",
 
-    findMandi: "नज़दीकी मंडी खोजें →",
-    searchingMandi: "नज़दीकी मंडियाँ खोजी जा रही हैं...",
-
-    profileLocation: "प्रोफाइल की जगह",
-    locationNotFound:
-      "प्रोफाइल की लोकेशन नहीं मिली। कृपया अपनी प्रोफाइल में गाँव, शहर, जिला या पिनकोड जोड़ें।",
-    locationUsed:
-      "मंडी की खोज आपकी प्रोफाइल में सेव की गई लोकेशन के आसपास की जा रही है।",
+    profileLocation: "प्रोफ़ाइल का स्थान",
+    searchingMandis: "नज़दीकी मंडियां खोजी जा रही हैं...",
+    searchMandis: "नज़दीकी मंडी खोजें →",
 
     distance: "दूरी",
-    km: "किमी",
-
     mandiRate: "मंडी भाव",
-    transportCharge: "परिवहन",
-    estimatedTransport: "अनुमानित परिवहन",
+    transportCost: "अनुमानित परिवहन",
+    estimatedNetRate: "अनुमानित शुद्ध भाव",
+    perQuintal: "प्रति क्विंटल",
 
-    effectivePrice: "परिवहन के बाद प्रभावी भाव",
+    kilometers: "किमी",
+    estimated: "अनुमानित",
 
-    openMap: "मैप खोलें",
+    noMandis:
+      "आपकी सेव की गई प्रोफ़ाइल लोकेशन के आसपास कोई कृषि मंडी नहीं मिली।",
 
-    noMandiFound:
-      "आपकी प्रोफाइल लोकेशन के आसपास कोई नज़दीकी मंडी नहीं मिली।",
+    locationMissing: "प्रोफ़ाइल लोकेशन नहीं मिली",
+    locationMissingDescription:
+      "कृपया पहले अपनी प्रोफ़ाइल में गांव, शहर, जिला और राज्य जोड़ें।",
 
-    mandiSearchError:
-      "अभी नज़दीकी मंडियों की जानकारी नहीं मिल पा रही है। कृपया दोबारा कोशिश करें।",
+    locationFromProfile: "प्रोफ़ाइल में सेव स्थान का उपयोग किया जा रहा है",
+
+    village: "गांव",
+    city: "शहर / कस्बा",
+    district: "जिला",
+    state: "राज्य",
+    pincode: "पिनकोड",
 
     importantBeforeSelling: "⚠️ बेचने से पहले जरूरी बातें",
 
@@ -262,8 +285,10 @@ const translations: Record<string, Translation> = {
     tip4:
       "फसल बेचने का अंतिम निर्णय लेने से पहले नवीनतम मंडी भाव जरूर जाँचें।",
 
-    estimateNote:
-      "मंडी भाव अनुमानित हैं। परिवहन खर्च भी अनुमानित है और वाहन, मात्रा, सड़क की स्थिति तथा दूरी के अनुसार बदल सकता है।",
+    errorSearching:
+      "अभी नज़दीकी मंडियों की जानकारी नहीं मिल पा रही है। कृपया दोबारा कोशिश करें।",
+
+    tryAgain: "दोबारा कोशिश करें",
 
     seasonNames: {
       Kharif: "खरीफ",
@@ -288,8 +313,7 @@ const translations: Record<string, Translation> = {
     landArea: "जमिनीचे क्षेत्रफळ",
 
     loadingTitle: "बाजाराची माहिती लोड होत आहे...",
-    loadingText:
-      "कृपया थांबा, आम्ही बाजाराची माहिती तयार करत आहोत.",
+    loadingText: "कृपया थांबा, आम्ही बाजाराची माहिती तयार करत आहोत.",
 
     cropNotFound: "पीक सापडले नाही",
     backToCrops: "पिकांकडे परत जा",
@@ -306,34 +330,35 @@ const translations: Record<string, Translation> = {
 
     nearbyMarket: "📍 जवळची बाजारपेठ",
     nearbyMarketDescription:
-      "तुमच्या प्रोफाइलमध्ये सेव्ह केलेल्या ठिकाणाजवळील कृषी बाजारपेठा शोधा.",
-
-    findMandi: "जवळची बाजारपेठ शोधा →",
-    searchingMandi: "जवळच्या बाजारपेठा शोधत आहे...",
+      "तुमच्या प्रोफाइलमध्ये सेव केलेल्या ठिकाणाजवळील कृषी बाजारपेठा शोधा.",
 
     profileLocation: "प्रोफाइलचे ठिकाण",
-    locationNotFound:
-      "प्रोफाइलचे ठिकाण सापडले नाही. कृपया प्रोफाइलमध्ये गाव, शहर, जिल्हा किंवा पिनकोड जोडा.",
-
-    locationUsed:
-      "तुमच्या प्रोफाइलमध्ये सेव्ह केलेल्या ठिकाणाजवळ बाजारपेठा शोधल्या जात आहेत.",
+    searchingMandis: "जवळच्या बाजारपेठा शोधत आहे...",
+    searchMandis: "जवळची बाजारपेठ शोधा →",
 
     distance: "अंतर",
-    km: "किमी",
-
     mandiRate: "बाजारभाव",
-    transportCharge: "वाहतूक",
-    estimatedTransport: "अंदाजे वाहतूक",
+    transportCost: "अंदाजे वाहतूक खर्च",
+    estimatedNetRate: "अंदाजे निव्वळ दर",
+    perQuintal: "प्रति क्विंटल",
 
-    effectivePrice: "वाहतूक वजा केल्यानंतरचा भाव",
+    kilometers: "किमी",
+    estimated: "अंदाजे",
 
-    openMap: "नकाशा उघडा",
+    noMandis:
+      "तुमच्या सेव केलेल्या प्रोफाइल ठिकाणाजवळ कोणतीही कृषी बाजारपेठ सापडली नाही.",
 
-    noMandiFound:
-      "तुमच्या प्रोफाइलच्या ठिकाणाजवळ बाजारपेठ सापडली नाही.",
+    locationMissing: "प्रोफाइलचे ठिकाण सापडले नाही",
+    locationMissingDescription:
+      "कृपया प्रथम प्रोफाइलमध्ये गाव, शहर, जिल्हा आणि राज्य जोडा.",
 
-    mandiSearchError:
-      "सध्या जवळच्या बाजारपेठांची माहिती मिळत नाही. पुन्हा प्रयत्न करा.",
+    locationFromProfile: "प्रोफाइलमध्ये सेव केलेले ठिकाण वापरले जात आहे",
+
+    village: "गाव",
+    city: "शहर / गाव",
+    district: "जिल्हा",
+    state: "राज्य",
+    pincode: "पिनकोड",
 
     importantBeforeSelling: "⚠️ विक्रीपूर्वी महत्त्वाच्या गोष्टी",
 
@@ -349,8 +374,10 @@ const translations: Record<string, Translation> = {
     tip4:
       "विक्रीचा अंतिम निर्णय घेण्यापूर्वी नवीनतम बाजारभाव तपासा.",
 
-    estimateNote:
-      "बाजारभाव अंदाजे आहेत. वाहतूक खर्चही अंदाजे आहे आणि वाहन, प्रमाण, रस्ता व अंतरानुसार बदलू शकतो.",
+    errorSearching:
+      "जवळच्या बाजारपेठांची माहिती मिळवता आली नाही. पुन्हा प्रयत्न करा.",
+
+    tryAgain: "पुन्हा प्रयत्न करा",
 
     seasonNames: {
       Kharif: "खरीप",
@@ -375,8 +402,7 @@ const translations: Record<string, Translation> = {
     landArea: "জমির পরিমাণ",
 
     loadingTitle: "বাজারের তথ্য লোড হচ্ছে...",
-    loadingText:
-      "অনুগ্রহ করে অপেক্ষা করুন, আমরা বাজারের তথ্য প্রস্তুত করছি।",
+    loadingText: "অনুগ্রহ করে অপেক্ষা করুন, আমরা বাজারের তথ্য প্রস্তুত করছি।",
 
     cropNotFound: "ফসল পাওয়া যায়নি",
     backToCrops: "ফসলে ফিরে যান",
@@ -395,49 +421,45 @@ const translations: Record<string, Translation> = {
     nearbyMarketDescription:
       "আপনার প্রোফাইলে সংরক্ষিত অবস্থানের কাছাকাছি কৃষি বাজার খুঁজুন।",
 
-    findMandi: "কাছাকাছি মণ্ডি খুঁজুন →",
-    searchingMandi: "কাছাকাছি মণ্ডি খোঁজা হচ্ছে...",
-
     profileLocation: "প্রোফাইলের অবস্থান",
-    locationNotFound:
-      "প্রোফাইলের অবস্থান পাওয়া যায়নি। আপনার প্রোফাইলে গ্রাম, শহর, জেলা বা পিনকোড যোগ করুন।",
-
-    locationUsed:
-      "আপনার প্রোফাইলে সংরক্ষিত অবস্থানের আশেপাশে মণ্ডি খোঁজা হচ্ছে।",
+    searchingMandis: "কাছাকাছি মণ্ডি খোঁজা হচ্ছে...",
+    searchMandis: "কাছাকাছি মণ্ডি খুঁজুন →",
 
     distance: "দূরত্ব",
-    km: "কিমি",
-
     mandiRate: "মণ্ডির দাম",
-    transportCharge: "পরিবহন",
-    estimatedTransport: "আনুমানিক পরিবহন",
+    transportCost: "আনুমানিক পরিবহন",
+    estimatedNetRate: "আনুমানিক নিট দাম",
+    perQuintal: "প্রতি কুইন্টাল",
 
-    effectivePrice: "পরিবহন বাদ দেওয়ার পর কার্যকর দাম",
+    kilometers: "কিমি",
+    estimated: "আনুমানিক",
 
-    openMap: "ম্যাপ খুলুন",
+    noMandis:
+      "আপনার সংরক্ষিত প্রোফাইল অবস্থানের কাছে কোনো কৃষি মণ্ডি পাওয়া যায়নি।",
 
-    noMandiFound:
-      "আপনার প্রোফাইলের অবস্থানের কাছাকাছি কোনো মণ্ডি পাওয়া যায়নি।",
+    locationMissing: "প্রোফাইলের অবস্থান পাওয়া যায়নি",
+    locationMissingDescription:
+      "অনুগ্রহ করে প্রথমে প্রোফাইলে গ্রাম, শহর, জেলা এবং রাজ্য যোগ করুন।",
 
-    mandiSearchError:
-      "এই মুহূর্তে কাছাকাছি মণ্ডির তথ্য পাওয়া যাচ্ছে না। আবার চেষ্টা করুন।",
+    locationFromProfile: "প্রোফাইলে সংরক্ষিত অবস্থান ব্যবহার করা হচ্ছে",
+
+    village: "গ্রাম",
+    city: "শহর / টাউন",
+    district: "জেলা",
+    state: "রাজ্য",
+    pincode: "পিনকোড",
 
     importantBeforeSelling: "⚠️ বিক্রির আগে গুরুত্বপূর্ণ বিষয়",
 
-    tip1:
-      "সম্ভব হলে একাধিক কাছাকাছি মণ্ডির দাম তুলনা করুন।",
+    tip1: "সম্ভব হলে একাধিক কাছাকাছি মণ্ডির দাম তুলনা করুন।",
+    tip2: "ফসলের গুণমান, আর্দ্রতা এবং গ্রেডিং চূড়ান্ত দামকে প্রভাবিত করতে পারে।",
+    tip3: "সামান্য বেশি দামের মণ্ডি বেছে নেওয়ার আগে পরিবহন খরচ বিবেচনা করুন।",
+    tip4: "চূড়ান্ত বিক্রির সিদ্ধান্তের আগে সর্বশেষ মণ্ডির দাম যাচাই করুন।",
 
-    tip2:
-      "ফসলের গুণমান, আর্দ্রতা এবং গ্রেডিং চূড়ান্ত দামকে প্রভাবিত করতে পারে।",
+    errorSearching:
+      "কাছাকাছি বাজারের তথ্য পাওয়া যায়নি। আবার চেষ্টা করুন।",
 
-    tip3:
-      "সামান্য বেশি দামের মণ্ডি বেছে নেওয়ার আগে পরিবহন খরচ বিবেচনা করুন।",
-
-    tip4:
-      "চূড়ান্ত বিক্রির সিদ্ধান্তের আগে সর্বশেষ মণ্ডির দাম যাচাই করুন।",
-
-    estimateNote:
-      "মণ্ডির দাম আনুমানিক। পরিবহন খরচও আনুমানিক এবং গাড়ি, পরিমাণ, রাস্তা ও দূরত্ব অনুযায়ী পরিবর্তিত হতে পারে।",
+    tryAgain: "আবার চেষ্টা করুন",
 
     seasonNames: {
       Kharif: "খরিফ",
@@ -462,8 +484,7 @@ const translations: Record<string, Translation> = {
     landArea: "நிலப்பரப்பு",
 
     loadingTitle: "சந்தை தகவல் ஏற்றப்படுகிறது...",
-    loadingText:
-      "சந்தை தகவலைத் தயாரிக்கிறோம். தயவுசெய்து காத்திருக்கவும்.",
+    loadingText: "சந்தை தகவலைத் தயாரிக்கிறோம். தயவுசெய்து காத்திருக்கவும்.",
 
     cropNotFound: "பயிர் கிடைக்கவில்லை",
     backToCrops: "பயிர்களுக்கு திரும்பு",
@@ -480,34 +501,36 @@ const translations: Record<string, Translation> = {
 
     nearbyMarket: "📍 அருகிலுள்ள சந்தைகள்",
     nearbyMarketDescription:
-      "உங்கள் சுயவிவரத்தில் சேமிக்கப்பட்ட இடத்திற்கு அருகிலுள்ள விவசாய சந்தைகளைத் தேடுங்கள்.",
-
-    findMandi: "அருகிலுள்ள சந்தையைக் கண்டறியவும் →",
-    searchingMandi: "அருகிலுள்ள சந்தைகளைத் தேடுகிறது...",
+      "உங்கள் சுயவிவரத்தில் சேமிக்கப்பட்ட இடத்திற்கு அருகிலுள்ள விவசாய சந்தைகளைக் கண்டறியவும்.",
 
     profileLocation: "சுயவிவர இடம்",
-    locationNotFound:
-      "சுயவிவர இடம் கிடைக்கவில்லை. உங்கள் சுயவிவரத்தில் கிராமம், நகரம், மாவட்டம் அல்லது பின்கோடு சேர்க்கவும்.",
-
-    locationUsed:
-      "உங்கள் சுயவிவரத்தில் சேமிக்கப்பட்ட இடத்தைச் சுற்றி சந்தைகள் தேடப்படுகின்றன.",
+    searchingMandis: "அருகிலுள்ள சந்தைகள் தேடப்படுகின்றன...",
+    searchMandis: "அருகிலுள்ள சந்தையைக் கண்டறியவும் →",
 
     distance: "தூரம்",
-    km: "கிமீ",
-
     mandiRate: "சந்தை விலை",
-    transportCharge: "போக்குவரத்து",
-    estimatedTransport: "மதிப்பிடப்பட்ட போக்குவரத்து",
+    transportCost: "மதிப்பிடப்பட்ட போக்குவரத்து",
+    estimatedNetRate: "மதிப்பிடப்பட்ட நிகர விலை",
+    perQuintal: "ஒரு குவிண்டாலுக்கு",
 
-    effectivePrice: "போக்குவரத்து கழித்த பின் விலை",
+    kilometers: "கிமீ",
+    estimated: "மதிப்பிடப்பட்டது",
 
-    openMap: "வரைபடத்தைத் திறக்கவும்",
+    noMandis:
+      "உங்கள் சேமிக்கப்பட்ட சுயவிவர இடத்திற்கு அருகில் விவசாய சந்தை கிடைக்கவில்லை.",
 
-    noMandiFound:
-      "உங்கள் சுயவிவர இடத்திற்கு அருகில் சந்தை கிடைக்கவில்லை.",
+    locationMissing: "சுயவிவர இடம் கிடைக்கவில்லை",
+    locationMissingDescription:
+      "முதலில் உங்கள் சுயவிவரத்தில் கிராமம், நகரம், மாவட்டம் மற்றும் மாநிலத்தைச் சேர்க்கவும்.",
 
-    mandiSearchError:
-      "தற்போது அருகிலுள்ள சந்தைகளைக் கண்டறிய முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
+    locationFromProfile:
+      "சுயவிவரத்தில் சேமிக்கப்பட்ட இடம் பயன்படுத்தப்படுகிறது",
+
+    village: "கிராமம்",
+    city: "நகரம் / ஊர்",
+    district: "மாவட்டம்",
+    state: "மாநிலம்",
+    pincode: "அஞ்சல் குறியீடு",
 
     importantBeforeSelling: "⚠️ விற்பனைக்கு முன் முக்கியமானவை",
 
@@ -523,8 +546,10 @@ const translations: Record<string, Translation> = {
     tip4:
       "விற்பனை முடிவை எடுப்பதற்கு முன் சமீபத்திய சந்தை விலையை சரிபார்க்கவும்.",
 
-    estimateNote:
-      "சந்தை விலைகள் மதிப்பிடப்பட்டவை. போக்குவரத்து செலவும் மதிப்பிடப்பட்டதே; வாகனம், அளவு, சாலை மற்றும் தூரத்தைப் பொறுத்து மாறலாம்.",
+    errorSearching:
+      "அருகிலுள்ள சந்தை தகவலைப் பெற முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
+
+    tryAgain: "மீண்டும் முயற்சிக்கவும்",
 
     seasonNames: {
       Kharif: "கரீஃப்",
@@ -569,32 +594,33 @@ const translations: Record<string, Translation> = {
     nearbyMarketDescription:
       "మీ ప్రొఫైల్‌లో సేవ్ చేసిన ప్రదేశానికి సమీపంలోని వ్యవసాయ మార్కెట్లను కనుగొనండి.",
 
-    findMandi: "సమీప మార్కెట్‌ను కనుగొనండి →",
-    searchingMandi: "సమీప మార్కెట్లను వెతుకుతోంది...",
-
-    profileLocation: "ప్రొఫైల్ స్థానం",
-    locationNotFound:
-      "ప్రొఫైల్ స్థానం కనుగొనబడలేదు. మీ ప్రొఫైల్‌లో గ్రామం, నగరం, జిల్లా లేదా పిన్‌కోడ్‌ను జోడించండి.",
-
-    locationUsed:
-      "మీ ప్రొఫైల్‌లో సేవ్ చేసిన ప్రదేశం చుట్టూ మార్కెట్లను వెతుకుతున్నాము.",
+    profileLocation: "ప్రొఫైల్ లొకేషన్",
+    searchingMandis: "సమీప మార్కెట్లను వెతుకుతోంది...",
+    searchMandis: "సమీప మార్కెట్‌ను కనుగొనండి →",
 
     distance: "దూరం",
-    km: "కి.మీ",
-
     mandiRate: "మార్కెట్ ధర",
-    transportCharge: "రవాణా",
-    estimatedTransport: "అంచనా రవాణా",
+    transportCost: "అంచనా రవాణా ఖర్చు",
+    estimatedNetRate: "అంచనా నికర ధర",
+    perQuintal: "క్వింటాల్‌కు",
 
-    effectivePrice: "రవాణా ఖర్చు తర్వాత ధర",
+    kilometers: "కి.మీ",
+    estimated: "అంచనా",
 
-    openMap: "మ్యాప్ తెరవండి",
+    noMandis:
+      "మీ సేవ్ చేసిన ప్రొఫైల్ లొకేషన్ సమీపంలో వ్యవసాయ మార్కెట్ కనుగొనబడలేదు.",
 
-    noMandiFound:
-      "మీ ప్రొఫైల్ స్థానం సమీపంలో మార్కెట్ కనుగొనబడలేదు.",
+    locationMissing: "ప్రొఫైల్ లొకేషన్ కనుగొనబడలేదు",
+    locationMissingDescription:
+      "ముందుగా మీ ప్రొఫైల్‌లో గ్రామం, నగరం, జిల్లా మరియు రాష్ట్రాన్ని జోడించండి.",
 
-    mandiSearchError:
-      "ప్రస్తుతం సమీప మార్కెట్లను కనుగొనలేకపోతున్నాము. మళ్లీ ప్రయత్నించండి.",
+    locationFromProfile: "ప్రొఫైల్‌లో సేవ్ చేసిన లొకేషన్ ఉపయోగించబడుతోంది",
+
+    village: "గ్రామం",
+    city: "నగరం / పట్టణం",
+    district: "జిల్లా",
+    state: "రాష్ట్రం",
+    pincode: "పిన్‌కోడ్",
 
     importantBeforeSelling: "⚠️ అమ్మకానికి ముందు ముఖ్యమైన విషయాలు",
 
@@ -610,8 +636,10 @@ const translations: Record<string, Translation> = {
     tip4:
       "చివరి అమ్మకం నిర్ణయం తీసుకునే ముందు తాజా మార్కెట్ ధరను తనిఖీ చేయండి.",
 
-    estimateNote:
-      "మార్కెట్ ధరలు అంచనా మాత్రమే. రవాణా ఖర్చు కూడా అంచనా మాత్రమే మరియు వాహనం, పరిమాణం, రహదారి మరియు దూరాన్ని బట్టి మారవచ్చు.",
+    errorSearching:
+      "సమీప మార్కెట్ సమాచారాన్ని పొందలేకపోయాము. మళ్లీ ప్రయత్నించండి.",
+
+    tryAgain: "మళ్లీ ప్రయత్నించండి",
 
     seasonNames: {
       Kharif: "ఖరీఫ్",
@@ -656,49 +684,47 @@ const translations: Record<string, Translation> = {
     nearbyMarketDescription:
       "તમારી પ્રોફાઇલમાં સેવ કરેલા સ્થળની આસપાસના કૃષિ બજારો શોધો.",
 
-    findMandi: "નજીકની મંડી શોધો →",
-    searchingMandi: "નજીકની મંડીઓ શોધી રહ્યા છીએ...",
-
-    profileLocation: "પ્રોફાઇલનું સ્થાન",
-    locationNotFound:
-      "પ્રોફાઇલનું સ્થાન મળ્યું નથી. તમારી પ્રોફાઇલમાં ગામ, શહેર, જિલ્લો અથવા પિનકોડ ઉમેરો.",
-
-    locationUsed:
-      "તમારી પ્રોફાઇલમાં સેવ કરેલા સ્થાનની આસપાસ મંડીઓ શોધવામાં આવી રહી છે.",
+    profileLocation: "પ્રોફાઇલનું સ્થળ",
+    searchingMandis: "નજીકની મંડી શોધી રહ્યા છીએ...",
+    searchMandis: "નજીકની મંડી શોધો →",
 
     distance: "અંતર",
-    km: "કિમી",
-
     mandiRate: "મંડી ભાવ",
-    transportCharge: "પરિવહન",
-    estimatedTransport: "અંદાજિત પરિવહન",
+    transportCost: "અંદાજિત પરિવહન",
+    estimatedNetRate: "અંદાજિત નેટ ભાવ",
+    perQuintal: "પ્રતિ ક્વિન્ટલ",
 
-    effectivePrice: "પરિવહન બાદ અસરકારક ભાવ",
+    kilometers: "કિમી",
+    estimated: "અંદાજિત",
 
-    openMap: "નકશો ખોલો",
+    noMandis:
+      "તમારા સેવ કરેલા પ્રોફાઇલ સ્થળની આસપાસ કોઈ કૃષિ મંડી મળી નથી.",
 
-    noMandiFound:
-      "તમારી પ્રોફાઇલના સ્થાનની આસપાસ કોઈ નજીકની મંડી મળી નથી.",
+    locationMissing: "પ્રોફાઇલનું સ્થળ મળ્યું નથી",
+    locationMissingDescription:
+      "કૃપા કરીને પહેલા પ્રોફાઇલમાં ગામ, શહેર, જિલ્લો અને રાજ્ય ઉમેરો.",
 
-    mandiSearchError:
-      "હાલમાં નજીકની મંડી શોધી શકાતી નથી. ફરી પ્રયાસ કરો.",
+    locationFromProfile:
+      "પ્રોફાઇલમાં સેવ કરેલું સ્થળ ઉપયોગમાં લેવામાં આવી રહ્યું છે",
+
+    village: "ગામ",
+    city: "શહેર / નગર",
+    district: "જિલ્લો",
+    state: "રાજ્ય",
+    pincode: "પિનકોડ",
 
     importantBeforeSelling: "⚠️ વેચાણ પહેલાં મહત્વપૂર્ણ બાબતો",
 
-    tip1:
-      "શક્ય હોય ત્યારે એક કરતાં વધુ નજીકની મંડીના ભાવની તુલના કરો.",
-
-    tip2:
-      "પાકની ગુણવત્તા, ભેજ અને ગ્રેડિંગ અંતિમ કિંમતને અસર કરી શકે છે.",
-
+    tip1: "શક્ય હોય ત્યારે એક કરતાં વધુ નજીકની મંડીના ભાવની તુલના કરો.",
+    tip2: "પાકની ગુણવત્તા, ભેજ અને ગ્રેડિંગ અંતિમ કિંમતને અસર કરી શકે છે.",
     tip3:
       "થોડી વધુ કિંમતવાળી મંડી પસંદ કરતા પહેલાં પરિવહન ખર્ચ ધ્યાનમાં લો.",
+    tip4: "વેચાણનો અંતિમ નિર્ણય લેતા પહેલાં નવીનતમ મંડી ભાવ તપાસો.",
 
-    tip4:
-      "વેચાણનો અંતિમ નિર્ણય લેતા પહેલાં નવીનતમ મંડી ભાવ તપાસો.",
+    errorSearching:
+      "નજીકની મંડીની માહિતી મળી શકી નથી. ફરી પ્રયાસ કરો.",
 
-    estimateNote:
-      "મંડીના ભાવ અંદાજિત છે. પરિવહન ખર્ચ પણ અંદાજિત છે અને વાહન, જથ્થો, રસ્તો અને અંતર પ્રમાણે બદલાઈ શકે છે.",
+    tryAgain: "ફરી પ્રયાસ કરો",
 
     seasonNames: {
       Kharif: "ખરીફ",
@@ -741,34 +767,36 @@ const translations: Record<string, Translation> = {
 
     nearbyMarket: "📍 ಹತ್ತಿರದ ಮಾರುಕಟ್ಟೆಗಳು",
     nearbyMarketDescription:
-      "ನಿಮ್ಮ ಪ್ರೊಫೈಲ್‌ನಲ್ಲಿ ಉಳಿಸಿದ ಸ್ಥಳದ ಸುತ್ತಲಿನ ಕೃಷಿ ಮಾರುಕಟ್ಟೆಗಳನ್ನು ಹುಡುಕಿ.",
-
-    findMandi: "ಹತ್ತಿರದ ಮಾರುಕಟ್ಟೆ ಹುಡುಕಿ →",
-    searchingMandi: "ಹತ್ತಿರದ ಮಾರುಕಟ್ಟೆಗಳನ್ನು ಹುಡುಕಲಾಗುತ್ತಿದೆ...",
+      "ನಿಮ್ಮ ಪ್ರೊಫೈಲ್‌ನಲ್ಲಿ ಉಳಿಸಿದ ಸ್ಥಳದ ಸಮೀಪದ ಕೃಷಿ ಮಾರುಕಟ್ಟೆಗಳನ್ನು ಹುಡುಕಿ.",
 
     profileLocation: "ಪ್ರೊಫೈಲ್ ಸ್ಥಳ",
-    locationNotFound:
-      "ಪ್ರೊಫೈಲ್ ಸ್ಥಳ ಕಂಡುಬಂದಿಲ್ಲ. ನಿಮ್ಮ ಪ್ರೊಫೈಲ್‌ನಲ್ಲಿ ಗ್ರಾಮ, ನಗರ, ಜಿಲ್ಲೆ ಅಥವಾ ಪಿನ್‌ಕೋಡ್ ಸೇರಿಸಿ.",
-
-    locationUsed:
-      "ನಿಮ್ಮ ಪ್ರೊಫೈಲ್‌ನಲ್ಲಿ ಉಳಿಸಿದ ಸ್ಥಳದ ಸುತ್ತ ಮಾರುಕಟ್ಟೆಗಳನ್ನು ಹುಡುಕಲಾಗುತ್ತಿದೆ.",
+    searchingMandis: "ಹತ್ತಿರದ ಮಾರುಕಟ್ಟೆಗಳನ್ನು ಹುಡುಕಲಾಗುತ್ತಿದೆ...",
+    searchMandis: "ಹತ್ತಿರದ ಮಾರುಕಟ್ಟೆ ಹುಡುಕಿ →",
 
     distance: "ದೂರ",
-    km: "ಕಿ.ಮೀ",
-
     mandiRate: "ಮಾರುಕಟ್ಟೆ ದರ",
-    transportCharge: "ಸಾರಿಗೆ",
-    estimatedTransport: "ಅಂದಾಜು ಸಾರಿಗೆ",
+    transportCost: "ಅಂದಾಜು ಸಾರಿಗೆ",
+    estimatedNetRate: "ಅಂದಾಜು ನಿವ್ವಳ ದರ",
+    perQuintal: "ಪ್ರತಿ ಕ್ವಿಂಟಲ್",
 
-    effectivePrice: "ಸಾರಿಗೆ ನಂತರದ ಪರಿಣಾಮಕಾರಿ ದರ",
+    kilometers: "ಕಿಮೀ",
+    estimated: "ಅಂದಾಜು",
 
-    openMap: "ನಕ್ಷೆ ತೆರೆಯಿರಿ",
+    noMandis:
+      "ನಿಮ್ಮ ಉಳಿಸಿದ ಪ್ರೊಫೈಲ್ ಸ್ಥಳದ ಸುತ್ತಮುತ್ತ ಯಾವುದೇ ಕೃಷಿ ಮಾರುಕಟ್ಟೆ ಕಂಡುಬಂದಿಲ್ಲ.",
 
-    noMandiFound:
-      "ನಿಮ್ಮ ಪ್ರೊಫೈಲ್ ಸ್ಥಳದ ಹತ್ತಿರ ಮಾರುಕಟ್ಟೆ ಕಂಡುಬಂದಿಲ್ಲ.",
+    locationMissing: "ಪ್ರೊಫೈಲ್ ಸ್ಥಳ ಕಂಡುಬಂದಿಲ್ಲ",
+    locationMissingDescription:
+      "ಮೊದಲು ನಿಮ್ಮ ಪ್ರೊಫೈಲ್‌ನಲ್ಲಿ ಗ್ರಾಮ, ನಗರ, ಜಿಲ್ಲೆ ಮತ್ತು ರಾಜ್ಯವನ್ನು ಸೇರಿಸಿ.",
 
-    mandiSearchError:
-      "ಈಗ ಹತ್ತಿರದ ಮಾರುಕಟ್ಟೆಗಳನ್ನು ಹುಡುಕಲು ಸಾಧ್ಯವಾಗುತ್ತಿಲ್ಲ. ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+    locationFromProfile:
+      "ಪ್ರೊಫೈಲ್‌ನಲ್ಲಿ ಉಳಿಸಿದ ಸ್ಥಳವನ್ನು ಬಳಸಲಾಗುತ್ತಿದೆ",
+
+    village: "ಗ್ರಾಮ",
+    city: "ನಗರ / ಪಟ್ಟಣ",
+    district: "ಜಿಲ್ಲೆ",
+    state: "ರಾಜ್ಯ",
+    pincode: "ಪಿನ್‌ಕೋಡ್",
 
     importantBeforeSelling: "⚠️ ಮಾರಾಟ ಮಾಡುವ ಮೊದಲು ಮುಖ್ಯ ವಿಷಯಗಳು",
 
@@ -784,8 +812,10 @@ const translations: Record<string, Translation> = {
     tip4:
       "ಅಂತಿಮ ಮಾರಾಟ ನಿರ್ಧಾರ ಮಾಡುವ ಮೊದಲು ಇತ್ತೀಚಿನ ಮಾರುಕಟ್ಟೆ ದರವನ್ನು ಪರಿಶೀಲಿಸಿ.",
 
-    estimateNote:
-      "ಮಾರುಕಟ್ಟೆ ದರಗಳು ಅಂದಾಜು. ಸಾರಿಗೆ ವೆಚ್ಚವೂ ಅಂದಾಜು ಮತ್ತು ವಾಹನ, ಪ್ರಮಾಣ, ರಸ್ತೆ ಹಾಗೂ ದೂರದ ಆಧಾರದ ಮೇಲೆ ಬದಲಾಗಬಹುದು.",
+    errorSearching:
+      "ಹತ್ತಿರದ ಮಾರುಕಟ್ಟೆ ಮಾಹಿತಿಯನ್ನು ಪಡೆಯಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ. ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+
+    tryAgain: "ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ",
 
     seasonNames: {
       Kharif: "ಖರೀಫ್",
@@ -810,8 +840,7 @@ const translations: Record<string, Translation> = {
     landArea: "ഭൂവിസ്തീർണ്ണം",
 
     loadingTitle: "വിപണി വിവരങ്ങൾ ലോഡ് ചെയ്യുന്നു...",
-    loadingText:
-      "ദയവായി കാത്തിരിക്കുക, വിപണി വിവരങ്ങൾ തയ്യാറാക്കുകയാണ്.",
+    loadingText: "ദയവായി കാത്തിരിക്കുക, വിപണി വിവരങ്ങൾ തയ്യാറാക്കുകയാണ്.",
 
     cropNotFound: "വിള കണ്ടെത്തിയില്ല",
     backToCrops: "വിളകളിലേക്ക് മടങ്ങുക",
@@ -828,52 +857,50 @@ const translations: Record<string, Translation> = {
 
     nearbyMarket: "📍 സമീപത്തെ വിപണികൾ",
     nearbyMarketDescription:
-      "നിങ്ങളുടെ പ്രൊഫൈലിൽ സംരക്ഷിച്ച സ്ഥലത്തിന് സമീപമുള്ള കാർഷിക വിപണികൾ കണ്ടെത്തുക.",
-
-    findMandi: "സമീപത്തെ വിപണി കണ്ടെത്തുക →",
-    searchingMandi: "സമീപത്തെ വിപണികൾ തിരയുന്നു...",
+      "നിങ്ങളുടെ പ്രൊഫൈലിൽ സംരക്ഷിച്ചിരിക്കുന്ന സ്ഥലത്തിന് സമീപമുള്ള കാർഷിക വിപണികൾ കണ്ടെത്തുക.",
 
     profileLocation: "പ്രൊഫൈൽ സ്ഥലം",
-    locationNotFound:
-      "പ്രൊഫൈൽ സ്ഥലം കണ്ടെത്തിയില്ല. നിങ്ങളുടെ പ്രൊഫൈലിൽ ഗ്രാമം, നഗരം, ജില്ല അല്ലെങ്കിൽ പിൻകോഡ് ചേർക്കുക.",
-
-    locationUsed:
-      "നിങ്ങളുടെ പ്രൊഫൈലിൽ സംരക്ഷിച്ച സ്ഥലത്തിന് ചുറ്റുമുള്ള വിപണികൾ തിരയുന്നു.",
+    searchingMandis: "സമീപത്തെ വിപണികൾ തിരയുന്നു...",
+    searchMandis: "സമീപത്തെ വിപണി കണ്ടെത്തുക →",
 
     distance: "ദൂരം",
-    km: "കി.മീ",
-
     mandiRate: "വിപണി വില",
-    transportCharge: "ഗതാഗതം",
-    estimatedTransport: "ഏകദേശ ഗതാഗത ചെലവ്",
+    transportCost: "ഏകദേശ ഗതാഗത ചെലവ്",
+    estimatedNetRate: "ഏകദേശ നെറ്റ് വില",
+    perQuintal: "ക്വിന്റലിന്",
 
-    effectivePrice: "ഗതാഗത ചെലവിന് ശേഷമുള്ള വില",
+    kilometers: "കിമീ",
+    estimated: "ഏകദേശ",
 
-    openMap: "മാപ്പ് തുറക്കുക",
+    noMandis:
+      "നിങ്ങളുടെ സംരക്ഷിച്ച പ്രൊഫൈൽ സ്ഥലത്തിന് സമീപം കാർഷിക വിപണി കണ്ടെത്താനായില്ല.",
 
-    noMandiFound:
-      "നിങ്ങളുടെ പ്രൊഫൈൽ സ്ഥലത്തിന് സമീപം വിപണി കണ്ടെത്താനായില്ല.",
+    locationMissing: "പ്രൊഫൈൽ സ്ഥലം കണ്ടെത്തിയില്ല",
+    locationMissingDescription:
+      "ആദ്യം നിങ്ങളുടെ പ്രൊഫൈലിൽ ഗ്രാമം, നഗരം, ജില്ല, സംസ്ഥാനം എന്നിവ ചേർക്കുക.",
 
-    mandiSearchError:
-      "ഇപ്പോൾ സമീപത്തെ വിപണികൾ കണ്ടെത്താൻ കഴിയുന്നില്ല. വീണ്ടും ശ്രമിക്കുക.",
+    locationFromProfile:
+      "പ്രൊഫൈലിൽ സംരക്ഷിച്ച സ്ഥലം ഉപയോഗിക്കുന്നു",
 
-    importantBeforeSelling:
-      "⚠️ വിൽക്കുന്നതിന് മുമ്പ് ശ്രദ്ധിക്കേണ്ട കാര്യങ്ങൾ",
+    village: "ഗ്രാമം",
+    city: "നഗരം / പട്ടണം",
+    district: "ജില്ല",
+    state: "സംസ്ഥാനം",
+    pincode: "പിൻകോഡ്",
 
-    tip1:
-      "സാധ്യമെങ്കിൽ ഒന്നിലധികം സമീപ വിപണികളിലെ വില താരതമ്യം ചെയ്യുക.",
+    importantBeforeSelling: "⚠️ വിൽക്കുന്നതിന് മുമ്പ് ശ്രദ്ധിക്കേണ്ട കാര്യങ്ങൾ",
 
-    tip2:
-      "വിളയുടെ ഗുണനിലവാരം, ഈർപ്പം, ഗ്രേഡിംഗ് എന്നിവ അന്തിമ വിലയെ ബാധിക്കും.",
-
+    tip1: "സാധ്യമെങ്കിൽ ഒന്നിലധികം സമീപ വിപണികളിലെ വില താരതമ്യം ചെയ്യുക.",
+    tip2: "വിളയുടെ ഗുണനിലവാരം, ഈർപ്പം, ഗ്രേഡിംഗ് എന്നിവ അന്തിമ വിലയെ ബാധിക്കും.",
     tip3:
       "അൽപ്പം ഉയർന്ന വിലയുള്ള വിപണി തിരഞ്ഞെടുക്കുന്നതിന് മുമ്പ് ഗതാഗതച്ചെലവ് പരിഗണിക്കുക.",
-
     tip4:
       "അന്തിമ വിൽപ്പന തീരുമാനം എടുക്കുന്നതിന് മുമ്പ് ഏറ്റവും പുതിയ വിപണി വില പരിശോധിക്കുക.",
 
-    estimateNote:
-      "വിപണി വിലകൾ ഏകദേശമാണ്. ഗതാഗത ചെലവും ഏകദേശമാണ്, വാഹനവും അളവും റോഡും ദൂരവും അനുസരിച്ച് മാറാം.",
+    errorSearching:
+      "സമീപത്തെ വിപണി വിവരങ്ങൾ ലഭ്യമാക്കാനായില്ല. വീണ്ടും ശ്രമിക്കുക.",
+
+    tryAgain: "വീണ്ടും ശ്രമിക്കുക",
 
     seasonNames: {
       Kharif: "ഖരീഫ്",
@@ -918,32 +945,34 @@ const translations: Record<string, Translation> = {
     nearbyMarketDescription:
       "ਤੁਹਾਡੀ ਪ੍ਰੋਫਾਈਲ ਵਿੱਚ ਸੇਵ ਕੀਤੇ ਸਥਾਨ ਦੇ ਨੇੜੇ ਖੇਤੀਬਾੜੀ ਮੰਡੀਆਂ ਲੱਭੋ।",
 
-    findMandi: "ਨੇੜਲੀ ਮੰਡੀ ਲੱਭੋ →",
-    searchingMandi: "ਨੇੜਲੀਆਂ ਮੰਡੀਆਂ ਲੱਭੀਆਂ ਜਾ ਰਹੀਆਂ ਹਨ...",
-
-    profileLocation: "ਪ੍ਰੋਫਾਈਲ ਦੀ ਜਗ੍ਹਾ",
-    locationNotFound:
-      "ਪ੍ਰੋਫਾਈਲ ਦੀ ਜਗ੍ਹਾ ਨਹੀਂ ਮਿਲੀ। ਆਪਣੀ ਪ੍ਰੋਫਾਈਲ ਵਿੱਚ ਪਿੰਡ, ਸ਼ਹਿਰ, ਜ਼ਿਲ੍ਹਾ ਜਾਂ ਪਿੰਨ ਕੋਡ ਜੋੜੋ।",
-
-    locationUsed:
-      "ਤੁਹਾਡੀ ਪ੍ਰੋਫਾਈਲ ਵਿੱਚ ਸੇਵ ਕੀਤੀ ਜਗ੍ਹਾ ਦੇ ਆਸ-ਪਾਸ ਮੰਡੀਆਂ ਲੱਭੀਆਂ ਜਾ ਰਹੀਆਂ ਹਨ।",
+    profileLocation: "ਪ੍ਰੋਫਾਈਲ ਦਾ ਸਥਾਨ",
+    searchingMandis: "ਨੇੜਲੀਆਂ ਮੰਡੀਆਂ ਲੱਭੀਆਂ ਜਾ ਰਹੀਆਂ ਹਨ...",
+    searchMandis: "ਨੇੜਲੀ ਮੰਡੀ ਲੱਭੋ →",
 
     distance: "ਦੂਰੀ",
-    km: "ਕਿ.ਮੀ.",
-
     mandiRate: "ਮੰਡੀ ਭਾਅ",
-    transportCharge: "ਆਵਾਜਾਈ",
-    estimatedTransport: "ਅੰਦਾਜ਼ਨ ਆਵਾਜਾਈ",
+    transportCost: "ਅੰਦਾਜ਼ਨ ਆਵਾਜਾਈ",
+    estimatedNetRate: "ਅੰਦਾਜ਼ਨ ਨੈੱਟ ਭਾਅ",
+    perQuintal: "ਪ੍ਰਤੀ ਕੁਇੰਟਲ",
 
-    effectivePrice: "ਆਵਾਜਾਈ ਤੋਂ ਬਾਅਦ ਪ੍ਰਭਾਵੀ ਭਾਅ",
+    kilometers: "ਕਿਮੀ",
+    estimated: "ਅੰਦਾਜ਼ਨ",
 
-    openMap: "ਨਕਸ਼ਾ ਖੋਲ੍ਹੋ",
+    noMandis:
+      "ਤੁਹਾਡੇ ਸੇਵ ਕੀਤੇ ਪ੍ਰੋਫਾਈਲ ਸਥਾਨ ਦੇ ਆਲੇ-ਦੁਆਲੇ ਕੋਈ ਖੇਤੀਬਾੜੀ ਮੰਡੀ ਨਹੀਂ ਮਿਲੀ।",
 
-    noMandiFound:
-      "ਤੁਹਾਡੀ ਪ੍ਰੋਫਾਈਲ ਦੀ ਜਗ੍ਹਾ ਦੇ ਨੇੜੇ ਕੋਈ ਮੰਡੀ ਨਹੀਂ ਮਿਲੀ।",
+    locationMissing: "ਪ੍ਰੋਫਾਈਲ ਸਥਾਨ ਨਹੀਂ ਮਿਲਿਆ",
+    locationMissingDescription:
+      "ਕਿਰਪਾ ਕਰਕੇ ਪਹਿਲਾਂ ਆਪਣੀ ਪ੍ਰੋਫਾਈਲ ਵਿੱਚ ਪਿੰਡ, ਸ਼ਹਿਰ, ਜ਼ਿਲ੍ਹਾ ਅਤੇ ਰਾਜ ਸ਼ਾਮਲ ਕਰੋ।",
 
-    mandiSearchError:
-      "ਇਸ ਸਮੇਂ ਨੇੜਲੀਆਂ ਮੰਡੀਆਂ ਦੀ ਜਾਣਕਾਰੀ ਨਹੀਂ ਮਿਲ ਰਹੀ। ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।",
+    locationFromProfile:
+      "ਪ੍ਰੋਫਾਈਲ ਵਿੱਚ ਸੇਵ ਕੀਤਾ ਸਥਾਨ ਵਰਤਿਆ ਜਾ ਰਿਹਾ ਹੈ",
+
+    village: "ਪਿੰਡ",
+    city: "ਸ਼ਹਿਰ / ਕਸਬਾ",
+    district: "ਜ਼ਿਲ੍ਹਾ",
+    state: "ਰਾਜ",
+    pincode: "ਪਿੰਨਕੋਡ",
 
     importantBeforeSelling: "⚠️ ਵੇਚਣ ਤੋਂ ਪਹਿਲਾਂ ਜ਼ਰੂਰੀ ਗੱਲਾਂ",
 
@@ -959,8 +988,10 @@ const translations: Record<string, Translation> = {
     tip4:
       "ਅੰਤਿਮ ਵਿਕਰੀ ਦਾ ਫੈਸਲਾ ਕਰਨ ਤੋਂ ਪਹਿਲਾਂ ਨਵਾਂ ਮੰਡੀ ਭਾਅ ਜ਼ਰੂਰ ਜਾਂਚੋ।",
 
-    estimateNote:
-      "ਮੰਡੀ ਦੇ ਭਾਅ ਅੰਦਾਜ਼ਨ ਹਨ। ਆਵਾਜਾਈ ਖਰਚਾ ਵੀ ਅੰਦਾਜ਼ਨ ਹੈ ਅਤੇ ਵਾਹਨ, ਮਾਤਰਾ, ਸੜਕ ਅਤੇ ਦੂਰੀ ਅਨੁਸਾਰ ਬਦਲ ਸਕਦਾ ਹੈ।",
+    errorSearching:
+      "ਨੇੜਲੀਆਂ ਮੰਡੀਆਂ ਦੀ ਜਾਣਕਾਰੀ ਨਹੀਂ ਮਿਲ ਸਕੀ। ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।",
+
+    tryAgain: "ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ",
 
     seasonNames: {
       Kharif: "ਖਰੀਫ",
@@ -1005,49 +1036,49 @@ const translations: Record<string, Translation> = {
     nearbyMarketDescription:
       "ଆପଣଙ୍କ ପ୍ରୋଫାଇଲରେ ସେଭ୍ ହୋଇଥିବା ସ୍ଥାନ ନିକଟରେ କୃଷି ବଜାର ଖୋଜନ୍ତୁ।",
 
-    findMandi: "ନିକଟସ୍ଥ ମଣ୍ଡି ଖୋଜନ୍ତୁ →",
-    searchingMandi: "ନିକଟସ୍ଥ ମଣ୍ଡି ଖୋଜାଯାଉଛି...",
-
     profileLocation: "ପ୍ରୋଫାଇଲ ସ୍ଥାନ",
-    locationNotFound:
-      "ପ୍ରୋଫାଇଲ ସ୍ଥାନ ମିଳିଲା ନାହିଁ। ପ୍ରୋଫାଇଲରେ ଗାଁ, ସହର, ଜିଲ୍ଲା କିମ୍ବା ପିନକୋଡ୍ ଯୋଡନ୍ତୁ।",
-
-    locationUsed:
-      "ଆପଣଙ୍କ ପ୍ରୋଫାଇଲରେ ସେଭ୍ ହୋଇଥିବା ସ୍ଥାନ ଚାରିପାଖରେ ମଣ୍ଡି ଖୋଜାଯାଉଛି।",
+    searchingMandis: "ନିକଟସ୍ଥ ମଣ୍ଡି ଖୋଜାଯାଉଛି...",
+    searchMandis: "ନିକଟସ୍ଥ ମଣ୍ଡି ଖୋଜନ୍ତୁ →",
 
     distance: "ଦୂରତା",
-    km: "କି.ମି.",
-
     mandiRate: "ମଣ୍ଡି ଦର",
-    transportCharge: "ପରିବହନ",
-    estimatedTransport: "ଆନୁମାନିକ ପରିବହନ",
+    transportCost: "ଆନୁମାନିକ ପରିବହନ",
+    estimatedNetRate: "ଆନୁମାନିକ ନିଟ୍ ଦର",
+    perQuintal: "ପ୍ରତି କ୍ୱିଣ୍ଟାଲ",
 
-    effectivePrice: "ପରିବହନ ପରେ ପ୍ରଭାବୀ ଦର",
+    kilometers: "କିମି",
+    estimated: "ଆନୁମାନିକ",
 
-    openMap: "ମାନଚିତ୍ର ଖୋଲନ୍ତୁ",
+    noMandis:
+      "ଆପଣଙ୍କ ସେଭ୍ ହୋଇଥିବା ପ୍ରୋଫାଇଲ ସ୍ଥାନ ନିକଟରେ କୌଣସି କୃଷି ମଣ୍ଡି ମିଳିଲା ନାହିଁ।",
 
-    noMandiFound:
-      "ଆପଣଙ୍କ ପ୍ରୋଫାଇଲ ସ୍ଥାନ ନିକଟରେ କୌଣସି ମଣ୍ଡି ମିଳିଲା ନାହିଁ।",
+    locationMissing: "ପ୍ରୋଫାଇଲ ସ୍ଥାନ ମିଳିଲା ନାହିଁ",
+    locationMissingDescription:
+      "ଦୟାକରି ପ୍ରଥମେ ପ୍ରୋଫାଇଲରେ ଗାଁ, ସହର, ଜିଲ୍ଲା ଏବଂ ରାଜ୍ୟ ଯୋଡନ୍ତୁ।",
 
-    mandiSearchError:
-      "ବର୍ତ୍ତମାନ ନିକଟସ୍ଥ ମଣ୍ଡି ସୂଚନା ମିଳୁନାହିଁ। ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ।",
+    locationFromProfile:
+      "ପ୍ରୋଫାଇଲରେ ସେଭ୍ ହୋଇଥିବା ସ୍ଥାନ ବ୍ୟବହାର କରାଯାଉଛି",
+
+    village: "ଗାଁ",
+    city: "ସହର / ଟାଉନ୍",
+    district: "ଜିଲ୍ଲା",
+    state: "ରାଜ୍ୟ",
+    pincode: "ପିନ୍ କୋଡ୍",
 
     importantBeforeSelling: "⚠️ ବିକ୍ରି ପୂର୍ବରୁ ଗୁରୁତ୍ୱପୂର୍ଣ୍ଣ",
 
-    tip1:
-      "ସମ୍ଭବ ହେଲେ ଏକାଧିକ ନିକଟସ୍ଥ ମଣ୍ଡିର ଦର ତୁଳନା କରନ୍ତୁ।",
-
+    tip1: "ସମ୍ଭବ ହେଲେ ଏକାଧିକ ନିକଟସ୍ଥ ମଣ୍ଡିର ଦର ତୁଳନା କରନ୍ତୁ।",
     tip2:
       "ଫସଲର ଗୁଣବତ୍ତା, ଆର୍ଦ୍ରତା ଏବଂ ଗ୍ରେଡିଂ ଶେଷ ମୂଲ୍ୟକୁ ପ୍ରଭାବିତ କରିପାରେ।",
-
     tip3:
       "ସାମାନ୍ୟ ଅଧିକ ଦର ଥିବା ମଣ୍ଡି ବାଛିବା ପୂର୍ବରୁ ପରିବହନ ଖର୍ଚ୍ଚ ବିଚାର କରନ୍ତୁ।",
-
     tip4:
       "ଶେଷ ବିକ୍ରି ନିଷ୍ପତ୍ତି ପୂର୍ବରୁ ନୂତନ ମଣ୍ଡି ଦର ଯାଞ୍ଚ କରନ୍ତୁ।",
 
-    estimateNote:
-      "ମଣ୍ଡି ଦର ଆନୁମାନିକ। ପରିବହନ ଖର୍ଚ୍ଚ ମଧ୍ୟ ଆନୁମାନିକ ଏବଂ ଯାନ, ପରିମାଣ, ରାସ୍ତା ଓ ଦୂରତା ଅନୁସାରେ ବଦଳିପାରେ।",
+    errorSearching:
+      "ନିକଟସ୍ଥ ମଣ୍ଡି ସୂଚନା ମିଳିଲା ନାହିଁ। ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ।",
+
+    tryAgain: "ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ",
 
     seasonNames: {
       Kharif: "ଖରିଫ",
@@ -1092,49 +1123,49 @@ const translations: Record<string, Translation> = {
     nearbyMarketDescription:
       "আপোনাৰ প্ৰফাইলত সংৰক্ষিত স্থানৰ ওচৰৰ কৃষি বজাৰ বিচাৰি উলিয়াওক।",
 
-    findMandi: "ওচৰৰ মণ্ডি বিচাৰক →",
-    searchingMandi: "ওচৰৰ মণ্ডি বিচাৰি থকা হৈছে...",
-
     profileLocation: "প্ৰফাইলৰ স্থান",
-    locationNotFound:
-      "প্ৰফাইলৰ স্থান পোৱা নগ'ল। প্ৰফাইলত গাঁও, চহৰ, জিলা বা পিনকোড যোগ কৰক।",
-
-    locationUsed:
-      "আপোনাৰ প্ৰফাইলত সংৰক্ষিত স্থানৰ চাৰিওফালে মণ্ডি বিচৰা হৈছে।",
+    searchingMandis: "ওচৰৰ মণ্ডি বিচাৰি থকা হৈছে...",
+    searchMandis: "ওচৰৰ মণ্ডি বিচাৰক →",
 
     distance: "দূৰত্ব",
-    km: "কিমি",
-
     mandiRate: "মণ্ডিৰ মূল্য",
-    transportCharge: "পৰিবহণ",
-    estimatedTransport: "আনুমানিক পৰিবহণ",
+    transportCost: "আনুমানিক পৰিবহণ",
+    estimatedNetRate: "আনুমানিক নেট মূল্য",
+    perQuintal: "প্ৰতি কুইণ্টল",
 
-    effectivePrice: "পৰিবহণ বাদ দিয়াৰ পিছৰ মূল্য",
+    kilometers: "কিমি",
+    estimated: "আনুমানিক",
 
-    openMap: "মানচিত্ৰ খোলক",
+    noMandis:
+      "আপোনাৰ সংৰক্ষিত প্ৰফাইল স্থানৰ ওচৰত কোনো কৃষি মণ্ডি পোৱা নগ'ল।",
 
-    noMandiFound:
-      "আপোনাৰ প্ৰফাইলৰ স্থানৰ ওচৰত কোনো মণ্ডি পোৱা নগ'ল।",
+    locationMissing: "প্ৰফাইলৰ স্থান পোৱা নগ'ল",
+    locationMissingDescription:
+      "অনুগ্ৰহ কৰি প্ৰথমে প্ৰফাইলত গাঁও, চহৰ, জিলা আৰু ৰাজ্য যোগ কৰক।",
 
-    mandiSearchError:
-      "এই মুহূৰ্তত ওচৰৰ মণ্ডিৰ তথ্য পোৱা নাই। পুনৰ চেষ্টা কৰক।",
+    locationFromProfile:
+      "প্ৰফাইলত সংৰক্ষিত স্থান ব্যৱহাৰ কৰা হৈছে",
+
+    village: "গাঁও",
+    city: "চহৰ / নগৰ",
+    district: "জিলা",
+    state: "ৰাজ্য",
+    pincode: "পিনকোড",
 
     importantBeforeSelling: "⚠️ বিক্ৰীৰ আগতে গুৰুত্বপূৰ্ণ কথা",
 
-    tip1:
-      "সম্ভৱ হ'লে এটাতকৈ অধিক ওচৰৰ মণ্ডিৰ মূল্য তুলনা কৰক।",
-
+    tip1: "সম্ভৱ হ'লে এটাতকৈ অধিক ওচৰৰ মণ্ডিৰ মূল্য তুলনা কৰক।",
     tip2:
       "শস্যৰ গুণগত মান, আৰ্দ্ৰতা আৰু গ্ৰেডিঙে চূড়ান্ত মূল্যত প্ৰভাৱ পেলাব পাৰে।",
-
     tip3:
       "অলপ বেছি মূল্য থকা মণ্ডি বাছনি কৰাৰ আগতে পৰিবহণৰ খৰচ বিবেচনা কৰক।",
-
     tip4:
       "চূড়ান্ত বিক্ৰীৰ সিদ্ধান্ত লোৱাৰ আগতে শেহতীয়া মণ্ডিৰ মূল্য পৰীক্ষা কৰক।",
 
-    estimateNote:
-      "মণ্ডিৰ মূল্য আনুমানিক। পৰিবহণৰ খৰচো আনুমানিক আৰু বাহন, পৰিমাণ, পথ আৰু দূৰত্বৰ ওপৰত নিৰ্ভৰ কৰি সলনি হ'ব পাৰে।",
+    errorSearching:
+      "ওচৰৰ মণ্ডিৰ তথ্য পোৱা নগ'ল। পুনৰ চেষ্টা কৰক।",
+
+    tryAgain: "পুনৰ চেষ্টা কৰক",
 
     seasonNames: {
       Kharif: "খৰিফ",
@@ -1177,34 +1208,36 @@ const translations: Record<string, Translation> = {
 
     nearbyMarket: "📍 قریبی منڈی اور بازار",
     nearbyMarketDescription:
-      "آپ کے پروفائل میں محفوظ مقام کے قریب زرعی منڈیاں تلاش کریں۔",
-
-    findMandi: "قریبی منڈی تلاش کریں →",
-    searchingMandi: "قریبی منڈیاں تلاش کی جا رہی ہیں...",
+      "آپ کی پروفائل میں محفوظ جگہ کے قریب زرعی منڈیوں کو تلاش کریں۔",
 
     profileLocation: "پروفائل کا مقام",
-    locationNotFound:
-      "پروفائل کا مقام نہیں ملا۔ اپنے پروفائل میں گاؤں، شہر، ضلع یا پن کوڈ شامل کریں۔",
-
-    locationUsed:
-      "آپ کے پروفائل میں محفوظ مقام کے آس پاس منڈیاں تلاش کی جا رہی ہیں۔",
+    searchingMandis: "قریبی منڈیاں تلاش کی جا رہی ہیں...",
+    searchMandis: "قریبی منڈی تلاش کریں →",
 
     distance: "فاصلہ",
-    km: "کلومیٹر",
-
     mandiRate: "منڈی ریٹ",
-    transportCharge: "ٹرانسپورٹ",
-    estimatedTransport: "تخمینی ٹرانسپورٹ",
+    transportCost: "تخمینی نقل و حمل",
+    estimatedNetRate: "تخمینی خالص ریٹ",
+    perQuintal: "فی کوئنٹل",
 
-    effectivePrice: "ٹرانسپورٹ کے بعد مؤثر ریٹ",
+    kilometers: "کلومیٹر",
+    estimated: "تخمینی",
 
-    openMap: "نقشہ کھولیں",
+    noMandis:
+      "آپ کی محفوظ پروفائل لوکیشن کے قریب کوئی زرعی منڈی نہیں ملی۔",
 
-    noMandiFound:
-      "آپ کے پروفائل کے مقام کے قریب کوئی منڈی نہیں ملی۔",
+    locationMissing: "پروفائل لوکیشن نہیں ملی",
+    locationMissingDescription:
+      "براہ کرم پہلے اپنی پروفائل میں گاؤں، شہر، ضلع اور ریاست شامل کریں۔",
 
-    mandiSearchError:
-      "اس وقت قریبی منڈیوں کی معلومات حاصل نہیں ہو رہی۔ دوبارہ کوشش کریں۔",
+    locationFromProfile:
+      "پروفائل میں محفوظ مقام استعمال کیا جا رہا ہے",
+
+    village: "گاؤں",
+    city: "شہر / قصبہ",
+    district: "ضلع",
+    state: "ریاست",
+    pincode: "پن کوڈ",
 
     importantBeforeSelling: "⚠️ فروخت سے پہلے اہم باتیں",
 
@@ -1220,8 +1253,10 @@ const translations: Record<string, Translation> = {
     tip4:
       "حتمی فروخت کا فیصلہ کرنے سے پہلے تازہ ترین منڈی ریٹ ضرور چیک کریں۔",
 
-    estimateNote:
-      "منڈی کے ریٹس اندازاً ہیں۔ ٹرانسپورٹ خرچ بھی اندازاً ہے اور گاڑی، مقدار، سڑک اور فاصلے کے مطابق بدل سکتا ہے۔",
+    errorSearching:
+      "قریبی منڈی کی معلومات حاصل نہیں ہو سکی۔ دوبارہ کوشش کریں۔",
+
+    tryAgain: "دوبارہ کوشش کریں",
 
     seasonNames: {
       Kharif: "خریف",
@@ -1241,289 +1276,193 @@ const translations: Record<string, Translation> = {
 };
 
 /* =========================================================
-   CROP MARKET DATA
+   HELPER FUNCTIONS
 ========================================================= */
 
-function getMarketData(
-  cropName: string,
-  t: Translation,
-  language: string
-): MarketInfo {
-  const name = cropName.toLowerCase();
-
-  if (
-    name.includes("wheat") ||
-    name.includes("गेह") ||
-    name.includes("गहू") ||
-    name.includes("গম") ||
-    name.includes("கோதுமை") ||
-    name.includes("గోధుమ") ||
-    name.includes("ઘઉં") ||
-    name.includes("ಗೋಧಿ")
-  ) {
-    return {
-      crop: cropName,
-      price: "₹2,400 – ₹2,600",
-      unit: t.unitQuintal,
-      trend: t.trendStable,
-      advice:
-        language === "hi"
-          ? "बेचने से पहले आसपास की मंडियों के भाव की तुलना करें। यदि स्थानीय भाव असामान्य रूप से कम है तो तुरंत बेचने से बचें।"
-          : "Compare prices from nearby mandis before selling. Avoid selling immediately if the local price is unusually low.",
-    };
-  }
-
-  if (
-    name.includes("rice") ||
-    name.includes("paddy") ||
-    name.includes("धान") ||
-    name.includes("चावल") ||
-    name.includes("तांदूळ") ||
-    name.includes("ধান") ||
-    name.includes("அரிசி") ||
-    name.includes("వరి") ||
-    name.includes("ચોખા") ||
-    name.includes("ಅಕ್ಕಿ")
-  ) {
-    return {
-      crop: cropName,
-      price: "₹2,200 – ₹2,500",
-      unit: t.unitQuintal,
-      trend: t.trendModerate,
-      advice:
-        language === "hi"
-          ? "धान की गुणवत्ता की आवश्यकताओं को जाँचें और फसल मंडी ले जाने से पहले मंडी के भाव की तुलना करें।"
-          : "Check rice quality requirements and compare mandi rates before taking your crop to market.",
-    };
-  }
-
-  if (
-    name.includes("maize") ||
-    name.includes("corn") ||
-    name.includes("मक्का") ||
-    name.includes("मका") ||
-    name.includes("ভুট্টা") ||
-    name.includes("மக்காச்சோளம்") ||
-    name.includes("మొక్కజొన్న") ||
-    name.includes("મકાઈ") ||
-    name.includes("ಮೆಕ್ಕೆಜೋಳ")
-  ) {
-    return {
-      crop: cropName,
-      price: "₹2,000 – ₹2,400",
-      unit: t.unitQuintal,
-      trend: t.trendStable,
-      advice:
-        language === "hi"
-          ? "बेचने से पहले नमी और दाने की गुणवत्ता जाँचें, क्योंकि गुणवत्ता अंतिम कीमत को प्रभावित कर सकती है।"
-          : "Check moisture and grain quality before selling because quality can affect the final price.",
-    };
-  }
-
-  if (
-    name.includes("potato") ||
-    name.includes("aloo") ||
-    name.includes("आलू") ||
-    name.includes("बटाटा") ||
-    name.includes("আলু") ||
-    name.includes("உருளைக்கிழங்கு") ||
-    name.includes("బంగాళాదుంప") ||
-    name.includes("બટાકા") ||
-    name.includes("ಆಲೂಗಡ್ಡೆ")
-  ) {
-    return {
-      crop: cropName,
-      price: "₹1,200 – ₹1,800",
-      unit: t.unitQuintal,
-      trend: t.trendVariable,
-      advice:
-        language === "hi"
-          ? "आलू के भाव जल्दी बदल सकते हैं। बेचने से पहले आज का स्थानीय भाव और भंडारण के विकल्प देखें।"
-          : "Potato prices can change quickly. Compare today's local rates and storage options before selling.",
-    };
-  }
-
-  if (
-    name.includes("sugarcane") ||
-    name.includes("ganna") ||
-    name.includes("गन्ना") ||
-    name.includes("ऊस") ||
-    name.includes("আখ") ||
-    name.includes("கரும்பு") ||
-    name.includes("చెరకు") ||
-    name.includes("શેરડી") ||
-    name.includes("ಕಬ್ಬು")
-  ) {
-    return {
-      crop: cropName,
-      price: "₹350 – ₹400",
-      unit: t.unitQuintal,
-      trend: t.trendStable,
-      advice:
-        language === "hi"
-          ? "गन्ना ले जाने से पहले नवीनतम मिल खरीद दर और कटाई का समय जरूर जाँचें।"
-          : "Check the latest mill procurement rate and harvesting schedule before transporting sugarcane.",
-    };
-  }
-
-  return {
-    crop: cropName,
-    price: t.unknownPrice,
-    unit: "",
-    trend: t.trendCheck,
-    advice:
-      language === "hi"
-        ? "इस फसल का नवीनतम भाव जानने के लिए अपनी नज़दीकी मंडी या कृषि बाजार से संपर्क करें।"
-        : "Check your nearest mandi or agriculture market for the latest price of this crop.",
-  };
+function normalize(value: unknown): string {
+  return String(value || "")
+    .trim()
+    .toLowerCase();
 }
 
-/* =========================================================
-   GET NUMERIC MARKET RATE
-========================================================= */
+function safeNumber(value: unknown): number | undefined {
+  const n = Number(value);
 
-function getAverageRate(price: string): number {
-  const numbers = price.match(/\d[\d,]*/g);
-
-  if (!numbers || numbers.length === 0) {
-    return 0;
+  if (Number.isFinite(n)) {
+    return n;
   }
 
-  const values = numbers
-    .map((value) => Number(value.replace(/,/g, "")))
-    .filter((value) => !Number.isNaN(value));
-
-  if (values.length === 0) {
-    return 0;
-  }
-
-  return Math.round(
-    values.reduce((sum, value) => sum + value, 0) / values.length
-  );
+  return undefined;
 }
 
-/* =========================================================
-   PROFILE LOCATION
-   IMPORTANT:
-   NO GPS IS USED HERE.
-========================================================= */
-
-function getProfileLocation(): string {
-  const profileKeys = [
+function getProfileLocation(): ProfileLocation | null {
+  const possibleKeys = [
     "farmerProfile",
-    "userProfile",
     "profile",
     "farmer",
+    "userProfile",
     "user",
+    "profileData",
   ];
 
-  for (const key of profileKeys) {
+  for (const key of possibleKeys) {
     const raw = localStorage.getItem(key);
 
     if (!raw) continue;
 
     try {
-      const data: unknown = JSON.parse(raw);
+      const parsed = JSON.parse(raw);
 
-      /* Direct string */
-      if (typeof data === "string") {
-        const value = data.trim();
-
-        if (value) {
-          return value;
-        }
-
+      if (!parsed || typeof parsed !== "object") {
         continue;
       }
 
-      /* Object */
-      if (data && typeof data === "object") {
-        const obj = data as Record<string, unknown>;
+      const obj = parsed as Record<string, unknown>;
 
-        const locationParts = [
-          obj.location,
-          obj.profileLocation,
-          obj.address,
-          obj.village,
-          obj.city,
-          obj.district,
-          obj.state,
-          obj.pincode,
-        ];
+      const nested =
+        obj.location && typeof obj.location === "object"
+          ? (obj.location as Record<string, unknown>)
+          : {};
 
-        const validParts = locationParts
-          .filter(
-            (value): value is string =>
-              typeof value === "string" &&
-              value.trim().length > 0
-          )
-          .map((value) => value.trim());
+      const result: ProfileLocation = {
+        village: String(
+          nested.village ||
+            nested.villageName ||
+            obj.village ||
+            obj.villageName ||
+            ""
+        ),
 
-        if (validParts.length > 0) {
-          return [...new Set(validParts)].join(", ");
-        }
+        city: String(
+          nested.city ||
+            nested.cityName ||
+            obj.city ||
+            obj.cityName ||
+            ""
+        ),
+
+        town: String(
+          nested.town ||
+            nested.townName ||
+            obj.town ||
+            obj.townName ||
+            ""
+        ),
+
+        district: String(
+          nested.district ||
+            nested.districtName ||
+            obj.district ||
+            obj.districtName ||
+            ""
+        ),
+
+        state: String(
+          nested.state ||
+            nested.stateName ||
+            obj.state ||
+            obj.stateName ||
+            ""
+        ),
+
+        pincode: String(
+          nested.pincode ||
+            nested.pinCode ||
+            nested.postalCode ||
+            obj.pincode ||
+            obj.pinCode ||
+            obj.postalCode ||
+            ""
+        ),
+
+        address: String(
+          nested.address ||
+            obj.address ||
+            ""
+        ),
+
+        latitude:
+          safeNumber(
+            nested.latitude ||
+              nested.lat ||
+              obj.latitude ||
+              obj.lat
+          ),
+
+        longitude:
+          safeNumber(
+            nested.longitude ||
+              nested.lng ||
+              nested.lon ||
+              obj.longitude ||
+              obj.lng ||
+              obj.lon
+          ),
+      };
+
+      const hasLocation =
+        result.village ||
+        result.city ||
+        result.town ||
+        result.district ||
+        result.state ||
+        result.pincode ||
+        result.address ||
+        (result.latitude !== undefined &&
+          result.longitude !== undefined);
+
+      if (hasLocation) {
+        return result;
       }
     } catch {
       continue;
     }
   }
 
-  /*
-    Extra fallback:
-    Kabhi profile alag-alag localStorage keys me save hoti hai.
-  */
+  return null;
+}
 
-  const separateKeys = [
-    "profileLocation",
-    "location",
-    "farmerLocation",
-    "address",
-    "village",
-    "city",
-    "district",
-    "state",
-    "pincode",
-  ];
-
-  const separateParts: string[] = [];
-
-  for (const key of separateKeys) {
-    const value = localStorage.getItem(key);
-
-    if (value && value.trim()) {
-      separateParts.push(value.trim());
-    }
-  }
-
-  if (separateParts.length > 0) {
-    return [...new Set(separateParts)].join(", ");
-  }
-
-  return "";
+function buildLocationText(location: ProfileLocation): string {
+  return [
+    location.village,
+    location.city || location.town,
+    location.district,
+    location.state,
+    location.pincode,
+    location.address,
+  ]
+    .filter(Boolean)
+    .join(", ");
 }
 
 /* =========================================================
    GEOCODING
-   Profile location -> Latitude / Longitude
-
-   IMPORTANT:
-   Browser geolocation / GPS is NOT used.
 ========================================================= */
 
-type Coordinates = {
-  lat: number;
-  lon: number;
-  displayName: string;
-};
+async function geocodeProfile(
+  location: ProfileLocation
+): Promise<{ latitude: number; longitude: number } | null> {
+  if (
+    location.latitude !== undefined &&
+    location.longitude !== undefined
+  ) {
+    return {
+      latitude: location.latitude,
+      longitude: location.longitude,
+    };
+  }
 
-async function geocodeProfileLocation(
-  location: string
-): Promise<Coordinates | null> {
+  const query = buildLocationText(location);
+
+  if (!query) {
+    return null;
+  }
+
   try {
     const url =
       "https://nominatim.openstreetmap.org/search?" +
       new URLSearchParams({
-        q: location,
+        q: query,
         format: "json",
         limit: "1",
         countrycodes: "in",
@@ -1539,22 +1478,27 @@ async function geocodeProfileLocation(
       return null;
     }
 
-    const data = (await response.json()) as Array<{
-      lat: string;
-      lon: string;
-      display_name: string;
-    }>;
+    const data = await response.json();
 
-    if (!data || data.length === 0) {
+    if (!Array.isArray(data) || data.length === 0) {
       return null;
     }
 
     const first = data[0];
 
+    const latitude = Number(first.lat);
+    const longitude = Number(first.lon);
+
+    if (
+      !Number.isFinite(latitude) ||
+      !Number.isFinite(longitude)
+    ) {
+      return null;
+    }
+
     return {
-      lat: Number(first.lat),
-      lon: Number(first.lon),
-      displayName: first.display_name,
+      latitude,
+      longitude,
     };
   } catch {
     return null;
@@ -1590,110 +1534,306 @@ function calculateDistance(
 }
 
 /* =========================================================
-   OSM / OVERPASS MANDI SEARCH
+   TRANSPORT ESTIMATION
 ========================================================= */
 
-type OverpassElement = {
-  type: string;
-  id: number;
-  lat?: number;
-  lon?: number;
-  center?: {
-    lat: number;
-    lon: number;
-  };
-  tags?: Record<string, string>;
-};
-
-async function searchNearbyMandis(
-  lat: number,
-  lon: number,
-  cropRate: number
-): Promise<Mandi[]> {
+function calculateTransport(distance: number): number {
   /*
-    50 km radius.
-    Sirf market / marketplace / agricultural related places.
+    Simple indicative calculation.
+
+    ₹12/km is used as a basic estimated transportation
+    amount for a small farmer vehicle/trip.
+
+    This is NOT an official transport quotation.
   */
 
-  const radius = 50000;
+  const baseCost = 80;
+  const perKm = 12;
+
+  return Math.round(baseCost + distance * perKm);
+}
+
+/* =========================================================
+   CROP MARKET INFORMATION
+========================================================= */
+
+function getMarketInfo(
+  cropName: string,
+  language: string,
+  t: Translation
+): MarketInfo {
+  const name = normalize(cropName);
+
+  if (
+    name.includes("wheat") ||
+    name.includes("गेह") ||
+    name.includes("गहू") ||
+    name.includes("গম") ||
+    name.includes("கோதுமை") ||
+    name.includes("గోధుమ") ||
+    name.includes("ઘઉં") ||
+    name.includes("ಗೋಧಿ") ||
+    name.includes("ഗോതമ്പ്") ||
+    name.includes("ਗੇਹੂੰ") ||
+    name.includes("গেহু")
+  ) {
+    return {
+      crop: cropName,
+      minPrice: 2400,
+      maxPrice: 2600,
+      modalPrice: 2500,
+      price: "₹2,400 – ₹2,600",
+      unit: t.unitQuintal,
+      trend: t.trendStable,
+
+      advice:
+        language === "hi"
+          ? "बेचने से पहले आसपास की मंडियों के भाव की तुलना करें। यदि स्थानीय भाव असामान्य रूप से कम है तो तुरंत बेचने से बचें।"
+          : language === "mr"
+          ? "विक्रीपूर्वी जवळच्या बाजारपेठांमधील दरांची तुलना करा. स्थानिक दर खूप कमी असल्यास लगेच विक्री करणे टाळा."
+          : language === "bn"
+          ? "বিক্রির আগে কাছাকাছি মণ্ডির দাম তুলনা করুন। স্থানীয় দাম অস্বাভাবিকভাবে কম হলে সঙ্গে সঙ্গে বিক্রি করা এড়িয়ে চলুন।"
+          : language === "ta"
+          ? "விற்பனைக்கு முன் அருகிலுள்ள சந்தைகளின் விலைகளை ஒப்பிடுங்கள். உள்ளூர் விலை மிகவும் குறைவாக இருந்தால் உடனடியாக விற்பதைத் தவிர்க்கவும்."
+          : language === "te"
+          ? "అమ్మకానికి ముందు సమీప మార్కెట్ల ధరలను పోల్చండి. స్థానిక ధర అసాధారణంగా తక్కువగా ఉంటే వెంటనే అమ్మకండి."
+          : language === "gu"
+          ? "વેચાણ પહેલાં નજીકની મંડીઓના ભાવની તુલના કરો. સ્થાનિક ભાવ અસામાન્ય રીતે ઓછો હોય તો તરત વેચવાનું ટાળો."
+          : language === "kn"
+          ? "ಮಾರಾಟ ಮಾಡುವ ಮೊದಲು ಹತ್ತಿರದ ಮಾರುಕಟ್ಟೆಗಳ ದರಗಳನ್ನು ಹೋಲಿಸಿ. ಸ್ಥಳೀಯ ದರ ಅಸಾಮಾನ್ಯವಾಗಿ ಕಡಿಮೆಯಿದ್ದರೆ ತಕ್ಷಣ ಮಾರಾಟ ಮಾಡುವುದನ್ನು ತಪ್ಪಿಸಿ."
+          : language === "ml"
+          ? "വിൽപ്പനയ്ക്ക് മുമ്പ് സമീപത്തെ വിപണികളിലെ വില താരതമ്യം ചെയ്യുക. പ്രാദേശിക വില വളരെ കുറവാണെങ്കിൽ ഉടൻ വിൽക്കുന്നത് ഒഴിവാക്കുക."
+          : language === "pa"
+          ? "ਵੇਚਣ ਤੋਂ ਪਹਿਲਾਂ ਨੇੜਲੀਆਂ ਮੰਡੀਆਂ ਦੇ ਭਾਅ ਦੀ ਤੁਲਨਾ ਕਰੋ। ਜੇ ਸਥਾਨਕ ਭਾਅ ਬਹੁਤ ਘੱਟ ਹੈ ਤਾਂ ਤੁਰੰਤ ਵੇਚਣ ਤੋਂ ਬਚੋ।"
+          : language === "or"
+          ? "ବିକ୍ରି ପୂର୍ବରୁ ନିକଟସ୍ଥ ମଣ୍ଡିର ଦର ତୁଳନା କରନ୍ତୁ। ସ୍ଥାନୀୟ ଦର ବହୁତ କମ୍ ଥିଲେ ତୁରନ୍ତ ବିକ୍ରି କରିବାରୁ ଦୂରେଇ ରୁହନ୍ତୁ।"
+          : language === "as"
+          ? "বিক্ৰী কৰাৰ আগতে ওচৰৰ মণ্ডিৰ মূল্য তুলনা কৰক। স্থানীয় মূল্য অস্বাভাৱিকভাৱে কম হ'লে তৎক্ষণাত বিক্ৰী নকৰিব।"
+          : language === "ur"
+          ? "فروخت سے پہلے قریبی منڈیوں کے ریٹس کا موازنہ کریں۔ اگر مقامی ریٹ غیر معمولی طور پر کم ہو تو فوراً فروخت کرنے سے گریز کریں۔"
+          : "Compare prices from nearby mandis before selling. Avoid selling immediately if the local price is unusually low.",
+    };
+  }
+
+  if (
+    name.includes("rice") ||
+    name.includes("paddy") ||
+    name.includes("धान") ||
+    name.includes("चावल") ||
+    name.includes("तांदूळ") ||
+    name.includes("ধান") ||
+    name.includes("அரிசி") ||
+    name.includes("వరి") ||
+    name.includes("ચોખા") ||
+    name.includes("ಅಕ್ಕಿ") ||
+    name.includes("നെല്ല്") ||
+    name.includes("ਝੋਨਾ")
+  ) {
+    return {
+      crop: cropName,
+      minPrice: 2200,
+      maxPrice: 2500,
+      modalPrice: 2350,
+      price: "₹2,200 – ₹2,500",
+      unit: t.unitQuintal,
+      trend: t.trendModerate,
+      advice:
+        language === "hi"
+          ? "धान की गुणवत्ता की आवश्यकताओं को जाँचें और फसल मंडी ले जाने से पहले मंडी के भाव की तुलना करें।"
+          : "Check crop quality requirements and compare local mandi rates before taking your crop to market.",
+    };
+  }
+
+  if (
+    name.includes("maize") ||
+    name.includes("corn") ||
+    name.includes("मक्का") ||
+    name.includes("मका") ||
+    name.includes("ভুট্টা") ||
+    name.includes("மக்காச்சோளம்") ||
+    name.includes("మొక్కజొన్న") ||
+    name.includes("મકાઈ") ||
+    name.includes("ಮೆಕ್ಕೆಜೋಳ") ||
+    name.includes("ചോളം") ||
+    name.includes("ਮੱਕੀ")
+  ) {
+    return {
+      crop: cropName,
+      minPrice: 2000,
+      maxPrice: 2400,
+      modalPrice: 2200,
+      price: "₹2,000 – ₹2,400",
+      unit: t.unitQuintal,
+      trend: t.trendStable,
+      advice:
+        language === "hi"
+          ? "बेचने से पहले नमी और दाने की गुणवत्ता जाँचें, क्योंकि गुणवत्ता अंतिम कीमत को प्रभावित कर सकती है।"
+          : "Check moisture and grain quality before selling because quality can affect the final price.",
+    };
+  }
+
+  if (
+    name.includes("potato") ||
+    name.includes("aloo") ||
+    name.includes("आलू") ||
+    name.includes("बटाटा") ||
+    name.includes("আলু") ||
+    name.includes("உருளைக்கிழங்கு") ||
+    name.includes("బంగాళాదుంప") ||
+    name.includes("બટાકા") ||
+    name.includes("ಆಲೂಗಡ್ಡೆ") ||
+    name.includes("ഉരുളക്കിഴങ്ങ്") ||
+    name.includes("ਆਲੂ")
+  ) {
+    return {
+      crop: cropName,
+      minPrice: 1200,
+      maxPrice: 1800,
+      modalPrice: 1500,
+      price: "₹1,200 – ₹1,800",
+      unit: t.unitQuintal,
+      trend: t.trendVariable,
+      advice:
+        language === "hi"
+          ? "आलू के भाव जल्दी बदल सकते हैं। बेचने से पहले स्थानीय भाव और भंडारण के विकल्प देखें।"
+          : "Potato prices can change quickly. Compare local rates and storage options before selling.",
+    };
+  }
+
+  if (
+    name.includes("sugarcane") ||
+    name.includes("ganna") ||
+    name.includes("गन्ना") ||
+    name.includes("ऊस") ||
+    name.includes("আখ") ||
+    name.includes("கரும்பு") ||
+    name.includes("చెరకు") ||
+    name.includes("શેરડી") ||
+    name.includes("ಕಬ್ಬು") ||
+    name.includes("കരിമ്പ്") ||
+    name.includes("ਗੰਨਾ")
+  ) {
+    return {
+      crop: cropName,
+      minPrice: 350,
+      maxPrice: 400,
+      modalPrice: 375,
+      price: "₹350 – ₹400",
+      unit: t.unitQuintal,
+      trend: t.trendStable,
+      advice:
+        language === "hi"
+          ? "गन्ना ले जाने से पहले नवीनतम मिल खरीद दर और कटाई का समय जरूर जाँचें।"
+          : "Check the latest mill procurement rate and harvesting schedule before transporting sugarcane.",
+    };
+  }
+
+  return {
+    crop: cropName,
+    minPrice: 0,
+    maxPrice: 0,
+    modalPrice: 0,
+    price: t.unknownPrice,
+    unit: "",
+    trend: t.trendCheck,
+
+    advice:
+      language === "hi"
+        ? "इस फसल का नवीनतम भाव जानने के लिए अपनी नज़दीकी मंडी या कृषि बाजार से संपर्क करें।"
+        : language === "mr"
+        ? "या पिकाचा नवीनतम भाव जाणून घेण्यासाठी जवळच्या बाजारपेठेशी संपर्क करा."
+        : language === "bn"
+        ? "এই ফসলের সর্বশেষ দাম জানতে আপনার নিকটস্থ মণ্ডি বা কৃষি বাজারে যোগাযোগ করুন।"
+        : language === "ta"
+        ? "இந்த பயிரின் சமீபத்திய விலையை அறிய அருகிலுள்ள சந்தையைத் தொடர்பு கொள்ளுங்கள்."
+        : language === "te"
+        ? "ఈ పంట తాజా ధరను తెలుసుకోవడానికి సమీపంలోని మార్కెట్‌ను సంప్రదించండి."
+        : language === "gu"
+        ? "આ પાકનો નવીનતમ ભાવ જાણવા માટે તમારી નજીકની મંડી અથવા કૃષિ બજારનો સંપર્ક કરો."
+        : language === "kn"
+        ? "ಈ ಬೆಳೆಯ ಇತ್ತೀಚಿನ ದರವನ್ನು ತಿಳಿಯಲು ಹತ್ತಿರದ ಮಾರುಕಟ್ಟೆಯನ್ನು ಸಂಪರ್ಕಿಸಿ."
+        : language === "ml"
+        ? "ഈ വിളയുടെ ഏറ്റവും പുതിയ വില അറിയാൻ സമീപത്തെ വിപണിയുമായി ബന്ധപ്പെടുക."
+        : language === "pa"
+        ? "ਇਸ ਫਸਲ ਦਾ ਨਵਾਂ ਭਾਅ ਜਾਣਨ ਲਈ ਆਪਣੀ ਨੇੜਲੀ ਮੰਡੀ ਜਾਂ ਖੇਤੀਬਾੜੀ ਬਾਜ਼ਾਰ ਨਾਲ ਸੰਪਰਕ ਕਰੋ।"
+        : language === "or"
+        ? "ଏହି ଫସଲର ନୂତନ ଦର ଜାଣିବା ପାଇଁ ନିକଟସ୍ଥ ମଣ୍ଡି କିମ୍ବା କୃଷି ବଜାର ସହିତ ଯୋଗାଯୋଗ କରନ୍ତୁ।"
+        : language === "as"
+        ? "এই শস্যৰ শেহতীয়া মূল্য জানিবলৈ আপোনাৰ ওচৰৰ মণ্ডি বা কৃষি বজাৰৰ সৈতে যোগাযোগ কৰক।"
+        : language === "ur"
+        ? "اس فصل کا تازہ ترین ریٹ جاننے کے لیے اپنی قریبی منڈی یا زرعی بازار سے رابطہ کریں۔"
+        : "Check your nearest mandi or agriculture market for the latest price of this crop.",
+  };
+}
+
+/* =========================================================
+   SEARCH NEARBY MARKETS USING OPENSTREETMAP OVERPASS
+========================================================= */
+
+async function searchNearbyMandis(
+  latitude: number,
+  longitude: number,
+  marketInfo: MarketInfo
+): Promise<Mandi[]> {
+  const radius = 100000;
 
   const query = `
     [out:json][timeout:25];
 
     (
-      node["amenity"="marketplace"](around:${radius},${lat},${lon});
-      way["amenity"="marketplace"](around:${radius},${lat},${lon});
-      relation["amenity"="marketplace"](around:${radius},${lat},${lon});
+      node["amenity"="marketplace"](around:${radius},${latitude},${longitude});
+      way["amenity"="marketplace"](around:${radius},${latitude},${longitude});
+      relation["amenity"="marketplace"](around:${radius},${latitude},${longitude});
 
-      node["marketplace"="farm"](around:${radius},${lat},${lon});
-      way["marketplace"="farm"](around:${radius},${lat},${lon});
-      relation["marketplace"="farm"](around:${radius},${lat},${lon});
+      node["shop"="agrarian"](around:${radius},${latitude},${longitude});
+      way["shop"="agrarian"](around:${radius},${latitude},${longitude});
 
-      node["name"~"mandi|Mandi|market|Market|bazar|Bazaar|agricultural|Agricultural",i](around:${radius},${lat},${lon});
-      way["name"~"mandi|Mandi|market|Market|bazar|Bazaar|agricultural|Agricultural",i](around:${radius},${lat},${lon});
-      relation["name"~"mandi|Mandi|market|Market|bazar|Bazaar|agricultural|Agricultural",i](around:${radius},${lat},${lon});
+      node["name"~"mandi|Mandi|APMC|market|Market|बाजार|मंडी",i](around:${radius},${latitude},${longitude});
     );
 
     out center tags;
   `;
 
-  const endpoints = [
+  const response = await fetch(
     "https://overpass-api.de/api/interpreter",
-    "https://overpass.kumi.systems/api/interpreter",
-  ];
-
-  let elements: OverpassElement[] = [];
-
-  for (const endpoint of endpoints) {
-    try {
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "text/plain;charset=UTF-8",
-        },
-        body: query,
-      });
-
-      if (!response.ok) {
-        continue;
-      }
-
-      const data = (await response.json()) as {
-        elements?: OverpassElement[];
-      };
-
-      if (data.elements && data.elements.length > 0) {
-        elements = data.elements;
-        break;
-      }
-    } catch {
-      continue;
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "text/plain;charset=UTF-8",
+      },
+      body: query,
     }
+  );
+
+  if (!response.ok) {
+    throw new Error("Mandi search failed");
   }
 
-  if (elements.length === 0) {
+  const data = await response.json();
+
+  if (!data?.elements || !Array.isArray(data.elements)) {
     return [];
   }
 
-  const seen = new Set<string>();
+  const results: Mandi[] = [];
 
-  const mandis: Mandi[] = [];
+  for (const item of data.elements) {
+    const lat =
+      Number(item.lat) ||
+      Number(item.center?.lat);
 
-  for (const element of elements) {
-    const elementLat =
-      element.lat ?? element.center?.lat;
-
-    const elementLon =
-      element.lon ?? element.center?.lon;
+    const lon =
+      Number(item.lon) ||
+      Number(item.center?.lon);
 
     if (
-      typeof elementLat !== "number" ||
-      typeof elementLon !== "number"
+      !Number.isFinite(lat) ||
+      !Number.isFinite(lon)
     ) {
       continue;
     }
 
-    const tags = element.tags || {};
+    const tags = item.tags || {};
 
     const name =
       tags.name ||
@@ -1701,109 +1841,74 @@ async function searchNearbyMandis(
       tags["name:hi"] ||
       "Agricultural Market";
 
-    const key = `${name}-${elementLat.toFixed(
-      4
-    )}-${elementLon.toFixed(4)}`;
+    const distance = calculateDistance(
+      latitude,
+      longitude,
+      lat,
+      lon
+    );
 
-    if (seen.has(key)) {
+    if (distance > 100) {
       continue;
     }
 
-    seen.add(key);
+    const transportCost =
+      calculateTransport(distance);
 
-    const distance = calculateDistance(
-      lat,
-      lon,
-      elementLat,
-      elementLon
-    );
+    const cropPrice =
+      marketInfo.modalPrice;
 
-    /*
-      Estimated transport:
-      ₹15 per km per quintal.
-
-      This is intentionally shown as an estimate,
-      not as an exact transport quotation.
-    */
-
-    const transportPerKm = 15;
-
-    const transportCharge = Math.max(
-      15,
-      Math.round(distance * transportPerKm)
-    );
-
-    const effectiveRate =
-      cropRate > 0
-        ? Math.max(0, cropRate - transportCharge)
+    const netPrice =
+      cropPrice > 0
+        ? Math.max(cropPrice - transportCost, 0)
         : 0;
 
-    const addressParts = [
-      tags["addr:place"],
-      tags["addr:village"],
-      tags["addr:city"],
-      tags["addr:district"],
-      tags["addr:state"],
-    ].filter(Boolean);
+    results.push({
+      id: String(
+        item.id || `${lat}-${lon}-${name}`
+      ),
 
-    const address =
-      addressParts.length > 0
-        ? addressParts.join(", ")
-        : "Nearby agricultural market";
-
-    mandis.push({
-      id: `${element.type}-${element.id}`,
       name,
-      address,
-      lat: elementLat,
-      lon: elementLon,
+
+      type:
+        tags.amenity === "marketplace"
+          ? "Agricultural Market"
+          : "Mandi / Market",
+
+      latitude: lat,
+      longitude: lon,
+
       distance,
-      rate: cropRate > 0
-        ? `₹${cropRate.toLocaleString("en-IN")}`
-        : "Rate unavailable",
-      transportPerQuintal: transportCharge,
-      transportText:
-        cropRate > 0
-          ? `₹${transportCharge.toLocaleString("en-IN")}/quintal`
-          : `₹${transportCharge.toLocaleString("en-IN")}`,
-      effectiveRate:
-        cropRate > 0
-          ? `₹${effectiveRate.toLocaleString("en-IN")}`
-          : "—",
+
+      cropPrice,
+
+      transportCost,
+
+      netPrice,
+
+      location:
+        tags["addr:city"] ||
+        tags["addr:district"] ||
+        tags["addr:state"] ||
+        tags["addr:place"] ||
+        "",
     });
   }
 
-  /*
-    Nearest first.
-  */
+  const unique = new Map<string, Mandi>();
 
-  mandis.sort(
-    (a, b) => a.distance - b.distance
-  );
+  for (const mandi of results) {
+    const key =
+      `${mandi.name.toLowerCase()}-${mandi.latitude.toFixed(3)}-${mandi.longitude.toFixed(3)}`;
 
-  /*
-    Show maximum 10 mandis.
-  */
+    if (!unique.has(key)) {
+      unique.set(key, mandi);
+    }
+  }
 
-  return mandis.slice(0, 10);
-}
-
-/* =========================================================
-   MAP
-========================================================= */
-
-function openMap(
-  lat: number,
-  lon: number,
-  name: string
-) {
-  const url =
-    "https://www.google.com/maps/search/?api=1&query=" +
-    encodeURIComponent(`${lat},${lon}`) +
-    "&query_place_id=" +
-    encodeURIComponent(name);
-
-  window.open(url, "_blank", "noopener,noreferrer");
+  return Array.from(unique.values())
+    .sort((a, b) => a.distance - b.distance)
+    .slice(0, 15);
 }
 
 /* =========================================================
@@ -1819,23 +1924,23 @@ export default function MarketPage() {
   const [crop, setCrop] =
     useState<Crop | null>(null);
 
+  const [profileLocation, setProfileLocation] =
+    useState<ProfileLocation | null>(null);
+
   const [loading, setLoading] =
     useState(true);
 
-  const [profileLocation, setProfileLocation] =
-    useState("");
-
-  const [locationLoading, setLocationLoading] =
+  const [searchingMandis, setSearchingMandis] =
     useState(false);
 
   const [mandis, setMandis] =
     useState<Mandi[]>([]);
 
-  const [mandiError, setMandiError] =
-    useState("");
+  const [searchError, setSearchError] =
+    useState(false);
 
   /* =====================================================
-     LOAD LANGUAGE + CROP
+     LOAD DATA
   ===================================================== */
 
   useEffect(() => {
@@ -1852,146 +1957,119 @@ export default function MarketPage() {
     const savedCrops =
       localStorage.getItem("farmerCrops");
 
-    if (!savedCrops) {
-      setLoading(false);
-      return;
-    }
+    if (savedCrops) {
+      try {
+        const crops: Crop[] =
+          JSON.parse(savedCrops);
 
-    try {
-      const crops: Crop[] =
-        JSON.parse(savedCrops);
+        const selectedCrop =
+          crops.find(
+            (item) =>
+              item.id === Number(params.id)
+          );
 
-      const selectedCrop = crops.find(
-        (item: Crop) =>
-          item.id === Number(params.id)
-      );
-
-      if (selectedCrop) {
-        setCrop(selectedCrop);
+        if (selectedCrop) {
+          setCrop(selectedCrop);
+        }
+      } catch {
+        setCrop(null);
       }
-    } catch {
-      setCrop(null);
-    } finally {
-      setLoading(false);
     }
+
+    const location =
+      getProfileLocation();
+
+    setProfileLocation(location);
+
+    setLoading(false);
   }, [params.id]);
+
+  /* =====================================================
+     TRANSLATION
+  ===================================================== */
 
   const t =
     translations[language] ||
     translations.en;
 
   /* =====================================================
-     LOAD PROFILE LOCATION
+     MARKET
   ===================================================== */
 
-  useEffect(() => {
-    if (loading) {
-      return;
-    }
+  const market = useMemo(() => {
+    if (!crop) return null;
 
-    const location =
-      getProfileLocation();
-
-    setProfileLocation(location);
-  }, [loading]);
+    return getMarketInfo(
+      crop.crop,
+      language,
+      t
+    );
+  }, [crop, language, t]);
 
   /* =====================================================
-     SEASON NAME
+     SEASON
   ===================================================== */
 
   const getSeasonName = (
     season: string
   ) => {
-    if (season === "Kharif") {
+    if (season === "Kharif")
       return t.seasonNames.Kharif;
-    }
 
-    if (season === "Rabi") {
+    if (season === "Rabi")
       return t.seasonNames.Rabi;
-    }
 
-    if (season === "Zaid") {
+    if (season === "Zaid")
       return t.seasonNames.Zaid;
-    }
 
-    if (season === "Other") {
+    if (season === "Other")
       return t.seasonNames.Other;
-    }
 
     return season;
   };
 
   /* =====================================================
-     FIND MANDI
+     FIND MANDIS
   ===================================================== */
 
-  const handleFindMandi = async () => {
-    setMandiError("");
-    setMandis([]);
-
-    const location =
-      getProfileLocation();
-
-    setProfileLocation(location);
-
-    if (!location) {
-      setMandiError(
-        t.locationNotFound
-      );
-
+  const findNearbyMandis = async () => {
+    if (!profileLocation || !market) {
       return;
     }
 
-    setLocationLoading(true);
+    setSearchingMandis(true);
+    setSearchError(false);
+    setMandis([]);
 
     try {
       const coordinates =
-        await geocodeProfileLocation(
-          location
+        await geocodeProfile(
+          profileLocation
         );
 
       if (!coordinates) {
-        setMandiError(
-          t.mandiSearchError
-        );
-
+        setSearchError(true);
+        setSearchingMandis(false);
         return;
       }
-
-      const market =
-        getMarketData(
-          crop?.crop || "",
-          t,
-          language
-        );
-
-      const cropRate =
-        getAverageRate(
-          market.price
-        );
 
       const results =
         await searchNearbyMandis(
-          coordinates.lat,
-          coordinates.lon,
-          cropRate
+          coordinates.latitude,
+          coordinates.longitude,
+          market
         );
-
-      if (results.length === 0) {
-        setMandiError(
-          t.noMandiFound
-        );
-
-        return;
-      }
 
       setMandis(results);
-    } catch {
-      setMandiError(
-        t.mandiSearchError
+    } catch (error) {
+      console.error(
+        "Mandi search error:",
+        error
       );
+
+      setSearchError(true);
     } finally {
-      setLocationLoading(false);
+      setSearchingMandis(false);
     }
   };
 
@@ -2030,7 +2108,7 @@ export default function MarketPage() {
      CROP NOT FOUND
   ===================================================== */
 
-  if (!crop) {
+  if (!crop || !market) {
     return (
       <main
         className="min-h-screen bg-green-50 flex items-center justify-center px-5"
@@ -2062,22 +2140,18 @@ export default function MarketPage() {
     );
   }
 
-  /* =====================================================
-     MARKET INFO
-  ===================================================== */
-
-  const market =
-    getMarketData(
-      crop.crop,
-      t,
-      language
-    );
-
   const landUnit =
     crop.landUnit || "acres";
 
+  const locationText =
+    profileLocation
+      ? buildLocationText(
+          profileLocation
+        )
+      : "";
+
   /* =====================================================
-     UI
+     PAGE
   ===================================================== */
 
   return (
@@ -2091,9 +2165,9 @@ export default function MarketPage() {
     >
       <div className="max-w-5xl mx-auto">
 
-        {/* ================================================
+        {/* =============================================
             BACK
-        ================================================= */}
+        ============================================= */}
 
         <button
           onClick={() =>
@@ -2106,14 +2180,14 @@ export default function MarketPage() {
           ← {t.backTo} {crop.crop}
         </button>
 
-        {/* ================================================
+        {/* =============================================
             HEADER
-        ================================================= */}
+        ============================================= */}
 
         <div className="bg-white rounded-3xl shadow-lg p-6 sm:p-7 mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center gap-5">
 
-            <div className="w-20 h-20 bg-green-100 rounded-3xl flex items-center justify-center text-5xl shrink-0">
+            <div className="w-20 h-20 bg-green-100 rounded-3xl flex items-center justify-center text-5xl">
               🏪
             </div>
 
@@ -2126,8 +2200,7 @@ export default function MarketPage() {
               </p>
 
               <h1 className="text-3xl font-bold text-green-800 mt-1">
-                {crop.crop}{" "}
-                {t.market}
+                {crop.crop} {t.market}
               </h1>
 
               <p className="text-gray-600 mt-2">
@@ -2138,13 +2211,12 @@ export default function MarketPage() {
                 </span>
               </p>
             </div>
-
           </div>
         </div>
 
-        {/* ================================================
+        {/* =============================================
             CURRENT MARKET
-        ================================================= */}
+        ============================================= */}
 
         <div className="bg-white rounded-3xl shadow-lg p-6 sm:p-7 mb-8">
 
@@ -2189,11 +2261,9 @@ export default function MarketPage() {
                 {market.price}
               </p>
 
-              {market.unit && (
-                <p className="text-sm text-gray-500 mt-1">
-                  {market.unit}
-                </p>
-              )}
+              <p className="text-sm text-gray-500 mt-1">
+                {market.unit}
+              </p>
             </div>
 
             {/* TREND */}
@@ -2215,9 +2285,9 @@ export default function MarketPage() {
           </div>
         </div>
 
-        {/* ================================================
+        {/* =============================================
             SELLING ADVICE
-        ================================================= */}
+        ============================================= */}
 
         <div className="bg-white rounded-3xl shadow-lg p-6 sm:p-7 mb-8">
 
@@ -2226,17 +2296,16 @@ export default function MarketPage() {
           </h2>
 
           <div className="bg-green-50 rounded-2xl p-6 mt-5">
-
             <p className="text-gray-700 leading-relaxed">
               {market.advice}
             </p>
-
           </div>
+
         </div>
 
-        {/* ================================================
+        {/* =============================================
             NEARBY MANDI
-        ================================================= */}
+        ============================================= */}
 
         <div className="bg-white rounded-3xl shadow-lg p-6 sm:p-7 mb-8">
 
@@ -2250,261 +2319,352 @@ export default function MarketPage() {
 
           {/* PROFILE LOCATION */}
 
-          <div className="mt-5 rounded-2xl bg-blue-50 border border-blue-100 p-5">
+          <div className="mt-5 bg-green-50 border border-green-100 rounded-2xl p-5">
 
-            <div className="flex gap-3">
+            <div className="flex items-start gap-4">
 
-              <div className="text-2xl">
+              <div className="text-3xl">
                 📍
               </div>
 
               <div className="min-w-0">
 
-                <p className="text-sm font-semibold text-blue-700">
+                <p className="text-sm font-semibold text-green-700">
                   {t.profileLocation}
                 </p>
 
                 {profileLocation ? (
-                  <p className="font-semibold text-blue-900 mt-1 break-words">
-                    {profileLocation}
-                  </p>
+                  <>
+                    <p className="font-bold text-green-900 mt-1 break-words">
+                      {locationText ||
+                        "Saved profile location"}
+                    </p>
+
+                    <p className="text-xs text-green-700 mt-2">
+                      ✓{" "}
+                      {t.locationFromProfile}
+                    </p>
+                  </>
                 ) : (
-                  <p className="text-red-700 mt-1">
-                    {t.locationNotFound}
-                  </p>
+                  <>
+                    <p className="font-bold text-red-700 mt-1">
+                      {t.locationMissing}
+                    </p>
+
+                    <p className="text-sm text-gray-600 mt-1">
+                      {
+                        t.locationMissingDescription
+                      }
+                    </p>
+                  </>
                 )}
 
               </div>
-
             </div>
 
+            {/* LOCATION DETAILS */}
+
             {profileLocation && (
-              <p className="text-sm text-blue-700 mt-3">
-                ✓ {t.locationUsed}
-              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-5">
+
+                {profileLocation.village && (
+                  <div className="bg-white rounded-xl p-3">
+                    <p className="text-xs text-gray-500">
+                      {t.village}
+                    </p>
+
+                    <p className="font-semibold text-gray-800">
+                      {
+                        profileLocation.village
+                      }
+                    </p>
+                  </div>
+                )}
+
+                {(profileLocation.city ||
+                  profileLocation.town) && (
+                  <div className="bg-white rounded-xl p-3">
+                    <p className="text-xs text-gray-500">
+                      {t.city}
+                    </p>
+
+                    <p className="font-semibold text-gray-800">
+                      {profileLocation.city ||
+                        profileLocation.town}
+                    </p>
+                  </div>
+                )}
+
+                {profileLocation.district && (
+                  <div className="bg-white rounded-xl p-3">
+                    <p className="text-xs text-gray-500">
+                      {t.district}
+                    </p>
+
+                    <p className="font-semibold text-gray-800">
+                      {
+                        profileLocation.district
+                      }
+                    </p>
+                  </div>
+                )}
+
+                {profileLocation.state && (
+                  <div className="bg-white rounded-xl p-3">
+                    <p className="text-xs text-gray-500">
+                      {t.state}
+                    </p>
+
+                    <p className="font-semibold text-gray-800">
+                      {profileLocation.state}
+                    </p>
+                  </div>
+                )}
+
+                {profileLocation.pincode && (
+                  <div className="bg-white rounded-xl p-3">
+                    <p className="text-xs text-gray-500">
+                      {t.pincode}
+                    </p>
+
+                    <p className="font-semibold text-gray-800">
+                      {profileLocation.pincode}
+                    </p>
+                  </div>
+                )}
+
+              </div>
             )}
 
           </div>
 
-          {/* FIND BUTTON */}
+          {/* SEARCH BUTTON */}
 
           <button
-            onClick={
-              handleFindMandi
-            }
             disabled={
-              locationLoading ||
-              !profileLocation
+              !profileLocation ||
+              searchingMandis
             }
-            className={`mt-6 px-6 py-3 rounded-xl text-white font-bold transition ${
-              locationLoading ||
-              !profileLocation
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-green-700 hover:bg-green-800"
+            onClick={findNearbyMandis}
+            className={`mt-6 px-6 py-3 rounded-xl font-bold transition ${
+              !profileLocation ||
+              searchingMandis
+                ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                : "bg-green-700 text-white hover:bg-green-800"
             }`}
           >
-            {locationLoading
-              ? `⏳ ${t.searchingMandi}`
-              : t.findMandi}
+            {searchingMandis
+              ? `⏳ ${t.searchingMandis}`
+              : `📍 ${t.searchMandis}`}
           </button>
 
-          {/* ERROR */}
+          {/* ==========================================
+              ERROR
+          ========================================== */}
 
-          {mandiError && (
+          {searchError && (
             <div className="mt-5 bg-red-50 border border-red-200 rounded-2xl p-5">
+
               <p className="text-red-800 font-semibold">
-                ⚠️ {mandiError}
+                ⚠️ {t.errorSearching}
               </p>
+
+              <button
+                onClick={findNearbyMandis}
+                className="mt-3 px-4 py-2 rounded-lg bg-red-700 text-white font-semibold hover:bg-red-800"
+              >
+                {t.tryAgain}
+              </button>
+
             </div>
           )}
 
-          {/* ============================================
+          {/* ==========================================
               MANDI RESULTS
-          ============================================ */}
+          ========================================== */}
 
           {mandis.length > 0 && (
-            <div className="mt-8">
+            <div className="mt-7 space-y-5">
 
-              <div className="flex items-center justify-between gap-3 mb-5">
+              {mandis.map((mandi) => (
+                <div
+                  key={mandi.id}
+                  className="border border-green-100 rounded-2xl p-5 hover:shadow-md transition bg-white"
+                >
 
-                <h3 className="text-xl font-bold text-green-800">
-                  🏪 {t.nearbyMarket}
-                </h3>
+                  {/* NAME */}
 
-                <span className="text-sm bg-green-100 text-green-800 px-3 py-1 rounded-full font-semibold">
-                  {mandis.length}
-                </span>
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
 
-              </div>
+                    <div>
+                      <div className="flex items-start gap-3">
 
-              <div className="space-y-5">
-
-                {mandis.map(
-                  (
-                    mandi,
-                    index
-                  ) => (
-                    <div
-                      key={
-                        mandi.id
-                      }
-                      className="border border-green-100 rounded-3xl p-5 hover:shadow-md transition bg-gradient-to-br from-white to-green-50"
-                    >
-
-                      {/* HEADER */}
-
-                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-
-                        <div className="flex gap-4">
-
-                          <div className="w-12 h-12 rounded-2xl bg-green-100 flex items-center justify-center text-2xl shrink-0">
-                            🏪
-                          </div>
-
-                          <div>
-
-                            <p className="text-xs font-bold text-green-600">
-                              #{index + 1}
-                            </p>
-
-                            <h4 className="text-lg sm:text-xl font-bold text-gray-900">
-                              {mandi.name}
-                            </h4>
-
-                            <p className="text-sm text-gray-500 mt-1">
-                              {mandi.address}
-                            </p>
-
-                          </div>
-
+                        <div className="text-3xl">
+                          🏪
                         </div>
 
-                        <div className="bg-green-700 text-white rounded-2xl px-4 py-2 text-center shrink-0">
+                        <div>
+                          <h3 className="text-xl font-bold text-green-800">
+                            {mandi.name}
+                          </h3>
 
-                          <p className="text-xs opacity-90">
-                            {t.distance}
+                          <p className="text-sm text-gray-500 mt-1">
+                            {mandi.type}
                           </p>
 
-                          <p className="text-lg font-bold">
-                            {mandi.distance.toFixed(
-                              1
-                            )}{" "}
-                            {t.km}
-                          </p>
-
+                          {mandi.location && (
+                            <p className="text-sm text-gray-500 mt-1">
+                              📍 {mandi.location}
+                            </p>
+                          )}
                         </div>
 
                       </div>
+                    </div>
 
-                      {/* INFORMATION GRID */}
+                    {/* DISTANCE */}
 
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-5">
+                    <div className="bg-green-50 rounded-xl px-4 py-3 text-center min-w-[110px]">
 
-                        {/* RATE */}
+                      <p className="text-xs text-gray-500">
+                        {t.distance}
+                      </p>
 
-                        <div className="bg-white rounded-2xl border border-green-100 p-4">
+                      <p className="text-xl font-bold text-green-800">
+                        {mandi.distance.toFixed(
+                          1
+                        )}{" "}
+                        {t.kilometers}
+                      </p>
 
-                          <p className="text-xs text-gray-500">
-                            💰{" "}
-                            {t.mandiRate}
-                          </p>
+                    </div>
 
-                          <p className="text-xl font-bold text-green-800 mt-1">
-                            {mandi.rate}
-                          </p>
+                  </div>
 
-                          <p className="text-xs text-gray-500 mt-1">
-                            {t.unitQuintal}
-                          </p>
+                  {/* MARKET DATA */}
 
-                        </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-5">
 
-                        {/* TRANSPORT */}
+                    {/* RATE */}
 
-                        <div className="bg-white rounded-2xl border border-orange-100 p-4">
+                    <div className="bg-gray-50 rounded-xl p-4">
 
-                          <p className="text-xs text-gray-500">
-                            🚚{" "}
-                            {t.transportCharge}
-                          </p>
+                      <p className="text-xs text-gray-500">
+                        💰 {t.mandiRate}
+                      </p>
 
-                          <p className="text-xl font-bold text-orange-700 mt-1">
+                      {mandi.cropPrice > 0 ? (
+                        <p className="text-lg font-bold text-green-800 mt-1">
+                          ₹
+                          {mandi.cropPrice.toLocaleString(
+                            "en-IN"
+                          )}
+                        </p>
+                      ) : (
+                        <p className="text-sm font-semibold text-gray-500 mt-1">
+                          {t.unknownPrice}
+                        </p>
+                      )}
+
+                      {mandi.cropPrice >
+                        0 && (
+                        <p className="text-xs text-gray-500">
+                          {t.perQuintal}
+                        </p>
+                      )}
+
+                    </div>
+
+                    {/* TRANSPORT */}
+
+                    <div className="bg-gray-50 rounded-xl p-4">
+
+                      <p className="text-xs text-gray-500">
+                        🚚 {t.transportCost}
+                      </p>
+
+                      <p className="text-lg font-bold text-orange-700 mt-1">
+                        ₹
+                        {mandi.transportCost.toLocaleString(
+                          "en-IN"
+                        )}
+                      </p>
+
+                      <p className="text-xs text-gray-500">
+                        {t.estimated}
+                      </p>
+
+                    </div>
+
+                    {/* NET */}
+
+                    <div className="bg-green-50 rounded-xl p-4">
+
+                      <p className="text-xs text-gray-600">
+                        💰{" "}
+                        {t.estimatedNetRate}
+                      </p>
+
+                      {mandi.netPrice >
+                      0 ? (
+                        <>
+                          <p className="text-lg font-bold text-green-900 mt-1">
                             ₹
-                            {mandi.transportPerQuintal.toLocaleString(
+                            {mandi.netPrice.toLocaleString(
                               "en-IN"
                             )}
                           </p>
 
-                          <p className="text-xs text-gray-500 mt-1">
-                            {t.estimatedTransport}{" "}
-                            / quintal
+                          <p className="text-xs text-gray-600">
+                            {t.perQuintal}
                           </p>
-
-                        </div>
-
-                        {/* EFFECTIVE */}
-
-                        <div className="bg-white rounded-2xl border border-blue-100 p-4">
-
-                          <p className="text-xs text-gray-500">
-                            📊{" "}
-                            {t.effectivePrice}
-                          </p>
-
-                          <p className="text-xl font-bold text-blue-800 mt-1">
-                            {
-                              mandi.effectiveRate
-                            }
-                          </p>
-
-                          <p className="text-xs text-gray-500 mt-1">
-                            {t.unitQuintal}
-                          </p>
-
-                        </div>
-
-                      </div>
-
-                      {/* BUTTON */}
-
-                      <button
-                        onClick={() =>
-                          openMap(
-                            mandi.lat,
-                            mandi.lon,
-                            mandi.name
-                          )
-                        }
-                        className="mt-5 w-full sm:w-auto px-5 py-3 rounded-xl bg-green-700 text-white font-bold hover:bg-green-800 transition"
-                      >
-                        📍{" "}
-                        {t.openMap}
-                      </button>
+                        </>
+                      ) : (
+                        <p className="text-sm font-semibold text-gray-600 mt-1">
+                          {t.unknownPrice}
+                        </p>
+                      )}
 
                     </div>
-                  )
-                )}
 
-              </div>
+                  </div>
+
+                </div>
+              ))}
 
             </div>
           )}
 
-          {/* NOTE */}
+          {/* ==========================================
+              NO RESULTS
+          ========================================== */}
 
-          <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-2xl p-4">
+          {!searchingMandis &&
+            !searchError &&
+            mandis.length === 0 &&
+            profileLocation && (
+              <div className="mt-5 bg-yellow-50 border border-yellow-200 rounded-2xl p-5">
 
-            <p className="text-sm text-yellow-900 leading-relaxed">
-              ℹ️ {t.estimateNote}
-            </p>
+                <p className="text-yellow-900 font-semibold">
+                  ⚠️ {t.noMandis}
+                </p>
 
-          </div>
+                <p className="text-sm text-yellow-800 mt-2">
+                  ℹ️ Mandi data may vary depending on
+                  available map and market records.
+                  Transport is only an estimate and may
+                  vary by vehicle, quantity, road condition
+                  and actual route.
+                </p>
+
+              </div>
+            )}
 
         </div>
 
-        {/* ================================================
+        {/* =============================================
             IMPORTANT TIPS
-        ================================================= */}
+        ============================================= */}
 
         <div className="bg-yellow-50 border border-yellow-200 rounded-3xl p-6 sm:p-7">
 
@@ -2515,7 +2675,6 @@ export default function MarketPage() {
           <div className="space-y-4 mt-5">
 
             <div className="flex gap-4">
-
               <div className="text-2xl">
                 📊
               </div>
@@ -2523,11 +2682,9 @@ export default function MarketPage() {
               <p className="text-yellow-900">
                 {t.tip1}
               </p>
-
             </div>
 
             <div className="flex gap-4">
-
               <div className="text-2xl">
                 🌾
               </div>
@@ -2535,11 +2692,9 @@ export default function MarketPage() {
               <p className="text-yellow-900">
                 {t.tip2}
               </p>
-
             </div>
 
             <div className="flex gap-4">
-
               <div className="text-2xl">
                 🚚
               </div>
@@ -2547,11 +2702,9 @@ export default function MarketPage() {
               <p className="text-yellow-900">
                 {t.tip3}
               </p>
-
             </div>
 
             <div className="flex gap-4">
-
               <div className="text-2xl">
                 💰
               </div>
@@ -2559,10 +2712,10 @@ export default function MarketPage() {
               <p className="text-yellow-900">
                 {t.tip4}
               </p>
-
             </div>
 
           </div>
+
         </div>
 
       </div>
