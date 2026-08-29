@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -19,6 +20,19 @@ type MarketInfo = {
   advice: string;
 };
 
+type Mandi = {
+  id: number;
+  name: string;
+  address: string;
+  lat: number;
+  lng: number;
+  distance: number;
+  price: number;
+  minPrice: number;
+  maxPrice: number;
+  transportCharge: number;
+};
+
 type Translation = {
   backTo: string;
   season: string;
@@ -34,13 +48,27 @@ type Translation = {
   cropLabel: string;
   indicativePrice: string;
   marketTrend: string;
-
   sellingAdvice: string;
 
   nearbyMarket: string;
   nearbyMarketDescription: string;
   findMandi: string;
-  mandiAlert: string;
+
+  detectingLocation: string;
+  locationDenied: string;
+  locationError: string;
+  noMandiFound: string;
+
+  distance: string;
+  mandiRate: string;
+  minRate: string;
+  maxRate: string;
+  modalRate: string;
+  transport: string;
+  effectiveRate: string;
+  perQuintal: string;
+  directions: string;
+  refresh: string;
 
   importantBeforeSelling: string;
   tip1: string;
@@ -59,14 +87,9 @@ type Translation = {
   trendModerate: string;
   trendVariable: string;
   trendCheck: string;
-
   unitQuintal: string;
   unknownPrice: string;
 };
-
-/* =========================================================
-   TRANSLATIONS
-========================================================= */
 
 const translations: Record<string, Translation> = {
   en: {
@@ -76,8 +99,7 @@ const translations: Record<string, Translation> = {
     landArea: "Land Area",
 
     loadingTitle: "Loading Market...",
-    loadingText:
-      "Please wait while we prepare market information.",
+    loadingText: "Please wait while we prepare market information.",
 
     cropNotFound: "Crop not found",
     backToCrops: "Back to Crops",
@@ -94,25 +116,37 @@ const translations: Record<string, Translation> = {
 
     nearbyMarket: "📍 Nearby Mandi & Markets",
     nearbyMarketDescription:
-      "Find nearby agricultural markets and compare available selling opportunities.",
+      "Find nearby agricultural markets, compare prices, distance and transportation cost.",
 
     findMandi: "Find Nearby Mandi →",
 
-    mandiAlert:
-      "Nearby mandi search will be connected with location services next.",
+    detectingLocation: "Detecting your location...",
+    locationDenied:
+      "Location permission was denied. Please allow location access and try again.",
+    locationError:
+      "Unable to detect your location. Please try again.",
+    noMandiFound:
+      "No nearby mandi was found in this area.",
 
-    importantBeforeSelling:
-      "⚠️ Important Before Selling",
+    distance: "Distance",
+    mandiRate: "Mandi Rate",
+    minRate: "Minimum",
+    maxRate: "Maximum",
+    modalRate: "Modal",
+    transport: "Estimated Transport",
+    effectiveRate: "Effective Rate",
+    perQuintal: "per quintal",
+    directions: "Get Directions",
+    refresh: "Refresh",
+
+    importantBeforeSelling: "⚠️ Important Before Selling",
 
     tip1:
       "Compare prices from more than one nearby mandi whenever possible.",
-
     tip2:
       "Crop quality, moisture and grading can affect the final selling price.",
-
     tip3:
       "Consider transportation cost before choosing a mandi with a slightly higher price.",
-
     tip4:
       "Verify the latest mandi rate before making a final selling decision.",
 
@@ -157,25 +191,37 @@ const translations: Record<string, Translation> = {
 
     nearbyMarket: "📍 नज़दीकी मंडी और बाज़ार",
     nearbyMarketDescription:
-      "नज़दीकी कृषि मंडियों की जानकारी प्राप्त करें और बिक्री के विकल्पों की तुलना करें।",
+      "आस-पास की कृषि मंडियों को खोजें और भाव, दूरी तथा परिवहन खर्च की तुलना करें।",
 
     findMandi: "नज़दीकी मंडी खोजें →",
 
-    mandiAlert:
-      "नज़दीकी मंडी खोजने की सुविधा जल्द ही लोकेशन सेवा से जोड़ी जाएगी।",
+    detectingLocation: "आपकी लोकेशन खोजी जा रही है...",
+    locationDenied:
+      "लोकेशन की अनुमति नहीं मिली। कृपया लोकेशन की अनुमति देकर फिर कोशिश करें।",
+    locationError:
+      "आपकी लोकेशन नहीं मिल सकी। कृपया दोबारा कोशिश करें।",
+    noMandiFound:
+      "इस क्षेत्र में कोई नज़दीकी मंडी नहीं मिली।",
 
-    importantBeforeSelling:
-      "⚠️ बेचने से पहले जरूरी बातें",
+    distance: "दूरी",
+    mandiRate: "मंडी भाव",
+    minRate: "न्यूनतम",
+    maxRate: "अधिकतम",
+    modalRate: "मॉडल भाव",
+    transport: "अनुमानित परिवहन खर्च",
+    effectiveRate: "परिवहन के बाद प्रभावी भाव",
+    perQuintal: "प्रति क्विंटल",
+    directions: "रास्ता देखें",
+    refresh: "फिर से खोजें",
+
+    importantBeforeSelling: "⚠️ बेचने से पहले जरूरी बातें",
 
     tip1:
       "जहाँ संभव हो, एक से अधिक नज़दीकी मंडियों के भाव की तुलना करें।",
-
     tip2:
       "फसल की गुणवत्ता, नमी और ग्रेडिंग से अंतिम बिक्री कीमत प्रभावित हो सकती है।",
-
     tip3:
       "थोड़ा अधिक भाव वाली मंडी चुनने से पहले परिवहन का खर्च भी ध्यान में रखें।",
-
     tip4:
       "फसल बेचने का अंतिम निर्णय लेने से पहले नवीनतम मंडी भाव जरूर जाँचें।",
 
@@ -202,8 +248,7 @@ const translations: Record<string, Translation> = {
     landArea: "जमिनीचे क्षेत्रफळ",
 
     loadingTitle: "बाजाराची माहिती लोड होत आहे...",
-    loadingText:
-      "कृपया थांबा, आम्ही बाजाराची माहिती तयार करत आहोत.",
+    loadingText: "कृपया थांबा, आम्ही बाजाराची माहिती तयार करत आहोत.",
 
     cropNotFound: "पीक सापडले नाही",
     backToCrops: "पिकांकडे परत जा",
@@ -220,25 +265,35 @@ const translations: Record<string, Translation> = {
 
     nearbyMarket: "📍 जवळची बाजारपेठ",
     nearbyMarketDescription:
-      "जवळच्या कृषी बाजारपेठा शोधा आणि विक्रीच्या संधींची तुलना करा.",
+      "जवळच्या बाजारपेठा शोधा आणि दर, अंतर व वाहतूक खर्चाची तुलना करा.",
 
     findMandi: "जवळची बाजारपेठ शोधा →",
 
-    mandiAlert:
-      "जवळची बाजारपेठ शोधण्याची सुविधा लवकरच लोकेशन सेवेशी जोडली जाईल.",
+    detectingLocation: "तुमचे स्थान शोधत आहे...",
+    locationDenied:
+      "स्थानाची परवानगी मिळाली नाही. कृपया स्थानाची परवानगी देऊन पुन्हा प्रयत्न करा.",
+    locationError: "तुमचे स्थान सापडले नाही. पुन्हा प्रयत्न करा.",
+    noMandiFound: "या भागात जवळची बाजारपेठ सापडली नाही.",
 
-    importantBeforeSelling:
-      "⚠️ विक्रीपूर्वी महत्त्वाच्या गोष्टी",
+    distance: "अंतर",
+    mandiRate: "बाजारभाव",
+    minRate: "किमान",
+    maxRate: "कमाल",
+    modalRate: "मॉडल",
+    transport: "अंदाजे वाहतूक खर्च",
+    effectiveRate: "वाहतूक वजा केल्यानंतरचा दर",
+    perQuintal: "प्रति क्विंटल",
+    directions: "मार्ग पहा",
+    refresh: "पुन्हा शोधा",
+
+    importantBeforeSelling: "⚠️ विक्रीपूर्वी महत्त्वाच्या गोष्टी",
 
     tip1:
       "शक्य असल्यास एकापेक्षा जास्त जवळच्या बाजारपेठांमधील दरांची तुलना करा.",
-
     tip2:
       "पिकाची गुणवत्ता, ओलावा आणि दर्जा अंतिम किंमतीवर परिणाम करू शकतो.",
-
     tip3:
       "थोडा जास्त दर असलेली बाजारपेठ निवडण्यापूर्वी वाहतूक खर्चाचा विचार करा.",
-
     tip4:
       "विक्रीचा अंतिम निर्णय घेण्यापूर्वी नवीनतम बाजारभाव तपासा.",
 
@@ -265,8 +320,7 @@ const translations: Record<string, Translation> = {
     landArea: "জমির পরিমাণ",
 
     loadingTitle: "বাজারের তথ্য লোড হচ্ছে...",
-    loadingText:
-      "অনুগ্রহ করে অপেক্ষা করুন, আমরা বাজারের তথ্য প্রস্তুত করছি।",
+    loadingText: "অনুগ্রহ করে অপেক্ষা করুন।",
 
     cropNotFound: "ফসল পাওয়া যায়নি",
     backToCrops: "ফসলে ফিরে যান",
@@ -283,25 +337,35 @@ const translations: Record<string, Translation> = {
 
     nearbyMarket: "📍 কাছাকাছি মণ্ডি ও বাজার",
     nearbyMarketDescription:
-      "কাছাকাছি কৃষি বাজার খুঁজুন এবং বিক্রির সুযোগগুলির তুলনা করুন।",
+      "কাছাকাছি কৃষি বাজার খুঁজুন এবং দাম, দূরত্ব ও পরিবহন খরচ তুলনা করুন।",
 
     findMandi: "কাছাকাছি মণ্ডি খুঁজুন →",
 
-    mandiAlert:
-      "কাছাকাছি মণ্ডি খোঁজার সুবিধা শীঘ্রই লোকেশন পরিষেবার সঙ্গে যুক্ত হবে।",
+    detectingLocation: "আপনার অবস্থান খোঁজা হচ্ছে...",
+    locationDenied:
+      "লোকেশন অনুমতি পাওয়া যায়নি। অনুগ্রহ করে অনুমতি দিয়ে আবার চেষ্টা করুন।",
+    locationError: "আপনার অবস্থান পাওয়া যায়নি। আবার চেষ্টা করুন।",
+    noMandiFound: "এই এলাকায় কোনো কাছাকাছি মণ্ডি পাওয়া যায়নি।",
 
-    importantBeforeSelling:
-      "⚠️ বিক্রির আগে গুরুত্বপূর্ণ বিষয়",
+    distance: "দূরত্ব",
+    mandiRate: "মণ্ডির দাম",
+    minRate: "সর্বনিম্ন",
+    maxRate: "সর্বোচ্চ",
+    modalRate: "মডাল",
+    transport: "আনুমানিক পরিবহন খরচ",
+    effectiveRate: "পরিবহন বাদ দেওয়ার পর কার্যকর দাম",
+    perQuintal: "প্রতি কুইন্টাল",
+    directions: "রাস্তা দেখুন",
+    refresh: "আবার খুঁজুন",
+
+    importantBeforeSelling: "⚠️ বিক্রির আগে গুরুত্বপূর্ণ বিষয়",
 
     tip1:
       "সম্ভব হলে একাধিক কাছাকাছি মণ্ডির দাম তুলনা করুন।",
-
     tip2:
       "ফসলের গুণমান, আর্দ্রতা এবং গ্রেডিং চূড়ান্ত দামকে প্রভাবিত করতে পারে।",
-
     tip3:
       "সামান্য বেশি দামের মণ্ডি বেছে নেওয়ার আগে পরিবহন খরচ বিবেচনা করুন।",
-
     tip4:
       "চূড়ান্ত বিক্রির সিদ্ধান্তের আগে সর্বশেষ মণ্ডির দাম যাচাই করুন।",
 
@@ -328,8 +392,7 @@ const translations: Record<string, Translation> = {
     landArea: "நிலப்பரப்பு",
 
     loadingTitle: "சந்தை தகவல் ஏற்றப்படுகிறது...",
-    loadingText:
-      "சந்தை தகவலைத் தயாரிக்கிறோம். தயவுசெய்து காத்திருக்கவும்.",
+    loadingText: "தயவுசெய்து காத்திருக்கவும்.",
 
     cropNotFound: "பயிர் கிடைக்கவில்லை",
     backToCrops: "பயிர்களுக்கு திரும்பு",
@@ -346,25 +409,35 @@ const translations: Record<string, Translation> = {
 
     nearbyMarket: "📍 அருகிலுள்ள சந்தைகள்",
     nearbyMarketDescription:
-      "அருகிலுள்ள விவசாய சந்தைகளைக் கண்டறிந்து விற்பனை வாய்ப்புகளை ஒப்பிடுங்கள்.",
+      "அருகிலுள்ள விவசாய சந்தைகளைக் கண்டறிந்து விலை, தூரம் மற்றும் போக்குவரத்து செலவை ஒப்பிடுங்கள்.",
 
     findMandi: "அருகிலுள்ள சந்தையைக் கண்டறியவும் →",
 
-    mandiAlert:
-      "அருகிலுள்ள சந்தையைத் தேடும் வசதி விரைவில் இருப்பிட சேவையுடன் இணைக்கப்படும்.",
+    detectingLocation: "உங்கள் இருப்பிடத்தை கண்டறிகிறது...",
+    locationDenied:
+      "இருப்பிட அனுமதி மறுக்கப்பட்டது. அனுமதி வழங்கி மீண்டும் முயற்சிக்கவும்.",
+    locationError: "உங்கள் இருப்பிடம் கிடைக்கவில்லை. மீண்டும் முயற்சிக்கவும்.",
+    noMandiFound: "இந்த பகுதியில் அருகிலுள்ள சந்தை கிடைக்கவில்லை.",
 
-    importantBeforeSelling:
-      "⚠️ விற்பனைக்கு முன் முக்கியமானவை",
+    distance: "தூரம்",
+    mandiRate: "சந்தை விலை",
+    minRate: "குறைந்தபட்சம்",
+    maxRate: "அதிகபட்சம்",
+    modalRate: "மாடல்",
+    transport: "மதிப்பிடப்பட்ட போக்குவரத்து செலவு",
+    effectiveRate: "போக்குவரத்து கழித்த பிறகு கிடைக்கும் விலை",
+    perQuintal: "ஒரு குவிண்டாலுக்கு",
+    directions: "வழியைப் பார்க்கவும்",
+    refresh: "மீண்டும் தேடவும்",
+
+    importantBeforeSelling: "⚠️ விற்பனைக்கு முன் முக்கியமானவை",
 
     tip1:
       "முடிந்தால் ஒன்றுக்கும் மேற்பட்ட அருகிலுள்ள சந்தைகளின் விலைகளை ஒப்பிடுங்கள்.",
-
     tip2:
       "பயிரின் தரம், ஈரப்பதம் மற்றும் தரப்படுத்தல் இறுதி விலையை பாதிக்கலாம்.",
-
     tip3:
       "சற்று அதிக விலை உள்ள சந்தையைத் தேர்ந்தெடுப்பதற்கு முன் போக்குவரத்து செலவைக் கருத்தில் கொள்ளுங்கள்.",
-
     tip4:
       "விற்பனை முடிவை எடுப்பதற்கு முன் சமீபத்திய சந்தை விலையை சரிபார்க்கவும்.",
 
@@ -391,15 +464,14 @@ const translations: Record<string, Translation> = {
     landArea: "భూమి విస్తీర్ణం",
 
     loadingTitle: "మార్కెట్ సమాచారం లోడ్ అవుతోంది...",
-    loadingText:
-      "దయచేసి వేచి ఉండండి, మార్కెట్ సమాచారాన్ని సిద్ధం చేస్తున్నాము.",
+    loadingText: "దయచేసి వేచి ఉండండి.",
 
     cropNotFound: "పంట కనుగొనబడలేదు",
     backToCrops: "పంటలకు తిరిగి వెళ్లండి",
 
     currentMarket: "📊 ప్రస్తుత మార్కెట్ సమాచారం",
     marketDescription:
-      "మీ పంటకు సంబంధించిన అంచనా సమాచారం. అమ్మకానికి ముందు స్థానిక మార్కెట్ తాజా ధరను తప్పకుండా తనిఖీ చేయండి.",
+      "మీ పంటకు సంబంధించిన అంచనా సమాచారం. అమ్మకానికి ముందు స్థానిక మార్కెట్ తాజా ధరను తనిఖీ చేయండి.",
 
     cropLabel: "పంట",
     indicativePrice: "అంచనా ధర",
@@ -409,25 +481,37 @@ const translations: Record<string, Translation> = {
 
     nearbyMarket: "📍 సమీప మార్కెట్లు",
     nearbyMarketDescription:
-      "సమీపంలోని వ్యవసాయ మార్కెట్లను కనుగొని అమ్మకం అవకాశాలను పోల్చండి.",
+      "సమీప వ్యవసాయ మార్కెట్లను కనుగొని ధర, దూరం మరియు రవాణా ఖర్చును పోల్చండి.",
 
     findMandi: "సమీప మార్కెట్‌ను కనుగొనండి →",
 
-    mandiAlert:
-      "సమీప మార్కెట్‌ను కనుగొనే సదుపాయం త్వరలో లొకేషన్ సేవతో అనుసంధానం చేయబడుతుంది.",
+    detectingLocation: "మీ లొకేషన్‌ను గుర్తిస్తోంది...",
+    locationDenied:
+      "లొకేషన్ అనుమతి లేదు. అనుమతి ఇచ్చి మళ్లీ ప్రయత్నించండి.",
+    locationError:
+      "మీ లొకేషన్ కనుగొనబడలేదు. మళ్లీ ప్రయత్నించండి.",
+    noMandiFound:
+      "ఈ ప్రాంతంలో సమీప మార్కెట్ కనుగొనబడలేదు.",
 
-    importantBeforeSelling:
-      "⚠️ అమ్మకానికి ముందు ముఖ్యమైన విషయాలు",
+    distance: "దూరం",
+    mandiRate: "మార్కెట్ ధర",
+    minRate: "కనిష్టం",
+    maxRate: "గరిష్టం",
+    modalRate: "మోడల్",
+    transport: "అంచనా రవాణా ఖర్చు",
+    effectiveRate: "రవాణా ఖర్చు తీసివేసిన తర్వాత ధర",
+    perQuintal: "క్వింటాల్‌కు",
+    directions: "దారి చూడండి",
+    refresh: "మళ్లీ వెతకండి",
+
+    importantBeforeSelling: "⚠️ అమ్మకానికి ముందు ముఖ్యమైన విషయాలు",
 
     tip1:
       "సాధ్యమైనప్పుడు ఒకటి కంటే ఎక్కువ సమీప మార్కెట్ల ధరలను పోల్చండి.",
-
     tip2:
       "పంట నాణ్యత, తేమ మరియు గ్రేడింగ్ తుది ధరను ప్రభావితం చేయవచ్చు.",
-
     tip3:
       "కొంచెం ఎక్కువ ధర ఉన్న మార్కెట్‌ను ఎంచుకునే ముందు రవాణా ఖర్చును పరిగణించండి.",
-
     tip4:
       "చివరి అమ్మకం నిర్ణయం తీసుకునే ముందు తాజా మార్కెట్ ధరను తనిఖీ చేయండి.",
 
@@ -454,8 +538,7 @@ const translations: Record<string, Translation> = {
     landArea: "જમીનનું ક્ષેત્રફળ",
 
     loadingTitle: "બજારની માહિતી લોડ થઈ રહી છે...",
-    loadingText:
-      "કૃપા કરીને રાહ જુઓ, અમે બજારની માહિતી તૈયાર કરી રહ્યા છીએ.",
+    loadingText: "કૃપા કરીને રાહ જુઓ.",
 
     cropNotFound: "પાક મળ્યો નથી",
     backToCrops: "પાક પર પાછા જાઓ",
@@ -472,25 +555,37 @@ const translations: Record<string, Translation> = {
 
     nearbyMarket: "📍 નજીકની મંડી અને બજારો",
     nearbyMarketDescription:
-      "નજીકના કૃષિ બજારો શોધો અને વેચાણની તકોની તુલના કરો.",
+      "નજીકના કૃષિ બજારો શોધો અને ભાવ, અંતર તથા પરિવહન ખર્ચની તુલના કરો.",
 
     findMandi: "નજીકની મંડી શોધો →",
 
-    mandiAlert:
-      "નજીકની મંડી શોધવાની સુવિધા ટૂંક સમયમાં લોકેશન સેવા સાથે જોડાશે.",
+    detectingLocation: "તમારું સ્થાન શોધી રહ્યા છીએ...",
+    locationDenied:
+      "લોકેશનની પરવાનગી મળી નથી. પરવાનગી આપીને ફરી પ્રયાસ કરો.",
+    locationError:
+      "તમારું સ્થાન મળી શક્યું નથી. ફરી પ્રયાસ કરો.",
+    noMandiFound:
+      "આ વિસ્તારમાં નજીકની મંડી મળી નથી.",
 
-    importantBeforeSelling:
-      "⚠️ વેચાણ પહેલાં મહત્વપૂર્ણ બાબતો",
+    distance: "અંતર",
+    mandiRate: "મંડી ભાવ",
+    minRate: "ન્યૂનતમ",
+    maxRate: "મહત્તમ",
+    modalRate: "મોડલ",
+    transport: "અંદાજિત પરિવહન ખર્ચ",
+    effectiveRate: "પરિવહન બાદનો અસરકારક ભાવ",
+    perQuintal: "પ્રતિ ક્વિન્ટલ",
+    directions: "રસ્તો જુઓ",
+    refresh: "ફરી શોધો",
+
+    importantBeforeSelling: "⚠️ વેચાણ પહેલાં મહત્વપૂર્ણ બાબતો",
 
     tip1:
       "શક્ય હોય ત્યારે એક કરતાં વધુ નજીકની મંડીના ભાવની તુલના કરો.",
-
     tip2:
       "પાકની ગુણવત્તા, ભેજ અને ગ્રેડિંગ અંતિમ કિંમતને અસર કરી શકે છે.",
-
     tip3:
       "થોડી વધુ કિંમતવાળી મંડી પસંદ કરતા પહેલાં પરિવહન ખર્ચ ધ્યાનમાં લો.",
-
     tip4:
       "વેચાણનો અંતિમ નિર્ણય લેતા પહેલાં નવીનતમ મંડી ભાવ તપાસો.",
 
@@ -517,8 +612,7 @@ const translations: Record<string, Translation> = {
     landArea: "ಜಮೀನಿನ ವಿಸ್ತೀರ್ಣ",
 
     loadingTitle: "ಮಾರುಕಟ್ಟೆ ಮಾಹಿತಿ ಲೋಡ್ ಆಗುತ್ತಿದೆ...",
-    loadingText:
-      "ದಯವಿಟ್ಟು ಕಾಯಿರಿ, ನಾವು ಮಾರುಕಟ್ಟೆ ಮಾಹಿತಿಯನ್ನು ಸಿದ್ಧಪಡಿಸುತ್ತಿದ್ದೇವೆ.",
+    loadingText: "ದಯವಿಟ್ಟು ಕಾಯಿರಿ.",
 
     cropNotFound: "ಬೆಳೆ ಕಂಡುಬಂದಿಲ್ಲ",
     backToCrops: "ಬೆಳೆಗಳಿಗೆ ಹಿಂತಿರುಗಿ",
@@ -535,25 +629,37 @@ const translations: Record<string, Translation> = {
 
     nearbyMarket: "📍 ಹತ್ತಿರದ ಮಾರುಕಟ್ಟೆಗಳು",
     nearbyMarketDescription:
-      "ಹತ್ತಿರದ ಕೃಷಿ ಮಾರುಕಟ್ಟೆಗಳನ್ನು ಹುಡುಕಿ ಮತ್ತು ಮಾರಾಟದ ಅವಕಾಶಗಳನ್ನು ಹೋಲಿಸಿ.",
+      "ಹತ್ತಿರದ ಕೃಷಿ ಮಾರುಕಟ್ಟೆಗಳನ್ನು ಹುಡುಕಿ ಮತ್ತು ದರ, ದೂರ ಹಾಗೂ ಸಾರಿಗೆ ವೆಚ್ಚವನ್ನು ಹೋಲಿಸಿ.",
 
     findMandi: "ಹತ್ತಿರದ ಮಾರುಕಟ್ಟೆ ಹುಡುಕಿ →",
 
-    mandiAlert:
-      "ಹತ್ತಿರದ ಮಾರುಕಟ್ಟೆ ಹುಡುಕುವ ಸೌಲಭ್ಯವನ್ನು ಶೀಘ್ರದಲ್ಲೇ ಸ್ಥಳ ಸೇವೆಯೊಂದಿಗೆ ಸಂಪರ್ಕಿಸಲಾಗುತ್ತದೆ.",
+    detectingLocation: "ನಿಮ್ಮ ಸ್ಥಳವನ್ನು ಹುಡುಕಲಾಗುತ್ತಿದೆ...",
+    locationDenied:
+      "ಸ್ಥಳ ಅನುಮತಿ ಲಭ್ಯವಿಲ್ಲ. ಅನುಮತಿ ನೀಡಿ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+    locationError:
+      "ನಿಮ್ಮ ಸ್ಥಳ ಕಂಡುಬಂದಿಲ್ಲ. ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+    noMandiFound:
+      "ಈ ಪ್ರದೇಶದಲ್ಲಿ ಹತ್ತಿರದ ಮಾರುಕಟ್ಟೆ ಕಂಡುಬಂದಿಲ್ಲ.",
 
-    importantBeforeSelling:
-      "⚠️ ಮಾರಾಟ ಮಾಡುವ ಮೊದಲು ಮುಖ್ಯ ವಿಷಯಗಳು",
+    distance: "ದೂರ",
+    mandiRate: "ಮಾರುಕಟ್ಟೆ ದರ",
+    minRate: "ಕನಿಷ್ಠ",
+    maxRate: "ಗರಿಷ್ಠ",
+    modalRate: "ಮಾಡಲ್",
+    transport: "ಅಂದಾಜು ಸಾರಿಗೆ ವೆಚ್ಚ",
+    effectiveRate: "ಸಾರಿಗೆ ವೆಚ್ಚದ ನಂತರದ ದರ",
+    perQuintal: "ಪ್ರತಿ ಕ್ವಿಂಟಲ್",
+    directions: "ದಾರಿ ನೋಡಿ",
+    refresh: "ಮತ್ತೆ ಹುಡುಕಿ",
+
+    importantBeforeSelling: "⚠️ ಮಾರಾಟ ಮಾಡುವ ಮೊದಲು ಮುಖ್ಯ ವಿಷಯಗಳು",
 
     tip1:
       "ಸಾಧ್ಯವಾದರೆ ಒಂದಕ್ಕಿಂತ ಹೆಚ್ಚು ಹತ್ತಿರದ ಮಾರುಕಟ್ಟೆಗಳ ದರಗಳನ್ನು ಹೋಲಿಸಿ.",
-
     tip2:
       "ಬೆಳೆಯ ಗುಣಮಟ್ಟ, ತೇವಾಂಶ ಮತ್ತು ಗ್ರೇಡಿಂಗ್ ಅಂತಿಮ ಬೆಲೆಯ ಮೇಲೆ ಪರಿಣಾಮ ಬೀರಬಹುದು.",
-
     tip3:
       "ಸ್ವಲ್ಪ ಹೆಚ್ಚಿನ ಬೆಲೆ ಇರುವ ಮಾರುಕಟ್ಟೆಯನ್ನು ಆಯ್ಕೆ ಮಾಡುವ ಮೊದಲು ಸಾರಿಗೆ ವೆಚ್ಚವನ್ನು ಪರಿಗಣಿಸಿ.",
-
     tip4:
       "ಅಂತಿಮ ಮಾರಾಟ ನಿರ್ಧಾರ ಮಾಡುವ ಮೊದಲು ಇತ್ತೀಚಿನ ಮಾರುಕಟ್ಟೆ ದರವನ್ನು ಪರಿಶೀಲಿಸಿ.",
 
@@ -580,8 +686,7 @@ const translations: Record<string, Translation> = {
     landArea: "ഭൂവിസ്തീർണ്ണം",
 
     loadingTitle: "വിപണി വിവരങ്ങൾ ലോഡ് ചെയ്യുന്നു...",
-    loadingText:
-      "ദയവായി കാത്തിരിക്കുക, വിപണി വിവരങ്ങൾ തയ്യാറാക്കുകയാണ്.",
+    loadingText: "ദയവായി കാത്തിരിക്കുക.",
 
     cropNotFound: "വിള കണ്ടെത്തിയില്ല",
     backToCrops: "വിളകളിലേക്ക് മടങ്ങുക",
@@ -598,25 +703,37 @@ const translations: Record<string, Translation> = {
 
     nearbyMarket: "📍 സമീപത്തെ വിപണികൾ",
     nearbyMarketDescription:
-      "സമീപത്തെ കാർഷിക വിപണികൾ കണ്ടെത്തി വിൽപ്പന അവസരങ്ങൾ താരതമ്യം ചെയ്യുക.",
+      "സമീപത്തെ കാർഷിക വിപണികൾ കണ്ടെത്തി വില, ദൂരം, ഗതാഗത ചെലവ് എന്നിവ താരതമ്യം ചെയ്യുക.",
 
     findMandi: "സമീപത്തെ വിപണി കണ്ടെത്തുക →",
 
-    mandiAlert:
-      "സമീപത്തെ വിപണി കണ്ടെത്താനുള്ള സൗകര്യം ഉടൻ ലൊക്കേഷൻ സേവനവുമായി ബന്ധിപ്പിക്കും.",
+    detectingLocation: "നിങ്ങളുടെ സ്ഥാനം കണ്ടെത്തുന്നു...",
+    locationDenied:
+      "ലൊക്കേഷൻ അനുമതി ലഭിച്ചില്ല. അനുമതി നൽകി വീണ്ടും ശ്രമിക്കുക.",
+    locationError:
+      "നിങ്ങളുടെ സ്ഥാനം കണ്ടെത്താൻ കഴിഞ്ഞില്ല. വീണ്ടും ശ്രമിക്കുക.",
+    noMandiFound:
+      "ഈ പ്രദേശത്ത് സമീപത്തെ വിപണി കണ്ടെത്താനായില്ല.",
 
-    importantBeforeSelling:
-      "⚠️ വിൽക്കുന്നതിന് മുമ്പ് ശ്രദ്ധിക്കേണ്ട കാര്യങ്ങൾ",
+    distance: "ദൂരം",
+    mandiRate: "വിപണി വില",
+    minRate: "കുറഞ്ഞത്",
+    maxRate: "കൂടിയത്",
+    modalRate: "മോഡൽ",
+    transport: "ഏകദേശ ഗതാഗത ചെലവ്",
+    effectiveRate: "ഗതാഗത ചെലവ് കുറച്ച ശേഷമുള്ള വില",
+    perQuintal: "ക്വിന്റലിന്",
+    directions: "വഴി കാണുക",
+    refresh: "വീണ്ടും തിരയുക",
+
+    importantBeforeSelling: "⚠️ വിൽക്കുന്നതിന് മുമ്പ് ശ്രദ്ധിക്കേണ്ട കാര്യങ്ങൾ",
 
     tip1:
       "സാധ്യമെങ്കിൽ ഒന്നിലധികം സമീപ വിപണികളിലെ വില താരതമ്യം ചെയ്യുക.",
-
     tip2:
       "വിളയുടെ ഗുണനിലവാരം, ഈർപ്പം, ഗ്രേഡിംഗ് എന്നിവ അന്തിമ വിലയെ ബാധിക്കും.",
-
     tip3:
       "അൽപ്പം ഉയർന്ന വിലയുള്ള വിപണി തിരഞ്ഞെടുക്കുന്നതിന് മുമ്പ് ഗതാഗതച്ചെലവ് പരിഗണിക്കുക.",
-
     tip4:
       "അന്തിമ വിൽപ്പന തീരുമാനം എടുക്കുന്നതിന് മുമ്പ് ഏറ്റവും പുതിയ വിപണി വില പരിശോധിക്കുക.",
 
@@ -643,8 +760,7 @@ const translations: Record<string, Translation> = {
     landArea: "ਜ਼ਮੀਨ ਦਾ ਖੇਤਰਫਲ",
 
     loadingTitle: "ਬਾਜ਼ਾਰ ਦੀ ਜਾਣਕਾਰੀ ਲੋਡ ਹੋ ਰਹੀ ਹੈ...",
-    loadingText:
-      "ਕਿਰਪਾ ਕਰਕੇ ਉਡੀਕ ਕਰੋ, ਅਸੀਂ ਬਾਜ਼ਾਰ ਦੀ ਜਾਣਕਾਰੀ ਤਿਆਰ ਕਰ ਰਹੇ ਹਾਂ।",
+    loadingText: "ਕਿਰਪਾ ਕਰਕੇ ਉਡੀਕ ਕਰੋ।",
 
     cropNotFound: "ਫਸਲ ਨਹੀਂ ਮਿਲੀ",
     backToCrops: "ਫਸਲਾਂ ਤੇ ਵਾਪਸ ਜਾਓ",
@@ -661,25 +777,37 @@ const translations: Record<string, Translation> = {
 
     nearbyMarket: "📍 ਨੇੜਲੀ ਮੰਡੀ ਅਤੇ ਬਾਜ਼ਾਰ",
     nearbyMarketDescription:
-      "ਨੇੜਲੇ ਖੇਤੀਬਾੜੀ ਬਾਜ਼ਾਰ ਲੱਭੋ ਅਤੇ ਵਿਕਰੀ ਦੇ ਮੌਕਿਆਂ ਦੀ ਤੁਲਨਾ ਕਰੋ।",
+      "ਨੇੜਲੇ ਖੇਤੀਬਾੜੀ ਬਾਜ਼ਾਰ ਲੱਭੋ ਅਤੇ ਭਾਅ, ਦੂਰੀ ਅਤੇ ਆਵਾਜਾਈ ਦੇ ਖਰਚੇ ਦੀ ਤੁਲਨਾ ਕਰੋ।",
 
     findMandi: "ਨੇੜਲੀ ਮੰਡੀ ਲੱਭੋ →",
 
-    mandiAlert:
-      "ਨੇੜਲੀ ਮੰਡੀ ਲੱਭਣ ਦੀ ਸਹੂਲਤ ਜਲਦੀ ਹੀ ਲੋਕੇਸ਼ਨ ਸੇਵਾ ਨਾਲ ਜੋੜੀ ਜਾਵੇਗੀ।",
+    detectingLocation: "ਤੁਹਾਡੀ ਲੋਕੇਸ਼ਨ ਲੱਭੀ ਜਾ ਰਹੀ ਹੈ...",
+    locationDenied:
+      "ਲੋਕੇਸ਼ਨ ਦੀ ਇਜਾਜ਼ਤ ਨਹੀਂ ਮਿਲੀ। ਇਜਾਜ਼ਤ ਦੇ ਕੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।",
+    locationError:
+      "ਤੁਹਾਡੀ ਲੋਕੇਸ਼ਨ ਨਹੀਂ ਮਿਲੀ। ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।",
+    noMandiFound:
+      "ਇਸ ਇਲਾਕੇ ਵਿੱਚ ਕੋਈ ਨੇੜਲੀ ਮੰਡੀ ਨਹੀਂ ਮਿਲੀ।",
 
-    importantBeforeSelling:
-      "⚠️ ਵੇਚਣ ਤੋਂ ਪਹਿਲਾਂ ਜ਼ਰੂਰੀ ਗੱਲਾਂ",
+    distance: "ਦੂਰੀ",
+    mandiRate: "ਮੰਡੀ ਭਾਅ",
+    minRate: "ਘੱਟੋ-ਘੱਟ",
+    maxRate: "ਵੱਧ ਤੋਂ ਵੱਧ",
+    modalRate: "ਮਾਡਲ",
+    transport: "ਅੰਦਾਜ਼ਨ ਆਵਾਜਾਈ ਖਰਚਾ",
+    effectiveRate: "ਆਵਾਜਾਈ ਕੱਟਣ ਤੋਂ ਬਾਅਦ ਭਾਅ",
+    perQuintal: "ਪ੍ਰਤੀ ਕੁਇੰਟਲ",
+    directions: "ਰਸਤਾ ਵੇਖੋ",
+    refresh: "ਦੁਬਾਰਾ ਖੋਜੋ",
+
+    importantBeforeSelling: "⚠️ ਵੇਚਣ ਤੋਂ ਪਹਿਲਾਂ ਜ਼ਰੂਰੀ ਗੱਲਾਂ",
 
     tip1:
       "ਜਿੱਥੇ ਸੰਭਵ ਹੋਵੇ, ਇੱਕ ਤੋਂ ਵੱਧ ਨੇੜਲੀਆਂ ਮੰਡੀਆਂ ਦੇ ਭਾਅ ਦੀ ਤੁਲਨਾ ਕਰੋ।",
-
     tip2:
       "ਫਸਲ ਦੀ ਗੁਣਵੱਤਾ, ਨਮੀ ਅਤੇ ਗ੍ਰੇਡਿੰਗ ਅੰਤਿਮ ਕੀਮਤ ਨੂੰ ਪ੍ਰਭਾਵਿਤ ਕਰ ਸਕਦੀ ਹੈ।",
-
     tip3:
       "ਥੋੜ੍ਹੇ ਵੱਧ ਭਾਅ ਵਾਲੀ ਮੰਡੀ ਚੁਣਨ ਤੋਂ ਪਹਿਲਾਂ ਆਵਾਜਾਈ ਦਾ ਖਰਚਾ ਧਿਆਨ ਵਿੱਚ ਰੱਖੋ।",
-
     tip4:
       "ਅੰਤਿਮ ਵਿਕਰੀ ਦਾ ਫੈਸਲਾ ਕਰਨ ਤੋਂ ਪਹਿਲਾਂ ਨਵਾਂ ਮੰਡੀ ਭਾਅ ਜ਼ਰੂਰ ਜਾਂਚੋ।",
 
@@ -706,8 +834,7 @@ const translations: Record<string, Translation> = {
     landArea: "ଜମିର କ୍ଷେତ୍ରଫଳ",
 
     loadingTitle: "ବଜାର ସୂଚନା ଲୋଡ୍ ହେଉଛି...",
-    loadingText:
-      "ଦୟାକରି ଅପେକ୍ଷା କରନ୍ତୁ, ଆମେ ବଜାର ସୂଚନା ପ୍ରସ୍ତୁତ କରୁଛୁ।",
+    loadingText: "ଦୟାକରି ଅପେକ୍ଷା କରନ୍ତୁ।",
 
     cropNotFound: "ଫସଲ ମିଳିଲା ନାହିଁ",
     backToCrops: "ଫସଲକୁ ଫେରନ୍ତୁ",
@@ -724,25 +851,36 @@ const translations: Record<string, Translation> = {
 
     nearbyMarket: "📍 ନିକଟସ୍ଥ ମଣ୍ଡି ଓ ବଜାର",
     nearbyMarketDescription:
-      "ନିକଟସ୍ଥ କୃଷି ବଜାର ଖୋଜନ୍ତୁ ଏବଂ ବିକ୍ରି ସୁଯୋଗର ତୁଳନା କରନ୍ତୁ।",
+      "ନିକଟସ୍ଥ କୃଷି ବଜାର ଖୋଜନ୍ତୁ ଏବଂ ଦର, ଦୂରତା ଓ ପରିବହନ ଖର୍ଚ୍ଚ ତୁଳନା କରନ୍ତୁ।",
 
     findMandi: "ନିକଟସ୍ଥ ମଣ୍ଡି ଖୋଜନ୍ତୁ →",
 
-    mandiAlert:
-      "ନିକଟସ୍ଥ ମଣ୍ଡି ଖୋଜିବା ସୁବିଧା ଶୀଘ୍ର ଲୋକେସନ୍ ସେବା ସହିତ ଯୋଡାଯିବ।",
+    detectingLocation: "ଆପଣଙ୍କ ଲୋକେସନ୍ ଖୋଜାଯାଉଛି...",
+    locationDenied:
+      "ଲୋକେସନ୍ ଅନୁମତି ମିଳିଲା ନାହିଁ। ଅନୁମତି ଦେଇ ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ।",
+    locationError: "ଆପଣଙ୍କ ଲୋକେସନ୍ ମିଳିଲା ନାହିଁ।",
+    noMandiFound:
+      "ଏହି ଅଞ୍ଚଳରେ ନିକଟସ୍ଥ ମଣ୍ଡି ମିଳିଲା ନାହିଁ।",
 
-    importantBeforeSelling:
-      "⚠️ ବିକ୍ରି ପୂର୍ବରୁ ଗୁରୁତ୍ୱପୂର୍ଣ୍ଣ",
+    distance: "ଦୂରତା",
+    mandiRate: "ମଣ୍ଡି ଦର",
+    minRate: "ସର୍ବନିମ୍ନ",
+    maxRate: "ସର୍ବାଧିକ",
+    modalRate: "ମଡାଲ୍",
+    transport: "ଆନୁମାନିକ ପରିବହନ ଖର୍ଚ୍ଚ",
+    effectiveRate: "ପରିବହନ ପରେ ପ୍ରଭାବୀ ଦର",
+    perQuintal: "ପ୍ରତି କ୍ୱିଣ୍ଟାଲ",
+    directions: "ରାସ୍ତା ଦେଖନ୍ତୁ",
+    refresh: "ପୁଣି ଖୋଜନ୍ତୁ",
+
+    importantBeforeSelling: "⚠️ ବିକ୍ରି ପୂର୍ବରୁ ଗୁରୁତ୍ୱପୂର୍ଣ୍ଣ",
 
     tip1:
       "ସମ୍ଭବ ହେଲେ ଏକାଧିକ ନିକଟସ୍ଥ ମଣ୍ଡିର ଦର ତୁଳନା କରନ୍ତୁ।",
-
     tip2:
       "ଫସଲର ଗୁଣବତ୍ତା, ଆର୍ଦ୍ରତା ଏବଂ ଗ୍ରେଡିଂ ଶେଷ ମୂଲ୍ୟକୁ ପ୍ରଭାବିତ କରିପାରେ।",
-
     tip3:
       "ସାମାନ୍ୟ ଅଧିକ ଦର ଥିବା ମଣ୍ଡି ବାଛିବା ପୂର୍ବରୁ ପରିବହନ ଖର୍ଚ୍ଚ ବିଚାର କରନ୍ତୁ।",
-
     tip4:
       "ଶେଷ ବିକ୍ରି ନିଷ୍ପତ୍ତି ପୂର୍ବରୁ ନୂତନ ମଣ୍ଡି ଦର ଯାଞ୍ଚ କରନ୍ତୁ।",
 
@@ -769,8 +907,7 @@ const translations: Record<string, Translation> = {
     landArea: "মাটিৰ পৰিমাণ",
 
     loadingTitle: "বজাৰৰ তথ্য লোড হৈ আছে...",
-    loadingText:
-      "অনুগ্ৰহ কৰি অপেক্ষা কৰক, আমি বজাৰৰ তথ্য প্ৰস্তুত কৰি আছোঁ।",
+    loadingText: "অনুগ্ৰহ কৰি অপেক্ষা কৰক।",
 
     cropNotFound: "শস্য পোৱা নগ'ল",
     backToCrops: "শস্যলৈ উভতি যাওক",
@@ -787,25 +924,36 @@ const translations: Record<string, Translation> = {
 
     nearbyMarket: "📍 ওচৰৰ মণ্ডি আৰু বজাৰ",
     nearbyMarketDescription:
-      "ওচৰৰ কৃষি বজাৰ বিচাৰি উলিয়াওক আৰু বিক্ৰীৰ সুযোগ তুলনা কৰক।",
+      "ওচৰৰ কৃষি বজাৰ বিচাৰি উলিয়াওক আৰু মূল্য, দূৰত্ব আৰু পৰিবহণ খৰচ তুলনা কৰক।",
 
     findMandi: "ওচৰৰ মণ্ডি বিচাৰক →",
 
-    mandiAlert:
-      "ওচৰৰ মণ্ডি বিচৰাৰ সুবিধা অতি সোনকালে লোকেচন সেৱাৰ সৈতে সংযোগ কৰা হ'ব।",
+    detectingLocation: "আপোনাৰ অৱস্থান বিচৰা হৈছে...",
+    locationDenied:
+      "লোকেচনৰ অনুমতি পোৱা নগ'ল। অনুমতি দি পুনৰ চেষ্টা কৰক।",
+    locationError: "আপোনাৰ অৱস্থান পোৱা নগ'ল।",
+    noMandiFound:
+      "এই অঞ্চলত কোনো ওচৰৰ মণ্ডি পোৱা নগ'ল।",
 
-    importantBeforeSelling:
-      "⚠️ বিক্ৰীৰ আগতে গুৰুত্বপূৰ্ণ কথা",
+    distance: "দূৰত্ব",
+    mandiRate: "মণ্ডিৰ মূল্য",
+    minRate: "সৰ্বনিম্ন",
+    maxRate: "সৰ্বাধিক",
+    modalRate: "মডেল",
+    transport: "আনুমানিক পৰিবহণ খৰচ",
+    effectiveRate: "পৰিবহণ বাদ দিয়াৰ পিছৰ মূল্য",
+    perQuintal: "প্ৰতি কুইণ্টল",
+    directions: "ৰাস্তা চাওক",
+    refresh: "পুনৰ বিচাৰক",
+
+    importantBeforeSelling: "⚠️ বিক্ৰীৰ আগতে গুৰুত্বপূৰ্ণ কথা",
 
     tip1:
       "সম্ভৱ হ'লে এটাতকৈ অধিক ওচৰৰ মণ্ডিৰ মূল্য তুলনা কৰক।",
-
     tip2:
       "শস্যৰ গুণগত মান, আৰ্দ্ৰতা আৰু গ্ৰেডিঙে চূড়ান্ত মূল্যত প্ৰভাৱ পেলাব পাৰে।",
-
     tip3:
       "অলপ বেছি মূল্য থকা মণ্ডি বাছনি কৰাৰ আগতে পৰিবহণৰ খৰচ বিবেচনা কৰক।",
-
     tip4:
       "চূড়ান্ত বিক্ৰীৰ সিদ্ধান্ত লোৱাৰ আগতে শেহতীয়া মণ্ডিৰ মূল্য পৰীক্ষা কৰক।",
 
@@ -832,8 +980,7 @@ const translations: Record<string, Translation> = {
     landArea: "زمین کا رقبہ",
 
     loadingTitle: "بازار کی معلومات لوڈ ہو رہی ہیں...",
-    loadingText:
-      "براہ کرم انتظار کریں، ہم بازار کی معلومات تیار کر رہے ہیں۔",
+    loadingText: "براہ کرم انتظار کریں۔",
 
     cropNotFound: "فصل نہیں ملی",
     backToCrops: "فصلوں پر واپس جائیں",
@@ -850,25 +997,37 @@ const translations: Record<string, Translation> = {
 
     nearbyMarket: "📍 قریبی منڈی اور بازار",
     nearbyMarketDescription:
-      "قریبی زرعی منڈیوں کو تلاش کریں اور فروخت کے مواقع کا موازنہ کریں۔",
+      "قریبی زرعی منڈیوں کو تلاش کریں اور ریٹ، فاصلہ اور نقل و حمل کے اخراجات کا موازنہ کریں۔",
 
     findMandi: "قریبی منڈی تلاش کریں →",
 
-    mandiAlert:
-      "قریبی منڈی تلاش کرنے کی سہولت جلد ہی لوکیشن سروس سے منسلک کی جائے گی۔",
+    detectingLocation: "آپ کی لوکیشن تلاش کی جا رہی ہے...",
+    locationDenied:
+      "لوکیشن کی اجازت نہیں ملی۔ اجازت دے کر دوبارہ کوشش کریں۔",
+    locationError:
+      "آپ کی لوکیشن نہیں مل سکی۔ دوبارہ کوشش کریں۔",
+    noMandiFound:
+      "اس علاقے میں کوئی قریبی منڈی نہیں ملی۔",
 
-    importantBeforeSelling:
-      "⚠️ فروخت سے پہلے اہم باتیں",
+    distance: "فاصلہ",
+    mandiRate: "منڈی ریٹ",
+    minRate: "کم از کم",
+    maxRate: "زیادہ سے زیادہ",
+    modalRate: "ماڈل",
+    transport: "متوقع ٹرانسپورٹ خرچ",
+    effectiveRate: "ٹرانسپورٹ کے بعد مؤثر ریٹ",
+    perQuintal: "فی کوئنٹل",
+    directions: "راستہ دیکھیں",
+    refresh: "دوبارہ تلاش کریں",
+
+    importantBeforeSelling: "⚠️ فروخت سے پہلے اہم باتیں",
 
     tip1:
       "جہاں ممکن ہو ایک سے زیادہ قریبی منڈیوں کے ریٹس کا موازنہ کریں۔",
-
     tip2:
       "فصل کا معیار، نمی اور گریڈنگ حتمی قیمت کو متاثر کر سکتے ہیں۔",
-
     tip3:
       "تھوڑی زیادہ قیمت والی منڈی منتخب کرنے سے پہلے نقل و حمل کے اخراجات کو مدنظر رکھیں۔",
-
     tip4:
       "حتمی فروخت کا فیصلہ کرنے سے پہلے تازہ ترین منڈی ریٹ ضرور چیک کریں۔",
 
@@ -889,570 +1048,268 @@ const translations: Record<string, Translation> = {
   },
 };
 
-/* =========================================================
-   HELPER: NORMALIZE LANGUAGE
-========================================================= */
+/* ---------------------------------------------------------
+   DISTANCE CALCULATOR
+--------------------------------------------------------- */
 
-function normalizeLanguage(value: string | null): string {
-  if (!value) return "en";
+function calculateDistance(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number
+) {
+  const R = 6371;
 
-  const lang = value.toLowerCase().trim();
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
 
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return R * c;
+}
+
+/* ---------------------------------------------------------
+   TRANSPORT ESTIMATE
+--------------------------------------------------------- */
+
+function calculateTransport(distanceKm: number) {
   /*
-    Agar app mein language ka naam save ho raha ho
-    jaise "Hindi", "हिंदी", etc. to bhi Hindi chalegi.
-  */
+    Demo estimate:
 
-  if (
-    lang === "hi" ||
-    lang === "hindi" ||
-    lang === "हिंदी"
-  ) {
-    return "hi";
-  }
+    Tractor / local vehicle:
+    ₹18 per km
 
-  if (
-    lang === "mr" ||
-    lang === "marathi" ||
-    lang === "मराठी"
-  ) {
-    return "mr";
-  }
+    Minimum transport:
+    ₹80
 
-  if (
-    lang === "bn" ||
-    lang === "bengali" ||
-    lang === "বাংলা"
-  ) {
-    return "bn";
-  }
+    Maximum shown here is only an estimate.
 
-  if (
-    lang === "ta" ||
-    lang === "tamil" ||
-    lang === "தமிழ்"
-  ) {
-    return "ta";
-  }
+    IMPORTANT:
+    Actual transport charge can differ according to:
+    - vehicle
+    - quantity
+    - road
+    - fuel
+    - loading/unloading
+    */
 
-  if (
-    lang === "te" ||
-    lang === "telugu" ||
-    lang === "తెలుగు"
-  ) {
-    return "te";
-  }
-
-  if (
-    lang === "gu" ||
-    lang === "gujarati" ||
-    lang === "ગુજરાતી"
-  ) {
-    return "gu";
-  }
-
-  if (
-    lang === "kn" ||
-    lang === "kannada" ||
-    lang === "ಕನ್ನಡ"
-  ) {
-    return "kn";
-  }
-
-  if (
-    lang === "ml" ||
-    lang === "malayalam" ||
-    lang === "മലയാളം"
-  ) {
-    return "ml";
-  }
-
-  if (
-    lang === "pa" ||
-    lang === "punjabi" ||
-    lang === "ਪੰਜਾਬੀ"
-  ) {
-    return "pa";
-  }
-
-  if (
-    lang === "or" ||
-    lang === "odia" ||
-    lang === "ଓଡ଼ିଆ"
-  ) {
-    return "or";
-  }
-
-  if (
-    lang === "as" ||
-    lang === "assamese" ||
-    lang === "অসমীয়া"
-  ) {
-    return "as";
-  }
-
-  if (
-    lang === "ur" ||
-    lang === "urdu" ||
-    lang === "اردو"
-  ) {
-    return "ur";
-  }
-
-  return translations[lang] ? lang : "en";
+  return Math.max(80, Math.round(distanceKm * 18));
 }
 
-/* =========================================================
-   CROP NAME DETECTION
-========================================================= */
+/* ---------------------------------------------------------
+   DEMO MANDI DATABASE
+   --------------------------------------------------------- */
 
-function isWheat(name: string) {
-  const value = name.toLowerCase();
+const mandiDatabase = [
+  {
+    id: 1,
+    name: "Local Krishi Mandi",
+    address: "Nearby Agricultural Market",
+    latOffset: 0.015,
+    lngOffset: 0.012,
+  },
+  {
+    id: 2,
+    name: "Main Agricultural Mandi",
+    address: "Main Market Yard",
+    latOffset: -0.022,
+    lngOffset: 0.018,
+  },
+  {
+    id: 3,
+    name: "APMC Mandi",
+    address: "APMC Market Yard",
+    latOffset: 0.028,
+    lngOffset: -0.025,
+  },
+  {
+    id: 4,
+    name: "Grain Market",
+    address: "Grain Market Area",
+    latOffset: -0.035,
+    lngOffset: -0.018,
+  },
+  {
+    id: 5,
+    name: "Farmers Market",
+    address: "Agricultural Market",
+    latOffset: 0.045,
+    lngOffset: 0.035,
+  },
+];
 
-  return (
-    value.includes("wheat") ||
-    value.includes("गेह") ||
-    value.includes("गहू") ||
-    value.includes("গম") ||
-    value.includes("கோதுமை") ||
-    value.includes("గోధుమ") ||
-    value.includes("ઘઉં") ||
-    value.includes("ಗೋಧಿ") ||
-    value.includes("गेहूं")
-  );
-}
-
-function isRice(name: string) {
-  const value = name.toLowerCase();
-
-  return (
-    value.includes("rice") ||
-    value.includes("paddy") ||
-    value.includes("धान") ||
-    value.includes("चावल") ||
-    value.includes("तांदूळ") ||
-    value.includes("ধান") ||
-    value.includes("அரிசி") ||
-    value.includes("వరి") ||
-    value.includes("చెట్టు") ||
-    value.includes("ચોખા") ||
-    value.includes("ಅಕ್ಕಿ")
-  );
-}
-
-function isMaize(name: string) {
-  const value = name.toLowerCase();
-
-  return (
-    value.includes("maize") ||
-    value.includes("corn") ||
-    value.includes("मक्का") ||
-    value.includes("मका") ||
-    value.includes("ভুট্টা") ||
-    value.includes("மக்காச்சோளம்") ||
-    value.includes("మొక్కజొన్న") ||
-    value.includes("મકાઈ") ||
-    value.includes("ಮೆಕ್ಕೆಜೋಳ")
-  );
-}
-
-function isPotato(name: string) {
-  const value = name.toLowerCase();
-
-  return (
-    value.includes("potato") ||
-    value.includes("aloo") ||
-    value.includes("आलू") ||
-    value.includes("बटाटा") ||
-    value.includes("আলু") ||
-    value.includes("உருளைக்கிழங்கு") ||
-    value.includes("బంగాళాదుంప") ||
-    value.includes("બટાકા") ||
-    value.includes("ಆಲೂಗಡ್ಡೆ")
-  );
-}
-
-function isSugarcane(name: string) {
-  const value = name.toLowerCase();
-
-  return (
-    value.includes("sugarcane") ||
-    value.includes("ganna") ||
-    value.includes("गन्ना") ||
-    value.includes("ऊस") ||
-    value.includes("আখ") ||
-    value.includes("கரும்பு") ||
-    value.includes("చెరకు") ||
-    value.includes("શેરડી") ||
-    value.includes("ಕಬ್ಬು")
-  );
-}
-
-/* =========================================================
-   MAIN COMPONENT
-========================================================= */
+/* ---------------------------------------------------------
+   MARKET PAGE
+--------------------------------------------------------- */
 
 export default function MarketPage() {
   const params = useParams();
   const router = useRouter();
 
   const [language, setLanguage] = useState("en");
+
   const [crop, setCrop] = useState<Crop | null>(null);
+
   const [loading, setLoading] = useState(true);
 
-  /* =======================================================
-     LOAD LANGUAGE + CROP
-  ======================================================= */
+  const [mandiLoading, setMandiLoading] = useState(false);
+
+  const [mandis, setMandis] = useState<Mandi[]>([]);
+
+  const [locationError, setLocationError] = useState("");
+
+  const [showMandis, setShowMandis] = useState(false);
 
   useEffect(() => {
-    let mounted = true;
+    const savedLanguage = localStorage.getItem("selectedLanguage");
+
+    if (savedLanguage && translations[savedLanguage]) {
+      setLanguage(savedLanguage);
+    }
+
+    const savedCrops = localStorage.getItem("farmerCrops");
+
+    if (!savedCrops) {
+      setLoading(false);
+      return;
+    }
 
     try {
-      /* -----------------------------
-         LANGUAGE
-      ----------------------------- */
-
-      const savedLanguage =
-        localStorage.getItem("selectedLanguage");
-
-      const finalLanguage =
-        normalizeLanguage(savedLanguage);
-
-      if (mounted) {
-        setLanguage(finalLanguage);
-      }
-
-      /* -----------------------------
-         CROP
-      ----------------------------- */
-
-      const savedCrops =
-        localStorage.getItem("farmerCrops");
-
-      if (!savedCrops) {
-        if (mounted) {
-          setCrop(null);
-          setLoading(false);
-        }
-
-        return;
-      }
-
       const crops: Crop[] = JSON.parse(savedCrops);
 
-      const cropId = Number(params.id);
-
       const selectedCrop = crops.find(
-        (item) => Number(item.id) === cropId
+        (item: Crop) => item.id === Number(params.id)
       );
 
-      if (mounted) {
-        setCrop(selectedCrop || null);
-        setLoading(false);
+      if (selectedCrop) {
+        setCrop(selectedCrop);
       }
-    } catch (error) {
-      console.error(
-        "Market page loading error:",
-        error
-      );
-
-      if (mounted) {
-        setCrop(null);
-        setLoading(false);
-      }
+    } catch {
+      setCrop(null);
+    } finally {
+      setLoading(false);
     }
-
-    return () => {
-      mounted = false;
-    };
   }, [params.id]);
 
-  const t =
-    translations[language] || translations.en;
+  const t = translations[language] || translations.en;
 
-  /* =======================================================
+  /* -------------------------------------------------------
      SEASON
-  ======================================================= */
+  ------------------------------------------------------- */
 
   const getSeasonName = (season: string) => {
-    if (season === "Kharif") {
-      return t.seasonNames.Kharif;
-    }
-
-    if (season === "Rabi") {
-      return t.seasonNames.Rabi;
-    }
-
-    if (season === "Zaid") {
-      return t.seasonNames.Zaid;
-    }
-
-    if (season === "Other") {
-      return t.seasonNames.Other;
-    }
+    if (season === "Kharif") return t.seasonNames.Kharif;
+    if (season === "Rabi") return t.seasonNames.Rabi;
+    if (season === "Zaid") return t.seasonNames.Zaid;
+    if (season === "Other") return t.seasonNames.Other;
 
     return season;
   };
 
-  /* =======================================================
+  /* -------------------------------------------------------
      MARKET INFO
-  ======================================================= */
+  ------------------------------------------------------- */
 
-  const getMarketInfo = (
-    cropName: string
-  ): MarketInfo => {
-    /* -----------------------------
-       WHEAT
-    ----------------------------- */
+  const getMarketInfo = (cropName: string): MarketInfo => {
+    const name = cropName.toLowerCase();
 
-    if (isWheat(cropName)) {
-      let advice =
-        "Compare prices from nearby mandis before selling. Avoid selling immediately if the local price is unusually low.";
-
-      if (language === "hi") {
-        advice =
-          "बेचने से पहले आसपास की मंडियों के भाव की तुलना करें। यदि स्थानीय भाव असामान्य रूप से कम है तो तुरंत बेचने से बचें।";
-      } else if (language === "mr") {
-        advice =
-          "विक्रीपूर्वी जवळच्या बाजारपेठांमधील दरांची तुलना करा. स्थानिक दर खूप कमी असल्यास लगेच विक्री करणे टाळा.";
-      } else if (language === "bn") {
-        advice =
-          "বিক্রির আগে কাছাকাছি মণ্ডির দাম তুলনা করুন। স্থানীয় দাম অস্বাভাবিকভাবে কম হলে সঙ্গে সঙ্গে বিক্রি করা এড়িয়ে চলুন।";
-      } else if (language === "ta") {
-        advice =
-          "விற்பனைக்கு முன் அருகிலுள்ள சந்தைகளின் விலைகளை ஒப்பிடுங்கள். உள்ளூர் விலை மிகவும் குறைவாக இருந்தால் உடனடியாக விற்பதைத் தவிர்க்கவும்.";
-      } else if (language === "te") {
-        advice =
-          "అమ్మకానికి ముందు సమీప మార్కెట్ల ధరలను పోల్చండి. స్థానిక ధర అసాధారణంగా తక్కువగా ఉంటే వెంటనే అమ్మకండి.";
-      } else if (language === "gu") {
-        advice =
-          "વેચાણ પહેલાં નજીકની મંડીઓના ભાવની તુલના કરો. સ્થાનિક ભાવ અસામાન્ય રીતે ઓછો હોય તો તરત વેચવાનું ટાળો.";
-      } else if (language === "kn") {
-        advice =
-          "ಮಾರಾಟ ಮಾಡುವ ಮೊದಲು ಹತ್ತಿರದ ಮಾರುಕಟ್ಟೆಗಳ ದರಗಳನ್ನು ಹೋಲಿಸಿ. ಸ್ಥಳೀಯ ದರ ಅಸಾಮಾನ್ಯವಾಗಿ ಕಡಿಮೆಯಿದ್ದರೆ ತಕ್ಷಣ ಮಾರಾಟ ಮಾಡುವುದನ್ನು ತಪ್ಪಿಸಿ.";
-      } else if (language === "ml") {
-        advice =
-          "വിൽപ്പനയ്ക്ക് മുമ്പ് സമീപത്തെ വിപണികളിലെ വില താരതമ്യം ചെയ്യുക. പ്രാദേശിക വില വളരെ കുറവാണെങ്കിൽ ഉടൻ വിൽക്കുന്നത് ഒഴിവാക്കുക.";
-      } else if (language === "pa") {
-        advice =
-          "ਵੇਚਣ ਤੋਂ ਪਹਿਲਾਂ ਨੇੜਲੀਆਂ ਮੰਡੀਆਂ ਦੇ ਭਾਅ ਦੀ ਤੁਲਨਾ ਕਰੋ। ਜੇ ਸਥਾਨਕ ਭਾਅ ਬਹੁਤ ਘੱਟ ਹੈ ਤਾਂ ਤੁਰੰਤ ਵੇਚਣ ਤੋਂ ਬਚੋ।";
-      } else if (language === "or") {
-        advice =
-          "ବିକ୍ରି ପୂର୍ବରୁ ନିକଟସ୍ଥ ମଣ୍ଡିର ଦର ତୁଳନା କରନ୍ତୁ। ସ୍ଥାନୀୟ ଦର ବହୁତ କମ୍ ଥିଲେ ତୁରନ୍ତ ବିକ୍ରି କରିବାରୁ ଦୂରେଇ ରୁହନ୍ତୁ।";
-      } else if (language === "as") {
-        advice =
-          "বিক্ৰী কৰাৰ আগতে ওচৰৰ মণ্ডিৰ মূল্য তুলনা কৰক। স্থানীয় মূল্য অস্বাভাৱিকভাৱে কম হ'লে তৎক্ষণাত বিক্ৰী নকৰিব।";
-      } else if (language === "ur") {
-        advice =
-          "فروخت سے پہلے قریبی منڈیوں کے ریٹس کا موازنہ کریں۔ اگر مقامی ریٹ غیر معمولی طور پر کم ہو تو فوراً فروخت کرنے سے گریز کریں۔";
-      }
-
+    if (
+      name.includes("wheat") ||
+      name.includes("गेह") ||
+      name.includes("गहू") ||
+      name.includes("গম") ||
+      name.includes("கோதுமை") ||
+      name.includes("గోధుమ") ||
+      name.includes("ઘઉં") ||
+      name.includes("ಗೋಧಿ")
+    ) {
       return {
         crop: cropName,
         price: "₹2,400 – ₹2,600",
         unit: t.unitQuintal,
         trend: t.trendStable,
-        advice,
+        advice:
+          language === "hi"
+            ? "बेचने से पहले आसपास की मंडियों के भाव की तुलना करें। यदि स्थानीय भाव असामान्य रूप से कम है तो तुरंत बेचने से बचें।"
+            : "Compare prices from nearby mandis before selling. Avoid selling immediately if the local price is unusually low.",
       };
     }
 
-    /* -----------------------------
-       RICE
-    ----------------------------- */
-
-    if (isRice(cropName)) {
-      let advice =
-        "Check rice quality requirements and compare mandi rates before taking your crop to market.";
-
-      if (language === "hi") {
-        advice =
-          "धान की गुणवत्ता की आवश्यकताओं को जाँचें और फसल मंडी ले जाने से पहले मंडी के भाव की तुलना करें।";
-      } else if (language === "mr") {
-        advice =
-          "तांदळाच्या गुणवत्तेच्या आवश्यकतांची तपासणी करा आणि पीक बाजारात नेण्यापूर्वी बाजारभावाची तुलना करा.";
-      } else if (language === "bn") {
-        advice =
-          "ধানের মানের প্রয়োজনীয়তা পরীক্ষা করুন এবং বাজারে নিয়ে যাওয়ার আগে মণ্ডির দাম তুলনা করুন।";
-      } else if (language === "ta") {
-        advice =
-          "நெல் தரத் தேவைகளை சரிபார்த்து, பயிரை சந்தைக்கு எடுத்துச் செல்வதற்கு முன் சந்தை விலைகளை ஒப்பிடுங்கள்.";
-      } else if (language === "te") {
-        advice =
-          "వరి నాణ్యత అవసరాలను తనిఖీ చేసి, పంటను మార్కెట్‌కు తీసుకెళ్లే ముందు ధరలను పోల్చండి.";
-      } else if (language === "gu") {
-        advice =
-          "ચોખાની ગુણવત્તાની જરૂરિયાતો તપાસો અને પાક બજારમાં લઈ જતાં પહેલાં મંડીઓના ભાવની તુલના કરો.";
-      } else if (language === "kn") {
-        advice =
-          "ಭತ್ತದ ಗುಣಮಟ್ಟದ ಅವಶ್ಯಕತೆಗಳನ್ನು ಪರಿಶೀಲಿಸಿ ಮತ್ತು ಬೆಳೆಯನ್ನು ಮಾರುಕಟ್ಟೆಗೆ ತೆಗೆದುಕೊಂಡು ಹೋಗುವ ಮೊದಲು ದರಗಳನ್ನು ಹೋಲಿಸಿ.";
-      } else if (language === "ml") {
-        advice =
-          "നെല്ലിന്റെ ഗുണനിലവാര ആവശ്യകതകൾ പരിശോധിക്കുകയും വിള വിപണിയിലെത്തിക്കുന്നതിന് മുമ്പ് വിലകൾ താരതമ്യം ചെയ്യുകയും ചെയ്യുക.";
-      } else if (language === "pa") {
-        advice =
-          "ਝੋਨੇ ਦੀ ਗੁਣਵੱਤਾ ਦੀਆਂ ਲੋੜਾਂ ਜਾਂਚੋ ਅਤੇ ਫਸਲ ਮੰਡੀ ਲੈ ਜਾਣ ਤੋਂ ਪਹਿਲਾਂ ਭਾਅ ਦੀ ਤੁਲਨਾ ਕਰੋ।";
-      } else if (language === "or") {
-        advice =
-          "ଧାନର ଗୁଣବତ୍ତା ଆବଶ୍ୟକତା ଯାଞ୍ଚ କରନ୍ତୁ ଏବଂ ଫସଲ ବଜାରକୁ ନେବା ପୂର୍ବରୁ ଦର ତୁଳନା କରନ୍ତୁ।";
-      } else if (language === "as") {
-        advice =
-          "ধানৰ গুণগত মানৰ প্ৰয়োজনীয়তা পৰীক্ষা কৰক আৰু শস্য বজাৰলৈ নিয়াৰ আগতে মণ্ডিৰ মূল্য তুলনা কৰক।";
-      } else if (language === "ur") {
-        advice =
-          "چاول کے معیار کی ضروریات چیک کریں اور فصل منڈی لے جانے سے پہلے منڈی کے ریٹس کا موازنہ کریں۔";
-      }
-
+    if (
+      name.includes("rice") ||
+      name.includes("paddy") ||
+      name.includes("धान") ||
+      name.includes("चावल") ||
+      name.includes("तांदूळ") ||
+      name.includes("ধান") ||
+      name.includes("அரிசி") ||
+      name.includes("వరి") ||
+      name.includes("ચોખા") ||
+      name.includes("ಅಕ್ಕಿ")
+    ) {
       return {
         crop: cropName,
         price: "₹2,200 – ₹2,500",
         unit: t.unitQuintal,
         trend: t.trendModerate,
-        advice,
+        advice:
+          language === "hi"
+            ? "धान की गुणवत्ता की आवश्यकताओं को जाँचें और फसल मंडी ले जाने से पहले मंडी के भाव की तुलना करें।"
+            : "Check rice quality requirements and compare mandi rates before taking your crop to market.",
       };
     }
 
-    /* -----------------------------
-       MAIZE
-    ----------------------------- */
-
-    if (isMaize(cropName)) {
-      let advice =
-        "Check moisture and grain quality before selling because quality can affect the final price.";
-
-      if (language === "hi") {
-        advice =
-          "बेचने से पहले नमी और दाने की गुणवत्ता जाँचें, क्योंकि गुणवत्ता अंतिम कीमत को प्रभावित कर सकती है।";
-      } else if (language === "mr") {
-        advice =
-          "विक्रीपूर्वी ओलावा आणि दाण्याची गुणवत्ता तपासा, कारण गुणवत्तेमुळे अंतिम किंमत बदलू शकते.";
-      } else if (language === "bn") {
-        advice =
-          "বিক্রির আগে আর্দ্রতা এবং শস্যের গুণমান পরীক্ষা করুন, কারণ গুণমান চূড়ান্ত দামকে প্রভাবিত করতে পারে।";
-      } else if (language === "ta") {
-        advice =
-          "விற்பனைக்கு முன் ஈரப்பதம் மற்றும் தானியத்தின் தரத்தை சரிபார்க்கவும், ஏனெனில் தரம் இறுதி விலையை பாதிக்கலாம்.";
-      } else if (language === "te") {
-        advice =
-          "అమ్మకానికి ముందు తేమ మరియు గింజల నాణ్యతను తనిఖీ చేయండి. నాణ్యత తుది ధరను ప్రభావితం చేయవచ్చు.";
-      } else if (language === "gu") {
-        advice =
-          "વેચાણ પહેલાં ભેજ અને દાણાની ગુણવત્તા તપાસો, કારણ કે ગુણવત્તા અંતિમ ભાવને અસર કરી શકે છે.";
-      } else if (language === "kn") {
-        advice =
-          "ಮಾರಾಟ ಮಾಡುವ ಮೊದಲು ತೇವಾಂಶ ಮತ್ತು ಧಾನ್ಯದ ಗುಣಮಟ್ಟವನ್ನು ಪರಿಶೀಲಿಸಿ. ಗುಣಮಟ್ಟವು ಅಂತಿಮ ಬೆಲೆಯ ಮೇಲೆ ಪರಿಣಾಮ ಬೀರಬಹುದು.";
-      } else if (language === "ml") {
-        advice =
-          "വിൽപ്പനയ്ക്ക് മുമ്പ് ഈർപ്പവും ധാന്യത്തിന്റെ ഗുണനിലവാരവും പരിശോധിക്കുക. ഗുണനിലവാരം അന്തിമ വിലയെ ബാധിക്കും.";
-      } else if (language === "pa") {
-        advice =
-          "ਵੇਚਣ ਤੋਂ ਪਹਿਲਾਂ ਨਮੀ ਅਤੇ ਦਾਣੇ ਦੀ ਗੁਣਵੱਤਾ ਜਾਂਚੋ, ਕਿਉਂਕਿ ਗੁਣਵੱਤਾ ਅੰਤਿਮ ਕੀਮਤ ਨੂੰ ਪ੍ਰਭਾਵਿਤ ਕਰ ਸਕਦੀ ਹੈ।";
-      } else if (language === "or") {
-        advice =
-          "ବିକ୍ରି ପୂର୍ବରୁ ଆର୍ଦ୍ରତା ଏବଂ ଶସ୍ୟର ଗୁଣବତ୍ତା ଯାଞ୍ଚ କରନ୍ତୁ, କାରଣ ଗୁଣବତ୍ତା ଶେଷ ମୂଲ୍ୟକୁ ପ୍ରଭାବିତ କରିପାରେ।";
-      } else if (language === "as") {
-        advice =
-          "বিক্ৰী কৰাৰ আগতে আৰ্দ্ৰতা আৰু শস্যৰ গুণগত মান পৰীক্ষা কৰক, কাৰণ গুণগত মানে চূড়ান্ত মূল্যত প্ৰভাৱ পেলাব পাৰে।";
-      } else if (language === "ur") {
-        advice =
-          "فروخت سے پہلے نمی اور دانے کے معیار کو چیک کریں، کیونکہ معیار حتمی قیمت کو متاثر کر سکتا ہے۔";
-      }
-
+    if (
+      name.includes("maize") ||
+      name.includes("corn") ||
+      name.includes("मक्का") ||
+      name.includes("मका") ||
+      name.includes("ভুট্টা") ||
+      name.includes("மக்காச்சோளம்") ||
+      name.includes("మొక్కజొన్న") ||
+      name.includes("મકાઈ") ||
+      name.includes("ಮೆಕ್ಕೆಜೋಳ")
+    ) {
       return {
         crop: cropName,
         price: "₹2,000 – ₹2,400",
         unit: t.unitQuintal,
         trend: t.trendStable,
-        advice,
+        advice:
+          language === "hi"
+            ? "बेचने से पहले नमी और दाने की गुणवत्ता जाँचें, क्योंकि गुणवत्ता अंतिम कीमत को प्रभावित कर सकती है।"
+            : "Check moisture and grain quality before selling because quality can affect the final price.",
       };
     }
 
-    /* -----------------------------
-       POTATO
-    ----------------------------- */
-
-    if (isPotato(cropName)) {
-      let advice =
-        "Potato prices can change quickly. Compare today's local rates and storage options before selling.";
-
-      if (language === "hi") {
-        advice =
-          "आलू के भाव जल्दी बदल सकते हैं। बेचने से पहले आज का स्थानीय भाव और भंडारण के विकल्प देखें।";
-      }
-
+    if (
+      name.includes("potato") ||
+      name.includes("aloo") ||
+      name.includes("आलू") ||
+      name.includes("बटाटा") ||
+      name.includes("আলু") ||
+      name.includes("உருளைக்கிழங்கு") ||
+      name.includes("బంగాళాదుంప") ||
+      name.includes("બટાકા") ||
+      name.includes("ಆಲೂಗಡ್ಡೆ")
+    ) {
       return {
         crop: cropName,
         price: "₹1,200 – ₹1,800",
         unit: t.unitQuintal,
         trend: t.trendVariable,
-        advice,
+        advice:
+          language === "hi"
+            ? "आलू के भाव जल्दी बदल सकते हैं। बेचने से पहले आज का स्थानीय भाव और भंडारण के विकल्प देखें।"
+            : "Potato prices can change quickly. Compare today's local rates and storage options before selling.",
       };
-    }
-
-    /* -----------------------------
-       SUGARCANE
-    ----------------------------- */
-
-    if (isSugarcane(cropName)) {
-      let advice =
-        "Check the latest mill procurement rate and harvesting schedule before transporting sugarcane.";
-
-      if (language === "hi") {
-        advice =
-          "गन्ना ले जाने से पहले नवीनतम मिल खरीद दर और कटाई का समय जरूर जाँचें।";
-      }
-
-      return {
-        crop: cropName,
-        price: "₹350 – ₹400",
-        unit: t.unitQuintal,
-        trend: t.trendStable,
-        advice,
-      };
-    }
-
-    /* -----------------------------
-       UNKNOWN CROP
-    ----------------------------- */
-
-    let unknownAdvice =
-      "Check your nearest mandi or agriculture market for the latest price of this crop.";
-
-    if (language === "hi") {
-      unknownAdvice =
-        "इस फसल का नवीनतम भाव जानने के लिए अपनी नज़दीकी मंडी या कृषि बाजार से संपर्क करें।";
-    } else if (language === "mr") {
-      unknownAdvice =
-        "या पिकाचा नवीनतम भाव जाणून घेण्यासाठी जवळच्या बाजारपेठेशी संपर्क करा.";
-    } else if (language === "bn") {
-      unknownAdvice =
-        "এই ফসলের সর্বশেষ দাম জানতে আপনার নিকটস্থ মণ্ডি বা কৃষি বাজারে যোগাযোগ করুন।";
-    } else if (language === "ta") {
-      unknownAdvice =
-        "இந்த பயிரின் சமீபத்திய விலையை அறிய அருகிலுள்ள சந்தையைத் தொடர்பு கொள்ளுங்கள்.";
-    } else if (language === "te") {
-      unknownAdvice =
-        "ఈ పంట తాజా ధరను తెలుసుకోవడానికి సమీపంలోని మార్కెట్‌ను సంప్రదించండి.";
-    } else if (language === "gu") {
-      unknownAdvice =
-        "આ પાકનો નવીનતમ ભાવ જાણવા માટે તમારી નજીકની મંડી અથવા કૃષિ બજારનો સંપર્ક કરો.";
-    } else if (language === "kn") {
-      unknownAdvice =
-        "ಈ ಬೆಳೆಯ ಇತ್ತೀಚಿನ ದರವನ್ನು ತಿಳಿಯಲು ಹತ್ತಿರದ ಮಾರುಕಟ್ಟೆಯನ್ನು ಸಂಪರ್ಕಿಸಿ.";
-    } else if (language === "ml") {
-      unknownAdvice =
-        "ഈ വിളയുടെ ഏറ്റവും പുതിയ വില അറിയാൻ സമീപത്തെ വിപണിയുമായി ബന്ധപ്പെടുക.";
-    } else if (language === "pa") {
-      unknownAdvice =
-        "ਇਸ ਫਸਲ ਦਾ ਨਵਾਂ ਭਾਅ ਜਾਣਨ ਲਈ ਆਪਣੀ ਨੇੜਲੀ ਮੰਡੀ ਜਾਂ ਖੇਤੀਬਾੜੀ ਬਾਜ਼ਾਰ ਨਾਲ ਸੰਪਰਕ ਕਰੋ।";
-    } else if (language === "or") {
-      unknownAdvice =
-        "ଏହି ଫସଲର ନୂତନ ଦର ଜାଣିବା ପାଇଁ ନିକଟସ୍ଥ ମଣ୍ଡି କିମ୍ବା କୃଷି ବଜାର ସହିତ ଯୋଗାଯୋଗ କରନ୍ତୁ।";
-    } else if (language === "as") {
-      unknownAdvice =
-        "এই শস্যৰ শেহতীয়া মূল্য জানিবলৈ আপোনাৰ ওচৰৰ মণ্ডি বা কৃষি বজাৰৰ সৈতে যোগাযোগ কৰক।";
-    } else if (language === "ur") {
-      unknownAdvice =
-        "اس فصل کا تازہ ترین ریٹ جاننے کے لیے اپنی قریبی منڈی یا زرعی بازار سے رابطہ کریں۔";
     }
 
     return {
@@ -1460,13 +1317,173 @@ export default function MarketPage() {
       price: t.unknownPrice,
       unit: "",
       trend: t.trendCheck,
-      advice: unknownAdvice,
+      advice:
+        language === "hi"
+          ? "इस फसल का नवीनतम भाव जानने के लिए अपनी नज़दीकी मंडी या कृषि बाजार से संपर्क करें।"
+          : "Check your nearest mandi or agriculture market for the latest price of this crop.",
     };
   };
 
-  /* =======================================================
-     LOADING SCREEN
-  ======================================================= */
+  /* -------------------------------------------------------
+     GET PRICE FOR CROP
+  ------------------------------------------------------- */
+
+  const getMandiBasePrice = (cropName: string) => {
+    const name = cropName.toLowerCase();
+
+    if (
+      name.includes("wheat") ||
+      name.includes("गेह") ||
+      name.includes("गहू") ||
+      name.includes("গম") ||
+      name.includes("கோதுமை") ||
+      name.includes("గోధుమ") ||
+      name.includes("ઘઉં") ||
+      name.includes("ಗೋಧಿ")
+    ) {
+      return 2500;
+    }
+
+    if (
+      name.includes("rice") ||
+      name.includes("paddy") ||
+      name.includes("धान") ||
+      name.includes("चावल")
+    ) {
+      return 2350;
+    }
+
+    if (
+      name.includes("maize") ||
+      name.includes("corn") ||
+      name.includes("मक्का")
+    ) {
+      return 2200;
+    }
+
+    if (
+      name.includes("potato") ||
+      name.includes("aloo") ||
+      name.includes("आलू")
+    ) {
+      return 1500;
+    }
+
+    return 2000;
+  };
+
+  /* -------------------------------------------------------
+     FIND NEARBY MANDIS
+  ------------------------------------------------------- */
+
+  const findNearbyMandis = () => {
+    setMandiLoading(true);
+    setLocationError("");
+    setShowMandis(true);
+
+    if (!navigator.geolocation) {
+      setLocationError(t.locationError);
+      setMandiLoading(false);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const userLat = position.coords.latitude;
+        const userLng = position.coords.longitude;
+
+        const basePrice = getMandiBasePrice(crop?.crop || "");
+
+        const results: Mandi[] = mandiDatabase
+          .map((mandi) => {
+            const lat = userLat + mandi.latOffset;
+            const lng = userLng + mandi.lngOffset;
+
+            const distance = calculateDistance(
+              userLat,
+              userLng,
+              lat,
+              lng
+            );
+
+            const transportCharge = calculateTransport(distance);
+
+            /*
+              Different mandis can have different rates.
+              This creates realistic demo variation.
+              
+              IMPORTANT:
+              For production, replace this with actual
+              data.gov.in / Agmarknet API response.
+            */
+
+            const variation =
+              mandi.id === 1
+                ? 0
+                : mandi.id === 2
+                ? 35
+                : mandi.id === 3
+                ? -20
+                : mandi.id === 4
+                ? 55
+                : -45;
+
+            const modalPrice = basePrice + variation;
+
+            const minPrice = modalPrice - 100;
+            const maxPrice = modalPrice + 100;
+
+            return {
+              id: mandi.id,
+              name: mandi.name,
+              address: mandi.address,
+              lat,
+              lng,
+              distance,
+              price: modalPrice,
+              minPrice,
+              maxPrice,
+              transportCharge,
+            };
+          })
+          .filter((mandi) => mandi.distance <= 15)
+          .sort((a, b) => a.distance - b.distance);
+
+        setMandis(results);
+
+        if (results.length === 0) {
+          setLocationError(t.noMandiFound);
+        }
+
+        setMandiLoading(false);
+      },
+      () => {
+        setLocationError(t.locationDenied);
+        setMandiLoading(false);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 60000,
+      }
+    );
+  };
+
+  /* -------------------------------------------------------
+     GOOGLE MAPS
+  ------------------------------------------------------- */
+
+  const openDirections = (mandi: Mandi) => {
+    const url =
+      `https://www.google.com/maps/dir/?api=1` +
+      `&destination=${mandi.lat},${mandi.lng}`;
+
+    window.open(url, "_blank");
+  };
+
+  /* -------------------------------------------------------
+     LOADING
+  ------------------------------------------------------- */
 
   if (loading) {
     return (
@@ -1474,26 +1491,22 @@ export default function MarketPage() {
         className="min-h-screen bg-green-50 flex items-center justify-center px-5"
         dir={language === "ur" ? "rtl" : "ltr"}
       >
-        <div className="bg-white rounded-3xl shadow-lg p-8 text-center max-w-md w-full">
-          <div className="text-6xl mb-4">
-            🏪
-          </div>
+        <div className="bg-white rounded-3xl shadow-lg p-8 text-center">
+          <div className="text-6xl mb-4">🏪</div>
 
           <h1 className="text-2xl font-bold text-green-800">
             {t.loadingTitle}
           </h1>
 
-          <p className="text-gray-500 mt-2">
-            {t.loadingText}
-          </p>
+          <p className="text-gray-500 mt-2">{t.loadingText}</p>
         </div>
       </main>
     );
   }
 
-  /* =======================================================
+  /* -------------------------------------------------------
      CROP NOT FOUND
-  ======================================================= */
+  ------------------------------------------------------- */
 
   if (!crop) {
     return (
@@ -1501,10 +1514,8 @@ export default function MarketPage() {
         className="min-h-screen bg-green-50 flex items-center justify-center px-5"
         dir={language === "ur" ? "rtl" : "ltr"}
       >
-        <div className="bg-white rounded-3xl shadow-lg p-8 text-center max-w-md w-full">
-          <div className="text-5xl mb-4">
-            🌱
-          </div>
+        <div className="bg-white rounded-3xl shadow-lg p-8 text-center">
+          <div className="text-5xl mb-4">🌱</div>
 
           <h1 className="text-2xl font-bold text-gray-900">
             {t.cropNotFound}
@@ -1512,7 +1523,7 @@ export default function MarketPage() {
 
           <button
             onClick={() => router.push("/crops")}
-            className="mt-6 px-6 py-3 rounded-xl bg-green-700 text-white font-bold hover:bg-green-800 transition"
+            className="mt-6 px-6 py-3 rounded-xl bg-green-700 text-white font-bold hover:bg-green-800"
           >
             ← {t.backToCrops}
           </button>
@@ -1521,43 +1532,34 @@ export default function MarketPage() {
     );
   }
 
-  /* =======================================================
-     MARKET
-  ======================================================= */
-
   const market = getMarketInfo(crop.crop);
 
-  const landUnit =
-    crop.landUnit || "acres";
+  const landUnit = crop.landUnit || "acres";
+
+  /* -------------------------------------------------------
+     PAGE
+  ------------------------------------------------------- */
 
   return (
     <main
       className="min-h-screen bg-green-50 px-5 py-10"
       dir={language === "ur" ? "rtl" : "ltr"}
     >
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-6xl mx-auto">
 
-        {/* =================================================
-            BACK BUTTON
-        ================================================= */}
-
+        {/* BACK */}
         <button
-          onClick={() =>
-            router.push(`/crops/${crop.id}`)
-          }
-          className="text-green-700 font-semibold mb-6 hover:text-green-900 transition"
+          onClick={() => router.push(`/crops/${crop.id}`)}
+          className="text-green-700 font-semibold mb-6 hover:text-green-900"
         >
           ← {t.backTo} {crop.crop}
         </button>
 
-        {/* =================================================
-            HEADER
-        ================================================= */}
-
+        {/* HEADER */}
         <div className="bg-white rounded-3xl shadow-lg p-7 mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center gap-5">
 
-            <div className="w-20 h-20 bg-green-100 rounded-3xl flex items-center justify-center text-5xl shrink-0">
+            <div className="w-20 h-20 bg-green-100 rounded-3xl flex items-center justify-center text-5xl">
               🏪
             </div>
 
@@ -1581,17 +1583,14 @@ export default function MarketPage() {
           </div>
         </div>
 
-        {/* =================================================
-            CURRENT MARKET
-        ================================================= */}
-
+        {/* CURRENT MARKET */}
         <div className="bg-white rounded-3xl shadow-lg p-7 mb-8">
 
           <h2 className="text-2xl font-bold text-green-800">
             {t.currentMarket}
           </h2>
 
-          <p className="text-gray-600 mt-2 leading-relaxed">
+          <p className="text-gray-600 mt-2">
             {t.marketDescription}
           </p>
 
@@ -1651,10 +1650,7 @@ export default function MarketPage() {
           </div>
         </div>
 
-        {/* =================================================
-            SELLING ADVICE
-        ================================================= */}
-
+        {/* SELLING ADVICE */}
         <div className="bg-white rounded-3xl shadow-lg p-7 mb-8">
 
           <h2 className="text-2xl font-bold text-green-800">
@@ -1670,35 +1666,284 @@ export default function MarketPage() {
           </div>
         </div>
 
-        {/* =================================================
-            NEARBY MANDI
-        ================================================= */}
+        {/* -------------------------------------------------
+             NEARBY MANDI
+        ------------------------------------------------- */}
 
         <div className="bg-white rounded-3xl shadow-lg p-7 mb-8">
 
-          <h2 className="text-2xl font-bold text-green-800">
-            {t.nearbyMarket}
-          </h2>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
 
-          <p className="text-gray-600 mt-2 leading-relaxed">
-            {t.nearbyMarketDescription}
-          </p>
+            <div>
+              <h2 className="text-2xl font-bold text-green-800">
+                {t.nearbyMarket}
+              </h2>
 
-          <button
-            onClick={() => {
-              alert(t.mandiAlert);
-            }}
-            className="mt-6 px-6 py-3 rounded-xl bg-green-700 text-white font-bold hover:bg-green-800 transition"
-          >
-            {t.findMandi}
-          </button>
+              <p className="text-gray-600 mt-2">
+                {t.nearbyMarketDescription}
+              </p>
+            </div>
+
+            <button
+              onClick={findNearbyMandis}
+              disabled={mandiLoading}
+              className="px-6 py-3 rounded-xl bg-green-700 text-white font-bold hover:bg-green-800 disabled:opacity-60 transition"
+            >
+              {mandiLoading ? t.detectingLocation : t.findMandi}
+            </button>
+
+          </div>
+
+          {/* ERROR */}
+          {locationError && (
+            <div className="mt-5 bg-red-50 border border-red-200 text-red-700 rounded-2xl p-4">
+              {locationError}
+            </div>
+          )}
+
+          {/* LOADING */}
+          {mandiLoading && (
+            <div className="mt-6 bg-green-50 rounded-2xl p-8 text-center">
+
+              <div className="text-5xl mb-3">
+                📍
+              </div>
+
+              <p className="font-semibold text-green-800">
+                {t.detectingLocation}
+              </p>
+
+              <p className="text-gray-500 mt-2">
+                {language === "hi"
+                  ? "आपके आसपास की मंडियां खोजी जा रही हैं..."
+                  : "Searching agricultural markets around you..."}
+              </p>
+
+            </div>
+          )}
+
+          {/* MANDI LIST */}
+          {showMandis && !mandiLoading && mandis.length > 0 && (
+            <div className="mt-7 space-y-5">
+
+              {mandis.map((mandi, index) => {
+
+                const effectiveRate =
+                  mandi.price - mandi.transportCharge;
+
+                return (
+                  <div
+                    key={mandi.id}
+                    className="border border-green-100 rounded-3xl p-6 hover:shadow-md transition"
+                  >
+
+                    {/* TOP */}
+                    <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5">
+
+                      <div>
+
+                        <div className="flex items-center gap-3">
+
+                          <div className="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center text-2xl">
+                            🏪
+                          </div>
+
+                          <div>
+
+                            <div className="flex items-center gap-2 flex-wrap">
+
+                              <h3 className="text-xl font-bold text-green-800">
+                                {mandi.name}
+                              </h3>
+
+                              {index === 0 && (
+                                <span className="text-xs font-bold bg-green-700 text-white px-3 py-1 rounded-full">
+                                  {language === "hi"
+                                    ? "सबसे पास"
+                                    : "Nearest"}
+                                </span>
+                              )}
+
+                            </div>
+
+                            <p className="text-sm text-gray-500 mt-1">
+                              {mandi.address}
+                            </p>
+
+                          </div>
+
+                        </div>
+
+                      </div>
+
+                      {/* DISTANCE */}
+                      <div className="bg-green-50 rounded-2xl px-5 py-3">
+
+                        <p className="text-xs text-gray-500">
+                          {t.distance}
+                        </p>
+
+                        <p className="text-lg font-bold text-green-800">
+                          {mandi.distance.toFixed(1)} km
+                        </p>
+
+                      </div>
+
+                    </div>
+
+                    {/* PRICE GRID */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+
+                      {/* MODAL */}
+                      <div className="bg-green-50 rounded-2xl p-4">
+
+                        <p className="text-xs text-gray-500">
+                          {t.modalRate}
+                        </p>
+
+                        <p className="text-xl font-bold text-green-800 mt-1">
+                          ₹{mandi.price.toLocaleString("en-IN")}
+                        </p>
+
+                        <p className="text-xs text-gray-500">
+                          {t.perQuintal}
+                        </p>
+
+                      </div>
+
+                      {/* MIN */}
+                      <div className="bg-gray-50 rounded-2xl p-4">
+
+                        <p className="text-xs text-gray-500">
+                          {t.minRate}
+                        </p>
+
+                        <p className="text-lg font-bold text-gray-800 mt-1">
+                          ₹{mandi.minPrice.toLocaleString("en-IN")}
+                        </p>
+
+                        <p className="text-xs text-gray-500">
+                          {t.perQuintal}
+                        </p>
+
+                      </div>
+
+                      {/* MAX */}
+                      <div className="bg-gray-50 rounded-2xl p-4">
+
+                        <p className="text-xs text-gray-500">
+                          {t.maxRate}
+                        </p>
+
+                        <p className="text-lg font-bold text-gray-800 mt-1">
+                          ₹{mandi.maxPrice.toLocaleString("en-IN")}
+                        </p>
+
+                        <p className="text-xs text-gray-500">
+                          {t.perQuintal}
+                        </p>
+
+                      </div>
+
+                      {/* TRANSPORT */}
+                      <div className="bg-orange-50 rounded-2xl p-4">
+
+                        <p className="text-xs text-gray-500">
+                          {t.transport}
+                        </p>
+
+                        <p className="text-lg font-bold text-orange-700 mt-1">
+                          ₹{mandi.transportCharge}
+                        </p>
+
+                        <p className="text-xs text-gray-500">
+                          {t.perQuintal}
+                        </p>
+
+                      </div>
+
+                    </div>
+
+                    {/* EFFECTIVE RATE */}
+                    <div className="mt-5 bg-blue-50 border border-blue-100 rounded-2xl p-5">
+
+                      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+
+                        <div>
+
+                          <p className="text-sm text-blue-700 font-semibold">
+                            💰 {t.effectiveRate}
+                          </p>
+
+                          <p className="text-3xl font-bold text-blue-900 mt-1">
+                            ₹{effectiveRate.toLocaleString("en-IN")}
+                          </p>
+
+                          <p className="text-xs text-blue-600 mt-1">
+                            {t.perQuintal}
+                          </p>
+
+                        </div>
+
+                        <div className="text-sm text-blue-800">
+
+                          <p>
+                            {language === "hi"
+                              ? "मंडी भाव"
+                              : "Mandi price"}{" "}
+                            ₹{mandi.price}
+                          </p>
+
+                          <p>
+                            −{" "}
+                            {language === "hi"
+                              ? "परिवहन"
+                              : "Transport"}{" "}
+                            ₹{mandi.transportCharge}
+                          </p>
+
+                          <p className="font-bold mt-1">
+                            = ₹{effectiveRate}
+                          </p>
+
+                        </div>
+
+                      </div>
+
+                    </div>
+
+                    {/* BUTTON */}
+                    <div className="mt-5 flex flex-col sm:flex-row gap-3">
+
+                      <button
+                        onClick={() => openDirections(mandi)}
+                        className="flex-1 px-5 py-3 rounded-xl bg-green-700 text-white font-bold hover:bg-green-800 transition"
+                      >
+                        🗺️ {t.directions}
+                      </button>
+
+                    </div>
+
+                  </div>
+                );
+              })}
+
+            </div>
+          )}
+
+          {/* REFRESH */}
+          {showMandis && !mandiLoading && mandis.length > 0 && (
+            <button
+              onClick={findNearbyMandis}
+              className="mt-6 text-green-700 font-bold hover:text-green-900"
+            >
+              🔄 {t.refresh}
+            </button>
+          )}
 
         </div>
 
-        {/* =================================================
-            IMPORTANT TIPS
-        ================================================= */}
-
+        {/* IMPORTANT TIPS */}
         <div className="bg-yellow-50 border border-yellow-200 rounded-3xl p-7">
 
           <h2 className="text-2xl font-bold text-yellow-800">
@@ -1707,51 +1952,40 @@ export default function MarketPage() {
 
           <div className="space-y-4 mt-5">
 
-            {/* TIP 1 */}
-            <div className="flex gap-4 items-start">
-              <div className="text-2xl shrink-0">
-                📊
-              </div>
+            <div className="flex gap-4">
+              <div className="text-2xl">📊</div>
 
-              <p className="text-yellow-900 leading-relaxed">
+              <p className="text-yellow-900">
                 {t.tip1}
               </p>
             </div>
 
-            {/* TIP 2 */}
-            <div className="flex gap-4 items-start">
-              <div className="text-2xl shrink-0">
-                🌾
-              </div>
+            <div className="flex gap-4">
+              <div className="text-2xl">🌾</div>
 
-              <p className="text-yellow-900 leading-relaxed">
+              <p className="text-yellow-900">
                 {t.tip2}
               </p>
             </div>
 
-            {/* TIP 3 */}
-            <div className="flex gap-4 items-start">
-              <div className="text-2xl shrink-0">
-                🚚
-              </div>
+            <div className="flex gap-4">
+              <div className="text-2xl">🚚</div>
 
-              <p className="text-yellow-900 leading-relaxed">
+              <p className="text-yellow-900">
                 {t.tip3}
               </p>
             </div>
 
-            {/* TIP 4 */}
-            <div className="flex gap-4 items-start">
-              <div className="text-2xl shrink-0">
-                💰
-              </div>
+            <div className="flex gap-4">
+              <div className="text-2xl">💰</div>
 
-              <p className="text-yellow-900 leading-relaxed">
+              <p className="text-yellow-900">
                 {t.tip4}
               </p>
             </div>
 
           </div>
+
         </div>
 
       </div>
