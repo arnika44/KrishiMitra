@@ -3,26 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-const translations: Record<
-  string,
-  {
-    tagline: string;
-    login: string;
-    register: string;
-    loginTitle: string;
-    registerTitle: string;
-    loginSubtitle: string;
-    registerSubtitle: string;
-    fullName: string;
-    fullNamePlaceholder: string;
-    mobile: string;
-    password: string;
-    passwordPlaceholder: string;
-    loginButton: string;
-    registerButton: string;
-    changeLanguage: string;
-  }
-> = {
+const translations: Record<string, any> = {
   hi: {
     tagline: "किसानों के लिए आपका डिजिटल साथी",
     login: "लॉगिन",
@@ -38,7 +19,6 @@ const translations: Record<
     passwordPlaceholder: "अपना पासवर्ड डालें",
     loginButton: "लॉगिन करें",
     registerButton: "अकाउंट बनाएँ",
-    changeLanguage: "भाषा बदलें",
   },
 
   en: {
@@ -56,7 +36,6 @@ const translations: Record<
     passwordPlaceholder: "Enter your password",
     loginButton: "Login",
     registerButton: "Create Account",
-    changeLanguage: "Change Language",
   },
 
   bn: {
@@ -74,7 +53,6 @@ const translations: Record<
     passwordPlaceholder: "আপনার পাসওয়ার্ড লিখুন",
     loginButton: "লগইন করুন",
     registerButton: "অ্যাকাউন্ট তৈরি করুন",
-    changeLanguage: "ভাষা পরিবর্তন করুন",
   },
 
   mr: {
@@ -92,7 +70,6 @@ const translations: Record<
     passwordPlaceholder: "तुमचा पासवर्ड लिहा",
     loginButton: "लॉगिन करा",
     registerButton: "खाते तयार करा",
-    changeLanguage: "भाषा बदला",
   },
 
   ta: {
@@ -110,7 +87,6 @@ const translations: Record<
     passwordPlaceholder: "உங்கள் கடவுச்சொல்லை உள்ளிடுங்கள்",
     loginButton: "உள்நுழைக",
     registerButton: "கணக்கை உருவாக்கு",
-    changeLanguage: "மொழியை மாற்று",
   },
 
   te: {
@@ -128,7 +104,6 @@ const translations: Record<
     passwordPlaceholder: "మీ పాస్‌వర్డ్‌ను నమోదు చేయండి",
     loginButton: "లాగిన్ చేయండి",
     registerButton: "ఖాతాను సృష్టించండి",
-    changeLanguage: "భాష మార్చండి",
   },
 
   gu: {
@@ -140,13 +115,12 @@ const translations: Record<
     loginSubtitle: "આગળ વધવા માટે તમારી માહિતી દાખલ કરો",
     registerSubtitle: "શરૂ કરવા માટે થોડી માહિતી આપો",
     fullName: "પૂરું નામ",
-    fullNamePlaceholder: "તમારું પૂરું નામ લખો",
+    fullNamePlaceholder: "તમારું પૂરું નામ દાખલ કરો",
     mobile: "મોબાઇલ નંબર",
     password: "પાસવર્ડ",
     passwordPlaceholder: "તમારો પાસવર્ડ દાખલ કરો",
     loginButton: "લોગિન કરો",
     registerButton: "એકાઉન્ટ બનાવો",
-    changeLanguage: "ભાષા બદલો",
   },
 
   kn: {
@@ -164,7 +138,6 @@ const translations: Record<
     passwordPlaceholder: "ನಿಮ್ಮ ಪಾಸ್‌ವರ್ಡ್ ನಮೂದಿಸಿ",
     loginButton: "ಲಾಗಿನ್ ಮಾಡಿ",
     registerButton: "ಖಾತೆ ರಚಿಸಿ",
-    changeLanguage: "ಭಾಷೆ ಬದಲಿಸಿ",
   },
 
   ml: {
@@ -182,7 +155,6 @@ const translations: Record<
     passwordPlaceholder: "നിങ്ങളുടെ പാസ്‌വേഡ് നൽകുക",
     loginButton: "ലോഗിൻ ചെയ്യുക",
     registerButton: "അക്കൗണ്ട് സൃഷ്ടിക്കുക",
-    changeLanguage: "ഭാഷ മാറ്റുക",
   },
 
   pa: {
@@ -200,7 +172,6 @@ const translations: Record<
     passwordPlaceholder: "ਆਪਣਾ ਪਾਸਵਰਡ ਲਿਖੋ",
     loginButton: "ਲੌਗਇਨ ਕਰੋ",
     registerButton: "ਖਾਤਾ ਬਣਾਓ",
-    changeLanguage: "ਭਾਸ਼ਾ ਬਦਲੋ",
   },
 
   or: {
@@ -218,7 +189,6 @@ const translations: Record<
     passwordPlaceholder: "ଆପଣଙ୍କ ପାସୱାର୍ଡ ଲେଖନ୍ତୁ",
     loginButton: "ଲଗଇନ କରନ୍ତୁ",
     registerButton: "ଆକାଉଣ୍ଟ ତିଆରି କରନ୍ତୁ",
-    changeLanguage: "ଭାଷା ବଦଳାନ୍ତୁ",
   },
 
   as: {
@@ -236,7 +206,6 @@ const translations: Record<
     passwordPlaceholder: "আপোনাৰ পাছৱৰ্ড লিখক",
     loginButton: "লগইন কৰক",
     registerButton: "একাউণ্ট সৃষ্টি কৰক",
-    changeLanguage: "ভাষা সলনি কৰক",
   },
 
   ur: {
@@ -254,7 +223,6 @@ const translations: Record<
     passwordPlaceholder: "اپنا پاس ورڈ درج کریں",
     loginButton: "لاگ اِن کریں",
     registerButton: "اکاؤنٹ بنائیں",
-    changeLanguage: "زبان تبدیل کریں",
   },
 };
 
@@ -274,6 +242,16 @@ export default function AuthPage() {
 
   const t = translations[language] || translations.en;
 
+  const handleSubmit = () => {
+    const savedProfile = localStorage.getItem("farmerProfile");
+
+    if (savedProfile) {
+      router.push("/crops");
+    } else {
+      router.push("/role");
+    }
+  };
+
   return (
     <main
       className="min-h-screen bg-green-50 flex items-center justify-center px-4 py-8"
@@ -281,7 +259,6 @@ export default function AuthPage() {
     >
       <div className="w-full max-w-md">
 
-        {/* Logo */}
         <div className="text-center mb-8">
           <div className="text-6xl mb-3">🌾</div>
 
@@ -294,13 +271,12 @@ export default function AuthPage() {
           </p>
         </div>
 
-        {/* Card */}
         <div className="bg-white rounded-3xl shadow-xl p-6 md:p-8">
 
-          {/* Login / Register */}
           <div className="flex bg-gray-100 rounded-2xl p-1 mb-8">
 
             <button
+              type="button"
               onClick={() => setMode("login")}
               className={`flex-1 py-3 rounded-xl font-semibold transition ${
                 mode === "login"
@@ -312,6 +288,7 @@ export default function AuthPage() {
             </button>
 
             <button
+              type="button"
               onClick={() => setMode("register")}
               className={`flex-1 py-3 rounded-xl font-semibold transition ${
                 mode === "register"
@@ -324,21 +301,16 @@ export default function AuthPage() {
 
           </div>
 
-          {/* Heading */}
           <h2 className="text-2xl font-bold text-gray-800">
             {mode === "login" ? t.loginTitle : t.registerTitle}
           </h2>
 
           <p className="text-gray-500 mt-2 mb-7">
-            {mode === "login"
-              ? t.loginSubtitle
-              : t.registerSubtitle}
+            {mode === "login" ? t.loginSubtitle : t.registerSubtitle}
           </p>
 
-          {/* Full Name */}
           {mode === "register" && (
             <div className="mb-5">
-
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 {t.fullName}
               </label>
@@ -348,19 +320,15 @@ export default function AuthPage() {
                 placeholder={t.fullNamePlaceholder}
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-green-500 text-gray-900 placeholder-gray-400"
               />
-
             </div>
           )}
 
-          {/* Mobile */}
           <div className="mb-5">
-
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               {t.mobile}
             </label>
 
             <div className="flex">
-
               <div className="px-4 py-3 bg-gray-100 border border-gray-300 rounded-l-xl text-gray-700">
                 +91
               </div>
@@ -371,14 +339,10 @@ export default function AuthPage() {
                 maxLength={10}
                 className="flex-1 px-4 py-3 border border-l-0 border-gray-300 rounded-r-xl outline-none focus:ring-2 focus:ring-green-500 text-gray-900 placeholder-gray-400"
               />
-
             </div>
-
           </div>
 
-          {/* Password */}
           <div className="mb-6">
-
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               {t.password}
             </label>
@@ -388,31 +352,14 @@ export default function AuthPage() {
               placeholder={t.passwordPlaceholder}
               className="w-full px-4 py-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-green-500 text-gray-900 placeholder-gray-400"
             />
-
           </div>
 
-          {/* Submit */}
-<button
-  onClick={() => {
-    const savedProfile = localStorage.getItem("farmerProfile");
-
-    if (savedProfile) {
-      router.push("/crops");
-    } else {
-      router.push("/role");
-    }
-  }}
-  className="w-full py-4 rounded-xl bg-green-700 hover:bg-green-800 text-white font-bold text-lg transition"
->
-  {mode === "login" ? t.loginButton : t.registerButton}
-</button>
-
-          {/* Change Language */}
           <button
-            onClick={() => router.push("/")}
-            className="w-full mt-5 py-3 text-green-700 font-semibold hover:underline"
+            type="button"
+            onClick={handleSubmit}
+            className="w-full py-4 rounded-xl bg-green-700 hover:bg-green-800 text-white font-bold text-lg transition"
           >
-            🌐 {t.changeLanguage}
+            {mode === "login" ? t.loginButton : t.registerButton}
           </button>
 
         </div>

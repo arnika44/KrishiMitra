@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -36,6 +37,7 @@ const dashboardText: Record<
     produceDesc: string;
     profile: string;
     settings: string;
+    talkAi: string;
   }
 > = {
   hi: {
@@ -53,6 +55,7 @@ const dashboardText: Record<
     produceDesc: "अपनी उपज को manage, store और बेचने की योजना बनाएँ।",
     profile: "प्रोफाइल",
     settings: "सेटिंग्स",
+    talkAi: "AI से बात करें →",
   },
 
   en: {
@@ -70,6 +73,7 @@ const dashboardText: Record<
     produceDesc: "Manage, store and plan the sale of your produce.",
     profile: "Profile",
     settings: "Settings",
+    talkAi: "Talk to AI →",
   },
 
   bn: {
@@ -87,6 +91,7 @@ const dashboardText: Record<
     produceDesc: "আপনার ফসল সংরক্ষণ, পরিচালনা ও বিক্রির পরিকল্পনা করুন।",
     profile: "প্রোফাইল",
     settings: "সেটিংস",
+    talkAi: "AI-এর সাথে কথা বলুন →",
   },
 
   mr: {
@@ -104,6 +109,7 @@ const dashboardText: Record<
     produceDesc: "उत्पादनाचे व्यवस्थापन, साठवण आणि विक्रीचे नियोजन करा.",
     profile: "प्रोफाइल",
     settings: "सेटिंग्ज",
+    talkAi: "AI शी बोला →",
   },
 
   ta: {
@@ -121,6 +127,7 @@ const dashboardText: Record<
     produceDesc: "உங்கள் விளைபொருட்களை நிர்வகித்து விற்பனை திட்டமிடுங்கள்.",
     profile: "சுயவிவரம்",
     settings: "அமைப்புகள்",
+    talkAi: "AI உடன் பேசுங்கள் →",
   },
 
   te: {
@@ -138,6 +145,7 @@ const dashboardText: Record<
     produceDesc: "మీ పంటను నిర్వహించి నిల్వ చేసి విక్రయించడానికి ప్లాన్ చేయండి.",
     profile: "ప్రొఫైల్",
     settings: "సెట్టింగ్స్",
+    talkAi: "AI తో మాట్లాడండి →",
   },
 
   gu: {
@@ -155,6 +163,7 @@ const dashboardText: Record<
     produceDesc: "તમારા ઉત્પાદનનું સંચાલન, સંગ્રહ અને વેચાણનું આયોજન કરો.",
     profile: "પ્રોફાઇલ",
     settings: "સેટિંગ્સ",
+    talkAi: "AI સાથે વાત કરો →",
   },
 
   kn: {
@@ -172,6 +181,7 @@ const dashboardText: Record<
     produceDesc: "ನಿಮ್ಮ ಉತ್ಪನ್ನವನ್ನು ನಿರ್ವಹಿಸಿ, ಸಂಗ್ರಹಿಸಿ ಮತ್ತು ಮಾರಾಟ ಯೋಜಿಸಿ.",
     profile: "ಪ್ರೊಫೈಲ್",
     settings: "ಸೆಟ್ಟಿಂಗ್ಸ್",
+    talkAi: "AI ಜೊತೆ ಮಾತನಾಡಿ →",
   },
 
   ml: {
@@ -189,6 +199,7 @@ const dashboardText: Record<
     produceDesc: "നിങ്ങളുടെ ഉൽപ്പന്നങ്ങൾ നിയന്ത്രിക്കുകയും സംഭരിക്കുകയും വിൽപ്പന ആസൂത്രണം ചെയ്യുകയും ചെയ്യുക.",
     profile: "പ്രൊഫൈൽ",
     settings: "ക്രമീകരണങ്ങൾ",
+    talkAi: "AI-യോട് സംസാരിക്കുക →",
   },
 
   pa: {
@@ -206,6 +217,7 @@ const dashboardText: Record<
     produceDesc: "ਆਪਣੀ ਉਪਜ ਦਾ ਪ੍ਰਬੰਧਨ, ਸਟੋਰੇਜ ਅਤੇ ਵਿਕਰੀ ਦੀ ਯੋਜਨਾ ਬਣਾਓ।",
     profile: "ਪ੍ਰੋਫਾਈਲ",
     settings: "ਸੈਟਿੰਗਾਂ",
+    talkAi: "AI ਨਾਲ ਗੱਲ ਕਰੋ →",
   },
 
   or: {
@@ -223,6 +235,7 @@ const dashboardText: Record<
     produceDesc: "ଆପଣଙ୍କ ଉତ୍ପାଦକୁ ପରିଚାଳନା, ସଂରକ୍ଷଣ ଏବଂ ବିକ୍ରୟ ଯୋଜନା କରନ୍ତୁ।",
     profile: "ପ୍ରୋଫାଇଲ",
     settings: "ସେଟିଂସ୍",
+    talkAi: "AI ସହିତ କଥା ହୁଅନ୍ତୁ →",
   },
 
   as: {
@@ -240,6 +253,7 @@ const dashboardText: Record<
     produceDesc: "আপোনাৰ উৎপাদন পৰিচালনা, সংৰক্ষণ আৰু বিক্ৰীৰ পৰিকল্পনা কৰক।",
     profile: "প্ৰফাইল",
     settings: "ছেটিংছ",
+    talkAi: "AI ৰ সৈতে কথা পাতক →",
   },
 
   ur: {
@@ -257,6 +271,7 @@ const dashboardText: Record<
     produceDesc: "اپنی پیداوار کا انتظام، ذخیرہ اور فروخت کی منصوبہ بندی کریں۔",
     profile: "پروفائل",
     settings: "ترتیبات",
+    talkAi: "AI سے بات کریں →",
   },
 };
 
@@ -277,16 +292,10 @@ export default function DashboardPage() {
 
   const cards = [
     {
-      icon: "🤖",
-      title: t.ai,
-      description: t.aiDesc,
-      action: () => router.push("/ai"),
-    },
-    {
       icon: "🌱",
       title: t.crop,
       description: t.cropDesc,
-      action: () => {},
+      action: () => router.push("/crops"),
     },
     {
       icon: "🐛",
@@ -316,7 +325,6 @@ export default function DashboardPage() {
       {/* Header */}
       <header className="bg-white border-b border-green-100">
         <div className="max-w-7xl mx-auto px-5 py-4 flex items-center justify-between">
-
           <div className="flex items-center gap-3">
             <div className="text-4xl">🌾</div>
 
@@ -332,32 +340,22 @@ export default function DashboardPage() {
           </div>
 
           <div className="flex items-center gap-3">
-
             <button
-              onClick={() => router.push("/")}
-              className="px-4 py-2 rounded-xl bg-green-50 text-green-700 font-semibold hover:bg-green-100"
+              onClick={() => router.push("/profile")}
+              className="px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-700 font-semibold hover:bg-gray-50"
             >
-              🌐
-            </button>
-
-            <button
-              onClick={() => {}}
-              className="px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-700 font-semibold"
-            >
-              ⚙️
+              👤
             </button>
 
             <div className="w-10 h-10 rounded-full bg-green-700 text-white flex items-center justify-center font-bold">
               K
             </div>
-
           </div>
         </div>
       </header>
 
       {/* Main */}
       <section className="max-w-7xl mx-auto px-5 py-10">
-
         {/* Welcome */}
         <div className="mb-10">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
@@ -375,9 +373,7 @@ export default function DashboardPage() {
           className="w-full text-left mb-8"
         >
           <div className="bg-green-700 rounded-3xl p-7 md:p-9 text-white shadow-lg hover:shadow-xl transition">
-
             <div className="flex items-start justify-between gap-5">
-
               <div>
                 <div className="text-5xl mb-4">🤖</div>
 
@@ -393,30 +389,22 @@ export default function DashboardPage() {
               <div className="hidden sm:block text-5xl">
                 🎤
               </div>
-
             </div>
 
             <div className="mt-7 inline-flex px-5 py-3 rounded-xl bg-white text-green-700 font-bold">
-              {language === "hi"
-                ? "AI से बात करें →"
-                : language === "en"
-                  ? "Talk to AI →"
-                  : "→"}
+              {t.talkAi}
             </div>
-
           </div>
         </button>
 
         {/* Feature Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-
-          {cards.slice(1).map((card) => (
+          {cards.map((card) => (
             <button
               key={card.title}
               onClick={card.action}
               className="bg-white rounded-3xl p-6 text-left border border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-1 transition"
             >
-
               <div className="text-4xl mb-5">
                 {card.icon}
               </div>
@@ -432,31 +420,19 @@ export default function DashboardPage() {
               <div className="mt-5 text-green-700 font-bold">
                 →
               </div>
-
             </button>
           ))}
-
         </div>
 
         {/* Bottom Navigation */}
         <div className="mt-10 bg-white rounded-3xl p-5 border border-gray-100 flex flex-wrap items-center justify-between gap-4">
-
           <button
-            onClick={() => {}}
+            onClick={() => router.push("/profile")}
             className="text-gray-700 font-semibold"
           >
             👤 {t.profile}
           </button>
-
-          <button
-            onClick={() => router.push("/")}
-            className="text-gray-700 font-semibold"
-          >
-            🌐 {t.settings}
-          </button>
-
         </div>
-
       </section>
     </main>
   );

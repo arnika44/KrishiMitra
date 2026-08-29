@@ -1,27 +1,25 @@
+
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-
-const languages = [
-  { code: "hi", name: "हिंदी", english: "Hindi" },
-  { code: "en", name: "English", english: "English" },
-  { code: "bn", name: "বাংলা", english: "Bengali" },
-  { code: "mr", name: "मराठी", english: "Marathi" },
-  { code: "ta", name: "தமிழ்", english: "Tamil" },
-  { code: "te", name: "తెలుగు", english: "Telugu" },
-  { code: "gu", name: "ગુજરાતી", english: "Gujarati" },
-  { code: "kn", name: "ಕನ್ನಡ", english: "Kannada" },
-  { code: "ml", name: "മലയാളം", english: "Malayalam" },
-  { code: "pa", name: "ਪੰਜਾਬੀ", english: "Punjabi" },
-  { code: "or", name: "ଓଡ଼ିଆ", english: "Odia" },
-  { code: "as", name: "অসমীয়া", english: "Assamese" },
-  { code: "ur", name: "اردو", english: "Urdu" },
-];
+import {
+  languages,
+  getSavedLanguage,
+  saveLanguage,
+  type LanguageCode,
+} from "./lib/language";
 
 export default function Home() {
   const router = useRouter();
-  const [selectedLanguage, setSelectedLanguage] = useState("");
+
+  const [selectedLanguage, setSelectedLanguage] =
+    useState<LanguageCode | "">("");
+
+  useEffect(() => {
+    const savedLanguage = getSavedLanguage();
+    setSelectedLanguage(savedLanguage);
+  }, []);
 
   const handleContinue = () => {
     if (!selectedLanguage) {
@@ -29,19 +27,16 @@ export default function Home() {
       return;
     }
 
-    localStorage.setItem("selectedLanguage", selectedLanguage);
-
+    saveLanguage(selectedLanguage);
     router.push("/auth");
   };
 
   return (
     <main className="min-h-screen bg-green-50 flex items-center justify-center px-4 py-8">
-
       <div className="w-full max-w-3xl">
 
         {/* Logo */}
         <div className="text-center mb-8">
-
           <div className="text-6xl mb-3">
             🌾
           </div>
@@ -53,15 +48,13 @@ export default function Home() {
           <p className="mt-2 text-gray-600">
             Smart Agriculture • Better Decisions • Less Waste
           </p>
-
         </div>
-
 
         {/* Main Card */}
         <div className="bg-white rounded-3xl shadow-xl p-6 md:p-10">
 
+          {/* Heading */}
           <div className="text-center mb-8">
-
             <h2 className="text-3xl font-bold text-gray-800">
               अपनी भाषा चुनें
             </h2>
@@ -69,17 +62,15 @@ export default function Home() {
             <p className="text-gray-500 mt-2">
               Choose your preferred language
             </p>
-
           </div>
-
 
           {/* Language Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
             {languages.map((language) => (
-
               <button
                 key={language.code}
+                type="button"
                 onClick={() =>
                   setSelectedLanguage(language.code)
                 }
@@ -93,21 +84,17 @@ export default function Home() {
                   }
                 `}
               >
-
                 <div className="flex items-center justify-between">
 
                   <div>
-
                     <p className="text-xl font-semibold text-gray-800">
                       {language.name}
                     </p>
 
                     <p className="text-sm text-gray-500">
-                      {language.english}
+                      {language.englishName}
                     </p>
-
                   </div>
-
 
                   {selectedLanguage === language.code && (
                     <div className="w-7 h-7 rounded-full bg-green-600 text-white flex items-center justify-center">
@@ -116,16 +103,14 @@ export default function Home() {
                   )}
 
                 </div>
-
               </button>
-
             ))}
 
           </div>
 
-
-          {/* Continue Button */}
+          {/* Continue */}
           <button
+            type="button"
             onClick={handleContinue}
             className="w-full mt-8 py-4 rounded-2xl bg-green-700 hover:bg-green-800 text-white text-lg font-bold transition"
           >
@@ -134,13 +119,11 @@ export default function Home() {
 
         </div>
 
-
         <p className="text-center text-gray-500 text-sm mt-6">
           🌱 Empowering Indian Agriculture
         </p>
 
       </div>
-
     </main>
   );
 }
