@@ -221,7 +221,7 @@ export default function RolePage() {
       icon: "👨‍🌾",
       title: t.farmer,
       description: t.farmerDesc,
-      route: "/dashboard",
+      route: "/profile",
     },
     {
       icon: "🏭",
