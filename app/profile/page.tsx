@@ -350,7 +350,7 @@ export default function FarmerProfile() {
       <div className="max-w-3xl mx-auto">
 
         <button
-          onClick={() => router.push("/dashboard")}
+          onClick={() => router.push("/crops")}
           className="text-green-700 font-semibold mb-6 hover:text-green-900"
         >
           ← {t.back}
