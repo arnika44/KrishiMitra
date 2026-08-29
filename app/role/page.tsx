@@ -244,9 +244,22 @@ export default function RolePage() {
   ];
 
   const selectRole = (role: string, route: string) => {
-    localStorage.setItem("userRole", role);
-    router.push(route);
-  };
+  localStorage.setItem("userRole", role);
+
+  if (role === "Farmer") {
+    const savedProfile = localStorage.getItem("farmerProfile");
+
+    if (savedProfile) {
+      router.push("/dashboard");
+    } else {
+      router.push("/profile");
+    }
+
+    return;
+  }
+
+  router.push(route);
+};
 
   return (
     <main
