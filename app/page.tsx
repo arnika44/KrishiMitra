@@ -1,69 +1,146 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+
+const languages = [
+  { code: "hi", name: "हिंदी", english: "Hindi" },
+  { code: "en", name: "English", english: "English" },
+  { code: "bn", name: "বাংলা", english: "Bengali" },
+  { code: "mr", name: "मराठी", english: "Marathi" },
+  { code: "ta", name: "தமிழ்", english: "Tamil" },
+  { code: "te", name: "తెలుగు", english: "Telugu" },
+  { code: "gu", name: "ગુજરાતી", english: "Gujarati" },
+  { code: "kn", name: "ಕನ್ನಡ", english: "Kannada" },
+  { code: "ml", name: "മലയാളം", english: "Malayalam" },
+  { code: "pa", name: "ਪੰਜਾਬੀ", english: "Punjabi" },
+  { code: "or", name: "ଓଡ଼ିଆ", english: "Odia" },
+  { code: "as", name: "অসমীয়া", english: "Assamese" },
+  { code: "ur", name: "اردو", english: "Urdu" },
+];
 
 export default function Home() {
+  const router = useRouter();
+  const [selectedLanguage, setSelectedLanguage] = useState("");
+
+  const handleContinue = () => {
+    if (!selectedLanguage) {
+      alert("कृपया अपनी भाषा चुनें / Please select your language");
+      return;
+    }
+
+    localStorage.setItem("selectedLanguage", selectedLanguage);
+
+    router.push("/auth");
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
+    <main className="min-h-screen bg-green-50 flex items-center justify-center px-4 py-8">
+
+      <div className="w-full max-w-3xl">
+
+        {/* Logo */}
+        <div className="text-center mb-8">
+
+          <div className="text-6xl mb-3">
+            🌾
+          </div>
+
+          <h1 className="text-4xl font-bold text-green-800">
+            KrishiMitra
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+
+          <p className="mt-2 text-gray-600">
+            Smart Agriculture • Better Decisions • Less Waste
           </p>
+
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+
+
+        {/* Main Card */}
+        <div className="bg-white rounded-3xl shadow-xl p-6 md:p-10">
+
+          <div className="text-center mb-8">
+
+            <h2 className="text-3xl font-bold text-gray-800">
+              अपनी भाषा चुनें
+            </h2>
+
+            <p className="text-gray-500 mt-2">
+              Choose your preferred language
+            </p>
+
+          </div>
+
+
+          {/* Language Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+            {languages.map((language) => (
+
+              <button
+                key={language.code}
+                onClick={() =>
+                  setSelectedLanguage(language.code)
+                }
+                className={`
+                  w-full p-4 rounded-2xl border-2
+                  text-left transition-all
+                  ${
+                    selectedLanguage === language.code
+                      ? "border-green-600 bg-green-50 shadow-md"
+                      : "border-gray-200 hover:border-green-400"
+                  }
+                `}
+              >
+
+                <div className="flex items-center justify-between">
+
+                  <div>
+
+                    <p className="text-xl font-semibold text-gray-800">
+                      {language.name}
+                    </p>
+
+                    <p className="text-sm text-gray-500">
+                      {language.english}
+                    </p>
+
+                  </div>
+
+
+                  {selectedLanguage === language.code && (
+                    <div className="w-7 h-7 rounded-full bg-green-600 text-white flex items-center justify-center">
+                      ✓
+                    </div>
+                  )}
+
+                </div>
+
+              </button>
+
+            ))}
+
+          </div>
+
+
+          {/* Continue Button */}
+          <button
+            onClick={handleContinue}
+            className="w-full mt-8 py-4 rounded-2xl bg-green-700 hover:bg-green-800 text-white text-lg font-bold transition"
           >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            आगे बढ़ें → Continue
+          </button>
+
         </div>
-      </main>
-    </div>
+
+
+        <p className="text-center text-gray-500 text-sm mt-6">
+          🌱 Empowering Indian Agriculture
+        </p>
+
+      </div>
+
+    </main>
   );
 }
