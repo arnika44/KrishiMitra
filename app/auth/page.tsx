@@ -346,7 +346,7 @@ export default function AuthPage() {
               <input
                 type="text"
                 placeholder={t.fullNamePlaceholder}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-green-500 text-gray-900 placeholder-gray-400"
               />
 
             </div>
@@ -369,7 +369,7 @@ export default function AuthPage() {
                 type="tel"
                 placeholder="9876543210"
                 maxLength={10}
-                className="flex-1 px-4 py-3 border border-l-0 border-gray-300 rounded-r-xl outline-none focus:ring-2 focus:ring-green-500"
+                className="flex-1 px-4 py-3 border border-l-0 border-gray-300 rounded-r-xl outline-none focus:ring-2 focus:ring-green-500 text-gray-900 placeholder-gray-400"
               />
 
             </div>
@@ -386,7 +386,7 @@ export default function AuthPage() {
             <input
               type="password"
               placeholder={t.passwordPlaceholder}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-green-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-green-500 text-gray-900 placeholder-gray-400"
             />
 
           </div>
