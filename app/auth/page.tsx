@@ -19,6 +19,8 @@ const translations: Record<string, any> = {
     passwordPlaceholder: "अपना पासवर्ड डालें",
     loginButton: "लॉगिन करें",
     registerButton: "अकाउंट बनाएँ",
+    invalidMobile: "कृपया सही 10 अंकों का मोबाइल नंबर डालें।",
+    requiredName: "कृपया अपना नाम डालें।",
   },
 
   en: {
@@ -36,6 +38,8 @@ const translations: Record<string, any> = {
     passwordPlaceholder: "Enter your password",
     loginButton: "Login",
     registerButton: "Create Account",
+    invalidMobile: "Please enter a valid 10-digit mobile number.",
+    requiredName: "Please enter your full name.",
   },
 
   bn: {
@@ -53,6 +57,8 @@ const translations: Record<string, any> = {
     passwordPlaceholder: "আপনার পাসওয়ার্ড লিখুন",
     loginButton: "লগইন করুন",
     registerButton: "অ্যাকাউন্ট তৈরি করুন",
+    invalidMobile: "সঠিক ১০ সংখ্যার মোবাইল নম্বর দিন।",
+    requiredName: "আপনার পুরো নাম দিন।",
   },
 
   mr: {
@@ -70,6 +76,8 @@ const translations: Record<string, any> = {
     passwordPlaceholder: "तुमचा पासवर्ड लिहा",
     loginButton: "लॉगिन करा",
     registerButton: "खाते तयार करा",
+    invalidMobile: "कृपया योग्य 10 अंकी मोबाइल नंबर टाका.",
+    requiredName: "कृपया तुमचे पूर्ण नाव टाका.",
   },
 
   ta: {
@@ -87,6 +95,8 @@ const translations: Record<string, any> = {
     passwordPlaceholder: "உங்கள் கடவுச்சொல்லை உள்ளிடுங்கள்",
     loginButton: "உள்நுழைக",
     registerButton: "கணக்கை உருவாக்கு",
+    invalidMobile: "சரியான 10 இலக்க மொபைல் எண்ணை உள்ளிடவும்.",
+    requiredName: "உங்கள் முழு பெயரை உள்ளிடவும்.",
   },
 
   te: {
@@ -104,6 +114,8 @@ const translations: Record<string, any> = {
     passwordPlaceholder: "మీ పాస్‌వర్డ్‌ను నమోదు చేయండి",
     loginButton: "లాగిన్ చేయండి",
     registerButton: "ఖాతాను సృష్టించండి",
+    invalidMobile: "దయచేసి సరైన 10 అంకెల మొబైల్ నంబర్ నమోదు చేయండి.",
+    requiredName: "దయచేసి మీ పూర్తి పేరు నమోదు చేయండి.",
   },
 
   gu: {
@@ -121,6 +133,8 @@ const translations: Record<string, any> = {
     passwordPlaceholder: "તમારો પાસવર્ડ દાખલ કરો",
     loginButton: "લોગિન કરો",
     registerButton: "એકાઉન્ટ બનાવો",
+    invalidMobile: "કૃપા કરીને સાચો 10 અંકનો મોબાઇલ નંબર દાખલ કરો.",
+    requiredName: "કૃપા કરીને તમારું પૂરું નામ દાખલ કરો.",
   },
 
   kn: {
@@ -138,6 +152,8 @@ const translations: Record<string, any> = {
     passwordPlaceholder: "ನಿಮ್ಮ ಪಾಸ್‌ವರ್ಡ್ ನಮೂದಿಸಿ",
     loginButton: "ಲಾಗಿನ್ ಮಾಡಿ",
     registerButton: "ಖಾತೆ ರಚಿಸಿ",
+    invalidMobile: "ದಯವಿಟ್ಟು ಸರಿಯಾದ 10 ಅಂಕಿಯ ಮೊಬೈಲ್ ಸಂಖ್ಯೆಯನ್ನು ನಮೂದಿಸಿ.",
+    requiredName: "ದಯವಿಟ್ಟು ನಿಮ್ಮ ಪೂರ್ಣ ಹೆಸರನ್ನು ನಮೂದಿಸಿ.",
   },
 
   ml: {
@@ -155,6 +171,8 @@ const translations: Record<string, any> = {
     passwordPlaceholder: "നിങ്ങളുടെ പാസ്‌വേഡ് നൽകുക",
     loginButton: "ലോഗിൻ ചെയ്യുക",
     registerButton: "അക്കൗണ്ട് സൃഷ്ടിക്കുക",
+    invalidMobile: "ശരിയായ 10 അക്ക മൊബൈൽ നമ്പർ നൽകുക.",
+    requiredName: "നിങ്ങളുടെ പൂർണ്ണ പേര് നൽകുക.",
   },
 
   pa: {
@@ -172,6 +190,8 @@ const translations: Record<string, any> = {
     passwordPlaceholder: "ਆਪਣਾ ਪਾਸਵਰਡ ਲਿਖੋ",
     loginButton: "ਲੌਗਇਨ ਕਰੋ",
     registerButton: "ਖਾਤਾ ਬਣਾਓ",
+    invalidMobile: "ਕਿਰਪਾ ਕਰਕੇ ਸਹੀ 10 ਅੰਕਾਂ ਦਾ ਮੋਬਾਈਲ ਨੰਬਰ ਦਿਓ।",
+    requiredName: "ਕਿਰਪਾ ਕਰਕੇ ਆਪਣਾ ਪੂਰਾ ਨਾਮ ਦਿਓ।",
   },
 
   or: {
@@ -189,6 +209,8 @@ const translations: Record<string, any> = {
     passwordPlaceholder: "ଆପଣଙ୍କ ପାସୱାର୍ଡ ଲେଖନ୍ତୁ",
     loginButton: "ଲଗଇନ କରନ୍ତୁ",
     registerButton: "ଆକାଉଣ୍ଟ ତିଆରି କରନ୍ତୁ",
+    invalidMobile: "ଦୟାକରି ସଠିକ୍ 10 ଅଙ୍କର ମୋବାଇଲ ନମ୍ବର ଦିଅନ୍ତୁ।",
+    requiredName: "ଦୟାକରି ଆପଣଙ୍କ ପୂର୍ଣ୍ଣ ନାମ ଦିଅନ୍ତୁ।",
   },
 
   as: {
@@ -206,6 +228,8 @@ const translations: Record<string, any> = {
     passwordPlaceholder: "আপোনাৰ পাছৱৰ্ড লিখক",
     loginButton: "লগইন কৰক",
     registerButton: "একাউণ্ট সৃষ্টি কৰক",
+    invalidMobile: "অনুগ্ৰহ কৰি সঠিক 10 অংকৰ মোবাইল নম্বৰ দিয়ক।",
+    requiredName: "অনুগ্ৰহ কৰি আপোনাৰ সম্পূৰ্ণ নাম দিয়ক।",
   },
 
   ur: {
@@ -223,6 +247,8 @@ const translations: Record<string, any> = {
     passwordPlaceholder: "اپنا پاس ورڈ درج کریں",
     loginButton: "لاگ اِن کریں",
     registerButton: "اکاؤنٹ بنائیں",
+    invalidMobile: "براہ کرم درست 10 ہندسوں کا موبائل نمبر درج کریں۔",
+    requiredName: "براہ کرم اپنا پورا نام درج کریں۔",
   },
 };
 
@@ -231,6 +257,10 @@ export default function AuthPage() {
 
   const [language, setLanguage] = useState("en");
   const [mode, setMode] = useState<"login" | "register">("login");
+
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
 
   useEffect(() => {
     const savedLanguage = localStorage.getItem("selectedLanguage");
@@ -243,13 +273,79 @@ export default function AuthPage() {
   const t = translations[language] || translations.en;
 
   const handleSubmit = () => {
+    // Validate mobile
+    if (!/^\d{10}$/.test(phone)) {
+      alert(t.invalidMobile);
+      return;
+    }
+
+    // REGISTER FLOW
+    if (mode === "register") {
+      if (!name.trim()) {
+        alert(t.requiredName);
+        return;
+      }
+
+      /*
+       * Save basic account information.
+       * Profile will be completed after registration.
+       */
+      const account = {
+        name: name.trim(),
+        phone,
+        password,
+        registered: true,
+      };
+
+      localStorage.setItem(
+        "farmerAccount",
+        JSON.stringify(account)
+      );
+
+      // Mark that this is a newly registered user
+      localStorage.setItem("isNewUser", "true");
+
+      /*
+       * IMPORTANT:
+       * New user must complete profile first.
+       */
+      router.push("/role");
+
+      return;
+    }
+
+    // LOGIN FLOW
     const savedProfile = localStorage.getItem("farmerProfile");
 
+    /*
+     * If profile already exists:
+     * Login -> Dashboard
+     */
     if (savedProfile) {
-      router.push("/crops");
-    } else {
-      router.push("/role");
+      localStorage.setItem("isLoggedIn", "true");
+      router.push("/dashboard");
+      return;
     }
+
+    /*
+     * If account exists but profile is not completed:
+     * Login -> Profile setup
+     */
+    const savedAccount = localStorage.getItem("farmerAccount");
+
+    if (savedAccount) {
+      localStorage.setItem("isLoggedIn", "true");
+      router.push("/role");
+      return;
+    }
+
+    /*
+     * No account/profile found.
+     * Send user to registration.
+     */
+    alert("Please register first.");
+
+    setMode("register");
   };
 
   return (
@@ -259,8 +355,11 @@ export default function AuthPage() {
     >
       <div className="w-full max-w-md">
 
+        {/* Logo */}
         <div className="text-center mb-8">
-          <div className="text-6xl mb-3">🌾</div>
+          <div className="text-6xl mb-3">
+            🌾
+          </div>
 
           <h1 className="text-4xl font-bold text-green-800">
             KrishiMitra
@@ -271,8 +370,10 @@ export default function AuthPage() {
           </p>
         </div>
 
+        {/* Auth Card */}
         <div className="bg-white rounded-3xl shadow-xl p-6 md:p-8">
 
+          {/* Login / Register Tabs */}
           <div className="flex bg-gray-100 rounded-2xl p-1 mb-8">
 
             <button
@@ -301,65 +402,104 @@ export default function AuthPage() {
 
           </div>
 
+          {/* Title */}
           <h2 className="text-2xl font-bold text-gray-800">
-            {mode === "login" ? t.loginTitle : t.registerTitle}
+            {mode === "login"
+              ? t.loginTitle
+              : t.registerTitle}
           </h2>
 
           <p className="text-gray-500 mt-2 mb-7">
-            {mode === "login" ? t.loginSubtitle : t.registerSubtitle}
+            {mode === "login"
+              ? t.loginSubtitle
+              : t.registerSubtitle}
           </p>
 
+          {/* Name - Register Only */}
           {mode === "register" && (
             <div className="mb-5">
+
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 {t.fullName}
               </label>
 
               <input
                 type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 placeholder={t.fullNamePlaceholder}
+                autoComplete="name"
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-green-500 text-gray-900 placeholder-gray-400"
               />
+
             </div>
           )}
 
+          {/* Mobile */}
           <div className="mb-5">
+
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               {t.mobile}
             </label>
 
             <div className="flex">
+
               <div className="px-4 py-3 bg-gray-100 border border-gray-300 rounded-l-xl text-gray-700">
                 +91
               </div>
 
               <input
                 type="tel"
+                value={phone}
+                onChange={(e) => {
+                  const value = e.target.value
+                    .replace(/\D/g, "")
+                    .slice(0, 10);
+
+                  setPhone(value);
+                }}
                 placeholder="9876543210"
+                inputMode="numeric"
                 maxLength={10}
+                autoComplete="tel"
                 className="flex-1 px-4 py-3 border border-l-0 border-gray-300 rounded-r-xl outline-none focus:ring-2 focus:ring-green-500 text-gray-900 placeholder-gray-400"
               />
+
             </div>
+
           </div>
 
+          {/* Password */}
           <div className="mb-6">
+
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               {t.password}
             </label>
 
             <input
               type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               placeholder={t.passwordPlaceholder}
+              autoComplete={
+                mode === "login"
+                  ? "current-password"
+                  : "new-password"
+              }
               className="w-full px-4 py-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-green-500 text-gray-900 placeholder-gray-400"
             />
+
           </div>
 
+          {/* Submit */}
           <button
             type="button"
             onClick={handleSubmit}
             className="w-full py-4 rounded-xl bg-green-700 hover:bg-green-800 text-white font-bold text-lg transition"
           >
-            {mode === "login" ? t.loginButton : t.registerButton}
+            {mode === "login"
+              ? t.loginButton
+              : t.registerButton}
           </button>
 
         </div>
