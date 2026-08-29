@@ -392,11 +392,12 @@ export default function AuthPage() {
           </div>
 
           {/* Submit */}
-          <button
-            className="w-full py-4 rounded-xl bg-green-700 hover:bg-green-800 text-white font-bold text-lg transition"
-          >
-            {mode === "login" ? t.loginButton : t.registerButton}
-          </button>
+<button
+  onClick={() => router.push("/role")}
+  className="w-full py-4 rounded-xl bg-green-700 hover:bg-green-800 text-white font-bold text-lg transition"
+>
+  {mode === "login" ? t.loginButton : t.registerButton}
+</button>
 
           {/* Change Language */}
           <button
