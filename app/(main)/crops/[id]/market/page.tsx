@@ -250,7 +250,7 @@ const en: T = {
 
   nearbyMarket: "📍 Nearby Mandi & Markets",
   nearbyMarketDescription:
-    "Mandis are found around your saved address using real map location. Nearby mandis from surrounding districts can also appear.",
+    "Mandis are found around the farmer's saved profile address using its map coordinates. Nearby mandis from surrounding districts can also appear.",
 
   profileLocation: "Profile Location",
   usingProfileLocation: "Using location saved in your profile",
@@ -1631,304 +1631,7 @@ const translations: Record<string, Partial<T>> = {
    browser GPS is available.
 ========================================================= */
 
-const MANDI_DATABASE: MandiBase[] = [
-  {
-    name: "Supaul APMC Mandi",
-    district: "Supaul",
-    state: "Bihar",
-    rate: 2550,
-    marketType: "APMC",
-    lat: 26.126,
-    lng: 86.603,
-    crops: ["wheat", "rice", "maize"],
-  },
-
-  {
-    name: "Birpur APMC Mandi",
-    district: "Supaul",
-    state: "Bihar",
-    rate: 2500,
-    marketType: "APMC",
-    lat: 26.513,
-    lng: 87.011,
-    crops: ["wheat", "rice", "maize"],
-  },
-
-  {
-    name: "Triveniganj APMC Mandi",
-    district: "Supaul",
-    state: "Bihar",
-    rate: 2480,
-    marketType: "APMC",
-    lat: 26.034,
-    lng: 86.854,
-    crops: ["wheat", "rice"],
-  },
-
-  {
-    name: "Saharsa APMC Mandi",
-    district: "Saharsa",
-    state: "Bihar",
-    rate: 2520,
-    marketType: "APMC",
-    lat: 25.884,
-    lng: 86.599,
-    crops: ["wheat", "rice", "maize"],
-  },
-
-  {
-    name: "Madhepura APMC Mandi",
-    district: "Madhepura",
-    state: "Bihar",
-    rate: 2500,
-    marketType: "APMC",
-    lat: 25.921,
-    lng: 86.792,
-    crops: ["wheat", "rice", "maize"],
-  },
-
-  {
-    name: "Araria APMC Mandi",
-    district: "Araria",
-    state: "Bihar",
-    rate: 2470,
-    marketType: "APMC",
-    lat: 26.150,
-    lng: 87.512,
-    crops: ["wheat", "rice", "maize"],
-  },
-
-  {
-    name: "Purnia APMC Mandi",
-    district: "Purnia",
-    state: "Bihar",
-    rate: 2580,
-    marketType: "APMC",
-    lat: 25.777,
-    lng: 87.475,
-    crops: ["wheat", "rice", "maize"],
-  },
-
-  {
-    name: "Forbesganj APMC Mandi",
-    district: "Araria",
-    state: "Bihar",
-    rate: 2510,
-    marketType: "APMC",
-    lat: 26.302,
-    lng: 87.267,
-    crops: ["wheat", "maize"],
-  },
-
-  {
-    name: "Darbhanga APMC Mandi",
-    district: "Darbhanga",
-    state: "Bihar",
-    rate: 2560,
-    marketType: "APMC",
-    lat: 26.154,
-    lng: 85.891,
-    crops: ["wheat", "rice", "maize"],
-  },
-
-  {
-    name: "Muzaffarpur APMC Mandi",
-    district: "Muzaffarpur",
-    state: "Bihar",
-    rate: 2600,
-    marketType: "APMC",
-    lat: 26.120,
-    lng: 85.364,
-    crops: ["wheat", "rice", "maize"],
-  },
-
-  {
-    name: "Patna APMC Mandi",
-    district: "Patna",
-    state: "Bihar",
-    rate: 2580,
-    marketType: "APMC",
-    lat: 25.594,
-    lng: 85.137,
-    crops: ["wheat", "rice", "maize"],
-  },
-
-  {
-    name: "Begusarai APMC Mandi",
-    district: "Begusarai",
-    state: "Bihar",
-    rate: 2540,
-    marketType: "APMC",
-    lat: 25.418,
-    lng: 86.128,
-    crops: ["wheat", "maize"],
-  },
-
-  {
-    name: "Gorakhpur Mandi",
-    district: "Gorakhpur",
-    state: "Uttar Pradesh",
-    rate: 2600,
-    marketType: "APMC",
-    lat: 26.760,
-    lng: 83.373,
-    crops: ["wheat", "rice", "maize"],
-  },
-
-  {
-    name: "Lucknow Mandi",
-    district: "Lucknow",
-    state: "Uttar Pradesh",
-    rate: 2680,
-    marketType: "APMC",
-    lat: 26.846,
-    lng: 80.946,
-    crops: ["wheat", "rice", "maize"],
-  },
-
-  {
-    name: "Varanasi Mandi",
-    district: "Varanasi",
-    state: "Uttar Pradesh",
-    rate: 2650,
-    marketType: "APMC",
-    lat: 25.317,
-    lng: 82.974,
-    crops: ["wheat", "rice"],
-  },
-
-  {
-    name: "Ayodhya Mandi",
-    district: "Ayodhya",
-    state: "Uttar Pradesh",
-    rate: 2620,
-    marketType: "APMC",
-    lat: 26.799,
-    lng: 82.204,
-    crops: ["wheat", "rice"],
-  },
-
-  {
-    name: "Siliguri Agricultural Market",
-    district: "Darjeeling",
-    state: "West Bengal",
-    rate: 2550,
-    marketType: "Local Market",
-    lat: 26.727,
-    lng: 88.395,
-    crops: ["rice", "maize"],
-  },
-
-  {
-    name: "Malda Agricultural Market",
-    district: "Malda",
-    state: "West Bengal",
-    rate: 2500,
-    marketType: "Local Market",
-    lat: 25.010,
-    lng: 88.141,
-    crops: ["rice", "maize"],
-  },
-
-  {
-    name: "Ranchi Agricultural Market",
-    district: "Ranchi",
-    state: "Jharkhand",
-    rate: 2450,
-    marketType: "APMC",
-    lat: 23.344,
-    lng: 85.309,
-    crops: ["wheat", "rice", "maize"],
-  },
-
-  {
-    name: "Deoghar Agricultural Market",
-    district: "Deoghar",
-    state: "Jharkhand",
-    rate: 2480,
-    marketType: "APMC",
-    lat: 24.484,
-    lng: 86.694,
-    crops: ["wheat", "rice"],
-  },
-
-  {
-    name: "Azadpur Mandi",
-    district: "Delhi",
-    state: "Delhi",
-    rate: 2700,
-    marketType: "APMC",
-    lat: 28.704,
-    lng: 77.180,
-    crops: ["wheat", "rice", "potato"],
-  },
-
-  {
-    name: "Ludhiana Mandi",
-    district: "Ludhiana",
-    state: "Punjab",
-    rate: 2650,
-    marketType: "APMC",
-    lat: 30.901,
-    lng: 75.857,
-    crops: ["wheat", "rice", "maize"],
-  },
-
-  {
-    name: "Amritsar Mandi",
-    district: "Amritsar",
-    state: "Punjab",
-    rate: 2680,
-    marketType: "APMC",
-    lat: 31.634,
-    lng: 74.872,
-    crops: ["wheat", "rice"],
-  },
-
-  {
-    name: "Karnal Mandi",
-    district: "Karnal",
-    state: "Haryana",
-    rate: 2670,
-    marketType: "APMC",
-    lat: 29.685,
-    lng: 76.990,
-    crops: ["wheat", "rice", "maize"],
-  },
-
-  {
-    name: "Hisar Mandi",
-    district: "Hisar",
-    state: "Haryana",
-    rate: 2640,
-    marketType: "APMC",
-    lat: 29.149,
-    lng: 75.721,
-    crops: ["wheat", "maize"],
-  },
-
-  {
-    name: "Indore Mandi",
-    district: "Indore",
-    state: "Madhya Pradesh",
-    rate: 2550,
-    marketType: "APMC",
-    lat: 22.719,
-    lng: 75.857,
-    crops: ["wheat", "maize"],
-  },
-
-  {
-    name: "Bhopal Mandi",
-    district: "Bhopal",
-    state: "Madhya Pradesh",
-    rate: 2580,
-    marketType: "APMC",
-    lat: 23.259,
-    lng: 77.412,
-    crops: ["wheat", "rice", "maize"],
-  },
-];
+const MANDI_DATABASE: MandiBase[] = [];
 
 /* =========================================================
    HELPERS
@@ -2185,9 +1888,21 @@ async function geocodeFarmerAddress(
 ): Promise<GeocodedLocation | null> {
   if (!address.trim()) return null;
 
+  const cleaned = address.replace(/\s+/g, " ").trim();
+
+  // Try the complete saved profile address first, then progressively
+  // simpler variants. This keeps the search tied to the farmer's
+  // saved address and works for locations anywhere in India.
+  const parts = cleaned
+    .split(",")
+    .map((part) => part.trim())
+    .filter(Boolean);
+
   const queries = [
-    address,
-    address.replace(/,\s*India\s*$/i, ""),
+    `${cleaned}, India`,
+    cleaned,
+    parts.slice(-5).join(", "),
+    parts.slice(-4).join(", "),
   ].filter(
     (value, index, list) =>
       value && list.indexOf(value) === index
@@ -2260,12 +1975,11 @@ async function findNearbyIndianMandis(
   const { lat, lng } = location;
 
   const query = `
-[out:json][timeout:30];
-area["ISO3166-1"="IN"][admin_level=2]->.india;
+[out:json][timeout:45];
 (
-  nwr["amenity"="marketplace"](area.india)(around:${radiusMeters},${lat},${lng});
-  nwr["shop"="agrarian"](area.india)(around:${radiusMeters},${lat},${lng});
-  nwr["name"~"mandi|apmc|agricultural market|krishi bazar|कृषि बाजार|मंडी|बाजार",i](area.india)(around:${radiusMeters},${lat},${lng});
+  nwr["amenity"="marketplace"](around:${radiusMeters},${lat},${lng});
+  nwr["shop"="agrarian"](around:${radiusMeters},${lat},${lng});
+  nwr["name"~"mandi|apmc|agricultural market|agriculture market|krishi bazar|krishi market|kisan market|कृषि बाजार|कृषि मंडी|मंडी|बाजार|बाज़ार",i](around:${radiusMeters},${lat},${lng});
 );
 out center tags;
 `;
@@ -2679,42 +2393,9 @@ export default function MarketPage() {
       // ignore
     }
 
-    /*
-      Try browser GPS.
-
-      Permission is optional.
-      If denied, profile location remains fallback.
-    */
-    if (
-      typeof navigator !==
-        "undefined" &&
-      navigator.geolocation
-    ) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setBrowserCoords({
-            lat:
-              position.coords.latitude,
-            lng:
-              position.coords.longitude,
-          });
-
-          setLocationSource(
-            "browser"
-          );
-        },
-        () => {
-          setLocationSource(
-            "profile"
-          );
-        },
-        {
-          enableHighAccuracy: false,
-          timeout: 7000,
-          maximumAge: 10 * 60 * 1000,
-        }
-      );
-    }
+    // Do NOT request browser/live GPS here.
+    // Mandi search must always use the farmer's saved profile location.
+    setLocationSource("profile");
 
     setLoading(false);
   }, [params.id]);
@@ -2868,7 +2549,8 @@ export default function MarketPage() {
     setSearched(false);
 
     try {
-      /* Saved farmer address is PRIMARY; browser GPS is only a fallback. */
+      /* IMPORTANT: Mandi search ALWAYS uses the farmer's saved profile address.
+         Browser/live GPS is deliberately NOT used for mandi search. */
       const savedAddress = buildProfileAddress(profileLocation);
       let searchLocation: GeocodedLocation | null = null;
 
@@ -2878,12 +2560,6 @@ export default function MarketPage() {
 
       if (searchLocation) {
         setLocationSource("profile");
-      } else if (browserCoords) {
-        searchLocation = {
-          ...browserCoords,
-          displayName: "Current device location",
-        };
-        setLocationSource("browser");
       }
 
       if (!searchLocation) {
@@ -2898,13 +2574,13 @@ export default function MarketPage() {
       */
       let nearby = await findNearbyIndianMandis(
         searchLocation,
-        75
+        100
       );
 
-      if (nearby.length === 0) {
+      if (nearby.length < 5) {
         nearby = await findNearbyIndianMandis(
           searchLocation,
-          100
+          180
         );
       }
 
@@ -3157,7 +2833,7 @@ export default function MarketPage() {
             {t.loadingTitle}
           </h1>
 
-          <p className="text-gray-700 mt-2">
+          <p className="text-gray-900 mt-2">
             {t.loadingText}
           </p>
         </div>
@@ -3254,7 +2930,7 @@ export default function MarketPage() {
                 {t.market}
               </h1>
 
-              <p className="text-gray-700 mt-2">
+              <p className="text-gray-900 mt-2">
                 {t.landArea}:{" "}
                 <span className="font-semibold">
                   {crop.land}{" "}
@@ -3275,7 +2951,7 @@ export default function MarketPage() {
             {t.currentMarket}
           </h2>
 
-          <p className="text-gray-700 mt-2">
+          <p className="text-gray-900 mt-2">
             {t.marketDescription}
           </p>
 
@@ -3286,7 +2962,7 @@ export default function MarketPage() {
                 🌾
               </div>
 
-              <p className="text-sm text-gray-700">
+              <p className="text-sm text-gray-900">
                 {t.cropLabel}
               </p>
 
@@ -3300,7 +2976,7 @@ export default function MarketPage() {
                 💰
               </div>
 
-              <p className="text-sm text-gray-700">
+              <p className="text-sm text-gray-900">
                 {t.indicativePrice}
               </p>
 
@@ -3308,7 +2984,7 @@ export default function MarketPage() {
                 {market.price}
               </p>
 
-              <p className="text-sm text-gray-700 mt-1">
+              <p className="text-sm text-gray-900 mt-1">
                 {t.perQuintal}
               </p>
             </div>
@@ -3318,7 +2994,7 @@ export default function MarketPage() {
                 📈
               </div>
 
-              <p className="text-sm text-gray-700">
+              <p className="text-sm text-gray-900">
                 {t.marketTrend}
               </p>
 
@@ -3346,7 +3022,7 @@ export default function MarketPage() {
           </h2>
 
           <div className="bg-green-50 rounded-2xl p-6 mt-5">
-            <p className="text-gray-700 leading-relaxed">
+            <p className="text-gray-900 leading-relaxed">
               {market.advice}
             </p>
           </div>
@@ -3362,7 +3038,7 @@ export default function MarketPage() {
             {t.nearbyMarket}
           </h2>
 
-          <p className="text-gray-700 mt-2">
+          <p className="text-gray-900 mt-2">
             {t.nearbyMarketDescription}
           </p>
 
@@ -3428,7 +3104,7 @@ export default function MarketPage() {
                     key={label}
                     className="bg-white rounded-xl p-3"
                   >
-                    <p className="text-xs text-gray-700">
+                    <p className="text-xs text-gray-900">
                       {label}
                     </p>
 
@@ -3444,7 +3120,7 @@ export default function MarketPage() {
 
             <div className="mt-4 flex flex-wrap gap-2">
 
-              <span className="px-3 py-1 rounded-full bg-white border text-xs font-semibold text-gray-700">
+              <span className="px-3 py-1 rounded-full bg-white border text-xs font-semibold text-gray-900">
                 {t.locationSource}:{" "}
                 {locationSource ===
                 "browser"
@@ -3452,7 +3128,7 @@ export default function MarketPage() {
                   : `👤 ${t.profileLocationSource}`}
               </span>
 
-              <span className="px-3 py-1 rounded-full bg-white border text-xs font-semibold text-gray-700">
+              <span className="px-3 py-1 rounded-full bg-white border text-xs font-semibold text-gray-900">
                 {t.distanceLimit}:{" "}
                 {browserCoords
                   ? "180 km"
@@ -3486,7 +3162,7 @@ export default function MarketPage() {
 
               <div>
 
-                <label className="text-sm font-semibold text-gray-700">
+                <label className="text-sm font-semibold text-gray-900">
                   {t.quantity}
                 </label>
 
@@ -3510,7 +3186,7 @@ export default function MarketPage() {
 
               <div>
 
-                <label className="text-sm font-semibold text-gray-700">
+                <label className="text-sm font-semibold text-gray-900">
                   {t.selectUnit}
                 </label>
 
@@ -3559,7 +3235,7 @@ export default function MarketPage() {
 
               <div className="bg-white rounded-2xl p-4 border border-green-100">
 
-                <p className="text-xs text-gray-700">
+                <p className="text-xs text-gray-900">
                   {t.quantityEquivalent}
                 </p>
 
@@ -3577,7 +3253,7 @@ export default function MarketPage() {
 
               <div className="bg-white rounded-2xl p-4 border border-green-100">
 
-                <p className="text-xs text-gray-700">
+                <p className="text-xs text-gray-900">
                   {t.quantity}
                 </p>
 
@@ -3641,7 +3317,7 @@ export default function MarketPage() {
           </div>
 
           {lastUpdated && (
-            <p className="text-sm text-gray-700 mt-3">
+            <p className="text-sm text-gray-900 mt-3">
               🕒{" "}
               {t.lastUpdated}:{" "}
               {lastUpdated}
@@ -3654,7 +3330,7 @@ export default function MarketPage() {
 
           {searched && (
             <div className="mt-5 bg-gray-50 rounded-2xl p-4">
-              <p className="text-sm text-gray-700">
+              <p className="text-sm text-gray-900">
                 ℹ️{" "}
                 {t.rankingNote}
               </p>
@@ -3735,7 +3411,7 @@ export default function MarketPage() {
                   {t.mandiFound}
                 </h3>
 
-                <p className="text-gray-700 text-sm mt-1">
+                <p className="text-gray-900 text-sm mt-1">
                   {profileLocation.district ||
                     profileLocation.state ||
                     "Nearby"}
@@ -3794,21 +3470,21 @@ export default function MarketPage() {
                                   }
                                 </h4>
 
-                                <p className="text-sm text-gray-700 mt-1">
+                                <p className="text-sm text-gray-900 mt-1">
                                   {mandi.district || ""}
                                   {mandi.district && mandi.state ? ", " : ""}
                                   {mandi.state || ""}
                                 </p>
 
                                 {mandi.address && (
-                                  <p className="text-sm text-gray-700 mt-1 leading-relaxed">
+                                  <p className="text-sm text-gray-900 mt-1 leading-relaxed">
                                     📍 {mandi.address}
                                   </p>
                                 )}
 
                                 <div className="flex flex-wrap gap-2 mt-2">
 
-                                  <span className="text-xs px-2 py-1 rounded-full bg-white border font-semibold text-gray-700">
+                                  <span className="text-xs px-2 py-1 rounded-full bg-white border font-semibold text-gray-900">
                                     {
                                       mandi.marketType ===
                                       "APMC"
@@ -3857,7 +3533,7 @@ export default function MarketPage() {
 
                               <div>
 
-                                <p className="text-sm text-gray-700">
+                                <p className="text-sm text-gray-900">
                                   {
                                     t.mandiRate
                                   }
@@ -3870,7 +3546,7 @@ export default function MarketPage() {
                                   )}
                                 </p>
 
-                                <p className="text-sm text-gray-700">
+                                <p className="text-sm text-gray-900">
                                   {
                                     t.perQuintal
                                   }
@@ -3887,7 +3563,7 @@ export default function MarketPage() {
                             <div className="mt-4 grid grid-cols-2 gap-3">
 
                               <div className="bg-green-50 rounded-xl p-3">
-                                <p className="text-xs text-gray-700">
+                                <p className="text-xs text-gray-900">
                                   {
                                     t.perKg
                                   }
@@ -3908,7 +3584,7 @@ export default function MarketPage() {
                               </div>
 
                               <div className="bg-green-50 rounded-xl p-3">
-                                <p className="text-xs text-gray-700">
+                                <p className="text-xs text-gray-900">
                                   {
                                     t.netPerKg
                                   }
@@ -3935,7 +3611,7 @@ export default function MarketPage() {
 
                             <div className="bg-white rounded-xl p-4">
 
-                              <p className="text-xs text-gray-700">
+                              <p className="text-xs text-gray-900">
                                 📏{" "}
                                 {
                                   t.distance
@@ -3953,7 +3629,7 @@ export default function MarketPage() {
 
                             <div className="bg-white rounded-xl p-4">
 
-                              <p className="text-xs text-gray-700">
+                              <p className="text-xs text-gray-900">
                                 🚚{" "}
                                 {
                                   t.transportation
@@ -3967,7 +3643,7 @@ export default function MarketPage() {
                                 )}
                               </p>
 
-                              <p className="text-xs text-gray-600">
+                              <p className="text-xs text-gray-900">
                                 {
                                   t.perQuintal
                                 }
@@ -3977,7 +3653,7 @@ export default function MarketPage() {
 
                             <div className="bg-white rounded-xl p-4">
 
-                              <p className="text-xs text-gray-700">
+                              <p className="text-xs text-gray-900">
                                 💵{" "}
                                 {
                                   t.effectiveRate
@@ -3991,7 +3667,7 @@ export default function MarketPage() {
                                 )}
                               </p>
 
-                              <p className="text-xs text-gray-600">
+                              <p className="text-xs text-gray-900">
                                 {
                                   t.perQuintal
                                 }
@@ -4026,7 +3702,7 @@ export default function MarketPage() {
 
                               <div className="bg-white rounded-xl p-4">
 
-                                <p className="text-xs text-gray-700">
+                                <p className="text-xs text-gray-900">
                                   {
                                     t.grossAmount
                                   }
@@ -4042,7 +3718,7 @@ export default function MarketPage() {
                                   )}
                                 </p>
 
-                                <p className="text-xs text-gray-600 mt-1">
+                                <p className="text-xs text-gray-900 mt-1">
                                   {enteredQuantityLabel}
                                 </p>
 
@@ -4050,7 +3726,7 @@ export default function MarketPage() {
 
                               <div className="bg-white rounded-xl p-4">
 
-                                <p className="text-xs text-gray-700">
+                                <p className="text-xs text-gray-900">
                                   {
                                     t.totalTransport
                                   }
@@ -4066,7 +3742,7 @@ export default function MarketPage() {
                                   )}
                                 </p>
 
-                                <p className="text-xs text-gray-600 mt-1">
+                                <p className="text-xs text-gray-900 mt-1">
                                   {enteredQuantityLabel}
                                 </p>
 
@@ -4074,7 +3750,7 @@ export default function MarketPage() {
 
                               <div className="bg-white rounded-xl p-4">
 
-                                <p className="text-xs text-gray-700">
+                                <p className="text-xs text-gray-900">
                                   {
                                     t.estimatedEarning
                                   }
@@ -4090,7 +3766,7 @@ export default function MarketPage() {
                                   )}
                                 </p>
 
-                                <p className="text-xs text-gray-600 mt-1">
+                                <p className="text-xs text-gray-900 mt-1">
                                   {enteredQuantityLabel}
                                 </p>
 
@@ -4102,11 +3778,11 @@ export default function MarketPage() {
 
                             <div className="mt-4 bg-white rounded-xl p-4">
 
-                              <p className="text-xs text-gray-700">
+                              <p className="text-xs text-gray-900">
                                 Calculation
                               </p>
 
-                              <p className="text-sm text-gray-700 mt-1">
+                              <p className="text-sm text-gray-900 mt-1">
 
                                 {totalKg.toLocaleString(
                                   "en-IN",
@@ -4146,7 +3822,7 @@ export default function MarketPage() {
 
                               <div>
 
-                                <p className="text-xs text-gray-700">
+                                <p className="text-xs text-gray-900">
                                   {
                                     t.availableCrop
                                   }
@@ -4162,7 +3838,7 @@ export default function MarketPage() {
 
                               <div>
 
-                                <p className="text-xs text-gray-700">
+                                <p className="text-xs text-gray-900">
                                   {
                                     t.netPerQuintal
                                   }
