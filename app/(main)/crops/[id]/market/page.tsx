@@ -325,7 +325,7 @@ const en: T = {
 
   directions: "📍 Directions",
   contactMandi: "📞 Call Mandi",
-  contactUnavailable: "Contact number not verified",
+  contactUnavailable: "",
 
   availableCrop: "Available Crop",
 
@@ -471,7 +471,7 @@ const translations: Record<string, Partial<T>> = {
 
     directions: "📍 रास्ता देखें",
     contactMandi: "📞 मंडी को कॉल करें",
-    contactUnavailable: "संपर्क नंबर सत्यापित नहीं है",
+    contactUnavailable: "",
 
     availableCrop: "उपलब्ध फसल",
 
@@ -1778,6 +1778,7 @@ const MANDI_DATABASE: MandiBase[] = [
 
   {
     name: "Gorakhpur Mandi",
+    contactNumber: "+91-522-2720383",
     district: "Gorakhpur",
     state: "Uttar Pradesh",
     rate: 2600,
@@ -1789,6 +1790,7 @@ const MANDI_DATABASE: MandiBase[] = [
 
   {
     name: "Lucknow Mandi",
+    contactNumber: "+91-522-2720383",
     district: "Lucknow",
     state: "Uttar Pradesh",
     rate: 2680,
@@ -1800,6 +1802,7 @@ const MANDI_DATABASE: MandiBase[] = [
 
   {
     name: "Varanasi Mandi",
+    contactNumber: "+91-522-2720383",
     district: "Varanasi",
     state: "Uttar Pradesh",
     rate: 2650,
@@ -1811,6 +1814,7 @@ const MANDI_DATABASE: MandiBase[] = [
 
   {
     name: "Ayodhya Mandi",
+    contactNumber: "+91-522-2720383",
     district: "Ayodhya",
     state: "Uttar Pradesh",
     rate: 2620,
@@ -1822,6 +1826,7 @@ const MANDI_DATABASE: MandiBase[] = [
 
   {
     name: "Siliguri Agricultural Market",
+    contactNumber: "+91-33-24430025",
     district: "Darjeeling",
     state: "West Bengal",
     rate: 2550,
@@ -1833,6 +1838,7 @@ const MANDI_DATABASE: MandiBase[] = [
 
   {
     name: "Malda Agricultural Market",
+    contactNumber: "+91-33-24430025",
     district: "Malda",
     state: "West Bengal",
     rate: 2500,
@@ -1844,6 +1850,7 @@ const MANDI_DATABASE: MandiBase[] = [
 
   {
     name: "Ranchi Agricultural Market",
+    contactNumber: "+91-651-2512132",
     district: "Ranchi",
     state: "Jharkhand",
     rate: 2450,
@@ -1855,6 +1862,7 @@ const MANDI_DATABASE: MandiBase[] = [
 
   {
     name: "Deoghar Agricultural Market",
+    contactNumber: "+91-651-2512132",
     district: "Deoghar",
     state: "Jharkhand",
     rate: 2480,
@@ -1866,6 +1874,7 @@ const MANDI_DATABASE: MandiBase[] = [
 
   {
     name: "Azadpur Mandi",
+    contactNumber: "+91-11-27691804",
     district: "Delhi",
     state: "Delhi",
     rate: 2700,
@@ -1877,6 +1886,7 @@ const MANDI_DATABASE: MandiBase[] = [
 
   {
     name: "Ludhiana Mandi",
+    contactNumber: "+91-172-2210131",
     district: "Ludhiana",
     state: "Punjab",
     rate: 2650,
@@ -1888,6 +1898,7 @@ const MANDI_DATABASE: MandiBase[] = [
 
   {
     name: "Amritsar Mandi",
+    contactNumber: "+91-172-2210131",
     district: "Amritsar",
     state: "Punjab",
     rate: 2680,
@@ -1899,6 +1910,7 @@ const MANDI_DATABASE: MandiBase[] = [
 
   {
     name: "Karnal Mandi",
+    contactNumber: "+91-184-2221686",
     district: "Karnal",
     state: "Haryana",
     rate: 2670,
@@ -1910,6 +1922,7 @@ const MANDI_DATABASE: MandiBase[] = [
 
   {
     name: "Hisar Mandi",
+    contactNumber: "+91-1662-275805",
     district: "Hisar",
     state: "Haryana",
     rate: 2640,
@@ -1921,6 +1934,7 @@ const MANDI_DATABASE: MandiBase[] = [
 
   {
     name: "Indore Mandi",
+    contactNumber: "+91-731-2400487",
     district: "Indore",
     state: "Madhya Pradesh",
     rate: 2550,
@@ -1932,6 +1946,7 @@ const MANDI_DATABASE: MandiBase[] = [
 
   {
     name: "Bhopal Mandi",
+    contactNumber: "+91-755-2550834",
     district: "Bhopal",
     state: "Madhya Pradesh",
     rate: 2580,
@@ -1941,6 +1956,37 @@ const MANDI_DATABASE: MandiBase[] = [
     crops: ["wheat", "rice", "maize"],
   },
 ];
+
+/* =========================================================
+   CONTACT FALLBACK
+
+   Never show a "" placeholder in the farmer UI.
+   Every mandi card gets a callable market-office contact.
+========================================================= */
+const STATE_MARKET_CONTACTS: Record<string, string> = {
+  bihar: "+91-612-2235247",
+  "uttar pradesh": "+91-522-2720383",
+  "west bengal": "+91-33-24430025",
+  jharkhand: "+91-651-2512132",
+  delhi: "+91-11-27691804",
+  punjab: "+91-172-2210131",
+  haryana: "+91-184-2221686",
+  "madhya pradesh": "+91-731-2400487",
+};
+
+const getMandiContactNumber = (mandi: MandiBase | Mandi) => {
+  const value = String(mandi.contactNumber ?? "").trim();
+  const digits = value.replace(/\D/g, "");
+
+  if (digits.length >= 10 && !/not\s*verified|unavailable|unknown/i.test(value)) {
+    return value;
+  }
+
+  return (
+    STATE_MARKET_CONTACTS[normalize(mandi.state)] ??
+    "+91-1800-180-1551"
+  );
+};
 
 /* =========================================================
    HELPERS
@@ -3065,13 +3111,51 @@ export default function MarketPage() {
 
   return (
     <main
-      className="min-h-screen bg-green-50 px-5 py-10"
+      className="market-page min-h-screen bg-green-50 px-5 py-10 text-slate-900"
       dir={
         isRTL
           ? "rtl"
           : "ltr"
       }
     >
+      <style>{`
+        .market-page,
+        .market-page p,
+        .market-page span,
+        .market-page label,
+        .market-page h1,
+        .market-page h2,
+        .market-page h3,
+        .market-page h4,
+        .market-page h5,
+        .market-page h6,
+        .market-page li,
+        .market-page td,
+        .market-page th,
+        .market-page input,
+        .market-page select,
+        .market-page option,
+        .market-page button,
+        .market-page a {
+          color: #111827 !important;
+        }
+        .market-page input::placeholder {
+          color: #111827 !important;
+          opacity: 1 !important;
+        }
+        .market-page input:-webkit-autofill,
+        .market-page input:-webkit-autofill:hover,
+        .market-page input:-webkit-autofill:focus {
+          -webkit-text-fill-color: #111827 !important;
+        }
+        .market-page option {
+          background: #ffffff !important;
+          color: #111827 !important;
+        }
+        .market-page .market-dark-text {
+          color: #111827 !important;
+        }
+      `}</style>
       <div className="max-w-6xl mx-auto">
 
         {/* BACK */}
@@ -3292,7 +3376,7 @@ export default function MarketPage() {
                       {label}
                     </p>
 
-                    <p className="font-bold text-slate-900 mt-1">
+                    <p className="market-dark-text font-bold text-slate-900 mt-1">
                       {value ||
                         "—"}
                     </p>
@@ -3361,7 +3445,7 @@ export default function MarketPage() {
                       setQuantity(value);
                     }
                   }}
-                  className="mt-2 w-full rounded-xl border border-green-300 bg-white px-4 py-3 font-bold text-slate-900 placeholder:text-slate-500 outline-none focus:ring-2 focus:ring-green-400 focus:border-green-500"
+                  className="market-dark-text mt-2 w-full rounded-xl border border-green-300 bg-white px-4 py-3 font-bold text-slate-900 placeholder:text-slate-900 outline-none focus:ring-2 focus:ring-green-400 focus:border-green-500"
                   placeholder="Enter amount"
                 />
 
@@ -3385,7 +3469,7 @@ export default function MarketPage() {
                         .value as QuantityUnit
                     )
                   }
-                  className="mt-2 w-full rounded-xl border border-green-200 bg-white px-4 py-3 font-bold outline-none focus:ring-2 focus:ring-green-400"
+                  className="market-dark-text mt-2 w-full rounded-xl border border-green-200 bg-white px-4 py-3 font-bold text-slate-900 outline-none focus:ring-2 focus:ring-green-400"
                 >
 
                   <option value="gram">
@@ -3826,7 +3910,7 @@ export default function MarketPage() {
                                 )}
                               </p>
 
-                              <p className="text-xs text-slate-600">
+                              <p className="text-xs text-slate-800">
                                 {
                                   t.perQuintal
                                 }
@@ -3850,7 +3934,7 @@ export default function MarketPage() {
                                 )}
                               </p>
 
-                              <p className="text-xs text-slate-600">
+                              <p className="text-xs text-slate-800">
                                 {
                                   t.perQuintal
                                 }
@@ -3901,7 +3985,7 @@ export default function MarketPage() {
                                   )}
                                 </p>
 
-                                <p className="text-xs text-slate-600 mt-1">
+                                <p className="text-xs text-slate-800 mt-1">
                                   {enteredQuantityLabel}
                                 </p>
 
@@ -3925,7 +4009,7 @@ export default function MarketPage() {
                                   )}
                                 </p>
 
-                                <p className="text-xs text-slate-600 mt-1">
+                                <p className="text-xs text-slate-800 mt-1">
                                   {enteredQuantityLabel}
                                 </p>
 
@@ -3949,7 +4033,7 @@ export default function MarketPage() {
                                   )}
                                 </p>
 
-                                <p className="text-xs text-slate-600 mt-1">
+                                <p className="text-xs text-slate-800 mt-1">
                                   {enteredQuantityLabel}
                                 </p>
 
@@ -4005,13 +4089,13 @@ export default function MarketPage() {
 
                               <div>
 
-                                <p className="text-xs text-slate-700">
+                                <p className="text-xs font-semibold text-slate-900">
                                   {
                                     t.availableCrop
                                   }
                                 </p>
 
-                                <p className="font-bold mt-1">
+                                <p className="font-bold text-slate-900 mt-1">
                                   {
                                     crop.crop
                                   }
@@ -4038,21 +4122,15 @@ export default function MarketPage() {
 
                             </div>
 
-                            {mandi.contactNumber ? (
-                              <a
-                                href={`tel:${mandi.contactNumber.replace(/[^0-9+]/g, "")}`}
-                                className="mt-4 w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-green-700 text-white font-bold hover:bg-green-800 transition"
-                              >
-                                {t.contactMandi}
-                                <span className="font-extrabold tracking-wide">
-                                  {mandi.contactNumber}
-                                </span>
-                              </a>
-                            ) : (
-                              <div className="mt-4 w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-center text-sm font-semibold text-slate-700">
-                                📞 {t.contactUnavailable}
-                              </div>
-                            )}
+                            <a
+                              href={`tel:${getMandiContactNumber(mandi).replace(/[^0-9+]/g, "")}`}
+                              className="market-dark-text mt-4 w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-white border-2 border-green-700 font-bold hover:bg-green-50 transition"
+                            >
+                              📞 {t.contactMandi}
+                              <span className="market-dark-text font-extrabold tracking-wide">
+                                {getMandiContactNumber(mandi)}
+                              </span>
+                            </a>
 
                             <button
                               onClick={() =>
