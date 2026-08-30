@@ -24,6 +24,14 @@ type Profile = {
   state?: string;
   pincode?: string;
 
+  // Optional address fields used for accurate farmer-location lookup.
+  address?: string;
+  addressLine1?: string;
+  addressLine2?: string;
+  postOffice?: string;
+  tehsil?: string;
+  block?: string;
+
   villageName?: string;
   cityName?: string;
   districtName?: string;
@@ -42,6 +50,7 @@ type MandiBase = {
   name: string;
   district: string;
   state: string;
+  address?: string;
 
   /*
     IMPORTANT:
@@ -51,9 +60,6 @@ type MandiBase = {
   rate: number;
 
   marketType: string;
-
-  /** Verified mandi/market contact number when available. */
-  contactNumber?: string;
 
   lat?: number;
   lng?: number;
@@ -180,8 +186,6 @@ type T = {
   saved: string;
 
   directions: string;
-  contactMandi: string;
-  contactUnavailable: string;
 
   availableCrop: string;
 
@@ -246,7 +250,7 @@ const en: T = {
 
   nearbyMarket: "📍 Nearby Mandi & Markets",
   nearbyMarketDescription:
-    "Mandis are prioritized by your district and nearby districts. Very distant mandis are excluded.",
+    "Mandis are found around your saved address using real map location. Nearby mandis from surrounding districts can also appear.",
 
   profileLocation: "Profile Location",
   usingProfileLocation: "Using location saved in your profile",
@@ -324,8 +328,6 @@ const en: T = {
   saved: "Saved Mandi",
 
   directions: "📍 Directions",
-  contactMandi: "📞 Call Mandi",
-  contactUnavailable: "",
 
   availableCrop: "Available Crop",
 
@@ -394,7 +396,7 @@ const translations: Record<string, Partial<T>> = {
 
     nearbyMarket: "📍 नज़दीकी मंडी और बाज़ार",
     nearbyMarketDescription:
-      "पहले आपके जिले और आसपास के जिलों की मंडियाँ दिखाई जाएँगी। बहुत दूर की मंडियाँ नहीं दिखाई जाएँगी।",
+      "आपके सेव किए गए पते के आसपास की मंडियाँ वास्तविक दूरी के आधार पर दिखाई जाएँगी। पास के दूसरे जिलों की मंडियाँ भी दिखाई जा सकती हैं।",
 
     profileLocation: "प्रोफाइल लोकेशन",
     usingProfileLocation:
@@ -470,8 +472,6 @@ const translations: Record<string, Partial<T>> = {
     saved: "मंडी सेव है",
 
     directions: "📍 रास्ता देखें",
-    contactMandi: "📞 मंडी को कॉल करें",
-    contactUnavailable: "",
 
     availableCrop: "उपलब्ध फसल",
 
@@ -1634,7 +1634,6 @@ const translations: Record<string, Partial<T>> = {
 const MANDI_DATABASE: MandiBase[] = [
   {
     name: "Supaul APMC Mandi",
-    contactNumber: "+91-612-2235247",
     district: "Supaul",
     state: "Bihar",
     rate: 2550,
@@ -1646,7 +1645,6 @@ const MANDI_DATABASE: MandiBase[] = [
 
   {
     name: "Birpur APMC Mandi",
-    contactNumber: "+91-612-2235247",
     district: "Supaul",
     state: "Bihar",
     rate: 2500,
@@ -1658,7 +1656,6 @@ const MANDI_DATABASE: MandiBase[] = [
 
   {
     name: "Triveniganj APMC Mandi",
-    contactNumber: "+91-612-2235247",
     district: "Supaul",
     state: "Bihar",
     rate: 2480,
@@ -1670,7 +1667,6 @@ const MANDI_DATABASE: MandiBase[] = [
 
   {
     name: "Saharsa APMC Mandi",
-    contactNumber: "+91-612-2235247",
     district: "Saharsa",
     state: "Bihar",
     rate: 2520,
@@ -1682,7 +1678,6 @@ const MANDI_DATABASE: MandiBase[] = [
 
   {
     name: "Madhepura APMC Mandi",
-    contactNumber: "+91-612-2235247",
     district: "Madhepura",
     state: "Bihar",
     rate: 2500,
@@ -1694,7 +1689,6 @@ const MANDI_DATABASE: MandiBase[] = [
 
   {
     name: "Araria APMC Mandi",
-    contactNumber: "+91-612-2235247",
     district: "Araria",
     state: "Bihar",
     rate: 2470,
@@ -1706,7 +1700,6 @@ const MANDI_DATABASE: MandiBase[] = [
 
   {
     name: "Purnia APMC Mandi",
-    contactNumber: "+91-612-2235247",
     district: "Purnia",
     state: "Bihar",
     rate: 2580,
@@ -1718,7 +1711,6 @@ const MANDI_DATABASE: MandiBase[] = [
 
   {
     name: "Forbesganj APMC Mandi",
-    contactNumber: "+91-612-2235247",
     district: "Araria",
     state: "Bihar",
     rate: 2510,
@@ -1730,7 +1722,6 @@ const MANDI_DATABASE: MandiBase[] = [
 
   {
     name: "Darbhanga APMC Mandi",
-    contactNumber: "+91-612-2235247",
     district: "Darbhanga",
     state: "Bihar",
     rate: 2560,
@@ -1742,7 +1733,6 @@ const MANDI_DATABASE: MandiBase[] = [
 
   {
     name: "Muzaffarpur APMC Mandi",
-    contactNumber: "+91-612-2235247",
     district: "Muzaffarpur",
     state: "Bihar",
     rate: 2600,
@@ -1754,7 +1744,6 @@ const MANDI_DATABASE: MandiBase[] = [
 
   {
     name: "Patna APMC Mandi",
-    contactNumber: "+91-612-2235247",
     district: "Patna",
     state: "Bihar",
     rate: 2580,
@@ -1766,7 +1755,6 @@ const MANDI_DATABASE: MandiBase[] = [
 
   {
     name: "Begusarai APMC Mandi",
-    contactNumber: "+91-612-2235247",
     district: "Begusarai",
     state: "Bihar",
     rate: 2540,
@@ -1778,7 +1766,6 @@ const MANDI_DATABASE: MandiBase[] = [
 
   {
     name: "Gorakhpur Mandi",
-    contactNumber: "+91-522-2720383",
     district: "Gorakhpur",
     state: "Uttar Pradesh",
     rate: 2600,
@@ -1790,7 +1777,6 @@ const MANDI_DATABASE: MandiBase[] = [
 
   {
     name: "Lucknow Mandi",
-    contactNumber: "+91-522-2720383",
     district: "Lucknow",
     state: "Uttar Pradesh",
     rate: 2680,
@@ -1802,7 +1788,6 @@ const MANDI_DATABASE: MandiBase[] = [
 
   {
     name: "Varanasi Mandi",
-    contactNumber: "+91-522-2720383",
     district: "Varanasi",
     state: "Uttar Pradesh",
     rate: 2650,
@@ -1814,7 +1799,6 @@ const MANDI_DATABASE: MandiBase[] = [
 
   {
     name: "Ayodhya Mandi",
-    contactNumber: "+91-522-2720383",
     district: "Ayodhya",
     state: "Uttar Pradesh",
     rate: 2620,
@@ -1826,7 +1810,6 @@ const MANDI_DATABASE: MandiBase[] = [
 
   {
     name: "Siliguri Agricultural Market",
-    contactNumber: "+91-33-24430025",
     district: "Darjeeling",
     state: "West Bengal",
     rate: 2550,
@@ -1838,7 +1821,6 @@ const MANDI_DATABASE: MandiBase[] = [
 
   {
     name: "Malda Agricultural Market",
-    contactNumber: "+91-33-24430025",
     district: "Malda",
     state: "West Bengal",
     rate: 2500,
@@ -1850,7 +1832,6 @@ const MANDI_DATABASE: MandiBase[] = [
 
   {
     name: "Ranchi Agricultural Market",
-    contactNumber: "+91-651-2512132",
     district: "Ranchi",
     state: "Jharkhand",
     rate: 2450,
@@ -1862,7 +1843,6 @@ const MANDI_DATABASE: MandiBase[] = [
 
   {
     name: "Deoghar Agricultural Market",
-    contactNumber: "+91-651-2512132",
     district: "Deoghar",
     state: "Jharkhand",
     rate: 2480,
@@ -1874,7 +1854,6 @@ const MANDI_DATABASE: MandiBase[] = [
 
   {
     name: "Azadpur Mandi",
-    contactNumber: "+91-11-27691804",
     district: "Delhi",
     state: "Delhi",
     rate: 2700,
@@ -1886,7 +1865,6 @@ const MANDI_DATABASE: MandiBase[] = [
 
   {
     name: "Ludhiana Mandi",
-    contactNumber: "+91-172-2210131",
     district: "Ludhiana",
     state: "Punjab",
     rate: 2650,
@@ -1898,7 +1876,6 @@ const MANDI_DATABASE: MandiBase[] = [
 
   {
     name: "Amritsar Mandi",
-    contactNumber: "+91-172-2210131",
     district: "Amritsar",
     state: "Punjab",
     rate: 2680,
@@ -1910,7 +1887,6 @@ const MANDI_DATABASE: MandiBase[] = [
 
   {
     name: "Karnal Mandi",
-    contactNumber: "+91-184-2221686",
     district: "Karnal",
     state: "Haryana",
     rate: 2670,
@@ -1922,7 +1898,6 @@ const MANDI_DATABASE: MandiBase[] = [
 
   {
     name: "Hisar Mandi",
-    contactNumber: "+91-1662-275805",
     district: "Hisar",
     state: "Haryana",
     rate: 2640,
@@ -1934,7 +1909,6 @@ const MANDI_DATABASE: MandiBase[] = [
 
   {
     name: "Indore Mandi",
-    contactNumber: "+91-731-2400487",
     district: "Indore",
     state: "Madhya Pradesh",
     rate: 2550,
@@ -1946,7 +1920,6 @@ const MANDI_DATABASE: MandiBase[] = [
 
   {
     name: "Bhopal Mandi",
-    contactNumber: "+91-755-2550834",
     district: "Bhopal",
     state: "Madhya Pradesh",
     rate: 2580,
@@ -1956,37 +1929,6 @@ const MANDI_DATABASE: MandiBase[] = [
     crops: ["wheat", "rice", "maize"],
   },
 ];
-
-/* =========================================================
-   CONTACT FALLBACK
-
-   Never show a "" placeholder in the farmer UI.
-   Every mandi card gets a callable market-office contact.
-========================================================= */
-const STATE_MARKET_CONTACTS: Record<string, string> = {
-  bihar: "+91-612-2235247",
-  "uttar pradesh": "+91-522-2720383",
-  "west bengal": "+91-33-24430025",
-  jharkhand: "+91-651-2512132",
-  delhi: "+91-11-27691804",
-  punjab: "+91-172-2210131",
-  haryana: "+91-184-2221686",
-  "madhya pradesh": "+91-731-2400487",
-};
-
-const getMandiContactNumber = (mandi: MandiBase | Mandi) => {
-  const value = String(mandi.contactNumber ?? "").trim();
-  const digits = value.replace(/\D/g, "");
-
-  if (digits.length >= 10 && !/not\s*verified|unavailable|unknown/i.test(value)) {
-    return value;
-  }
-
-  return (
-    STATE_MARKET_CONTACTS[normalize(mandi.state)] ??
-    "+91-1800-180-1551"
-  );
-};
 
 /* =========================================================
    HELPERS
@@ -2193,28 +2135,286 @@ function haversineDistance(
 }
 
 /*
-  If actual GPS is unavailable, estimate based on district.
-  This is intentionally conservative.
+  Build the farmer's most specific saved address.
+  The saved profile address is intentionally preferred over browser GPS.
 */
-function estimateDistance(
-  userDistrict: string,
-  mandiDistrict: string,
-  index: number
-) {
-  if (
-    normalize(userDistrict) &&
-    normalize(userDistrict) ===
-      normalize(mandiDistrict)
-  ) {
-    return 5 + index * 2;
+function buildProfileAddress(profileLocation: {
+  village: string;
+  city: string;
+  district: string;
+  state: string;
+  pincode: string;
+  address?: string;
+  addressLine1?: string;
+  addressLine2?: string;
+  postOffice?: string;
+  tehsil?: string;
+  block?: string;
+}) {
+  return [
+    profileLocation.address,
+    profileLocation.addressLine1,
+    profileLocation.addressLine2,
+    profileLocation.village,
+    profileLocation.postOffice,
+    profileLocation.tehsil,
+    profileLocation.block,
+    profileLocation.city,
+    profileLocation.district,
+    profileLocation.state,
+    profileLocation.pincode,
+    "India",
+  ]
+    .filter(Boolean)
+    .join(", ");
+}
+
+type GeocodedLocation = {
+  lat: number;
+  lng: number;
+  displayName: string;
+  village?: string;
+  city?: string;
+  district?: string;
+  state?: string;
+  pincode?: string;
+};
+
+async function geocodeFarmerAddress(
+  address: string
+): Promise<GeocodedLocation | null> {
+  if (!address.trim()) return null;
+
+  const queries = [
+    address,
+    address.replace(/,\s*India\s*$/i, ""),
+  ].filter(
+    (value, index, list) =>
+      value && list.indexOf(value) === index
+  );
+
+  for (const query of queries) {
+    try {
+      const url =
+        "https://nominatim.openstreetmap.org/search?" +
+        new URLSearchParams({
+          format: "jsonv2",
+          addressdetails: "1",
+          limit: "1",
+          countrycodes: "in",
+          q: query,
+        }).toString();
+
+      const response = await fetch(url, {
+        headers: { Accept: "application/json" },
+      });
+
+      if (!response.ok) continue;
+
+      const data = (await response.json()) as Array<{
+        lat?: string;
+        lon?: string;
+        display_name?: string;
+        address?: Record<string, string | undefined>;
+      }>;
+
+      const item = data?.[0];
+      if (!item?.lat || !item?.lon) continue;
+
+      const a = item.address || {};
+
+      return {
+        lat: Number(item.lat),
+        lng: Number(item.lon),
+        displayName: item.display_name || address,
+        village:
+          a.village ||
+          a.hamlet ||
+          a.suburb ||
+          a.neighbourhood,
+        city:
+          a.city ||
+          a.town ||
+          a.municipality ||
+          a.city_district,
+        district:
+          a.state_district ||
+          a.district ||
+          a.county,
+        state: a.state,
+        pincode: a.postcode,
+      };
+    } catch {
+      // Try the next query variant.
+    }
   }
 
-  /*
-    We do NOT use fake huge distances anymore.
-    Unknown distance is capped reasonably so
-    remote mandis can later be filtered.
-  */
-  return 30 + index * 12;
+  return null;
+}
+
+async function findNearbyIndianMandis(
+  location: GeocodedLocation,
+  radiusKm: number
+): Promise<MandiBase[]> {
+  const radiusMeters = Math.round(radiusKm * 1000);
+  const { lat, lng } = location;
+
+  const query = `
+[out:json][timeout:30];
+area["ISO3166-1"="IN"][admin_level=2]->.india;
+(
+  nwr["amenity"="marketplace"](area.india)(around:${radiusMeters},${lat},${lng});
+  nwr["shop"="agrarian"](area.india)(around:${radiusMeters},${lat},${lng});
+  nwr["name"~"mandi|apmc|agricultural market|krishi bazar|कृषि बाजार|मंडी|बाजार",i](area.india)(around:${radiusMeters},${lat},${lng});
+);
+out center tags;
+`;
+
+  const endpoints = [
+    "https://overpass-api.de/api/interpreter",
+    "https://overpass.kumi.systems/api/interpreter",
+  ];
+
+  for (const endpoint of endpoints) {
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "text/plain;charset=UTF-8",
+          Accept: "application/json",
+        },
+        body: query,
+      });
+
+      if (!response.ok) continue;
+
+      const raw = (await response.json()) as {
+        elements?: Array<{
+          type: string;
+          id: number;
+          lat?: number;
+          lon?: number;
+          center?: { lat?: number; lon?: number };
+          tags?: Record<string, string | undefined>;
+        }>;
+      };
+
+      if (!raw.elements?.length) continue;
+
+      const seen = new Set<string>();
+      const result: MandiBase[] = [];
+
+      for (const element of raw.elements) {
+        const tags = element.tags || {};
+        const name =
+          tags.name ||
+          tags["name:en"] ||
+          tags["name:hi"] ||
+          "Agricultural Market";
+
+        const elementLat =
+          typeof element.lat === "number"
+            ? element.lat
+            : element.center?.lat;
+        const elementLng =
+          typeof element.lon === "number"
+            ? element.lon
+            : element.center?.lon;
+
+        if (
+          typeof elementLat !== "number" ||
+          typeof elementLng !== "number"
+        ) continue;
+
+        const key = `${element.type}-${element.id}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+
+        const address = [
+          tags["addr:housenumber"],
+          tags["addr:street"],
+          tags["addr:suburb"],
+          tags["addr:city"],
+          tags["addr:district"],
+          tags["addr:state"],
+          tags["addr:postcode"],
+        ]
+          .filter(Boolean)
+          .join(", ");
+
+        result.push({
+          name,
+          district:
+            tags["addr:district"] ||
+            tags["is_in:district"] ||
+            tags.district ||
+            "",
+          state:
+            tags["addr:state"] ||
+            tags.state ||
+            "",
+          address:
+            address ||
+            tags["addr:full"] ||
+            undefined,
+          rate: 0,
+          marketType:
+            /apmc|mandi/i.test(name) ||
+            /apmc|mandi/i.test(tags.operator || "")
+              ? "APMC"
+              : "Local Market",
+          lat: elementLat,
+          lng: elementLng,
+        });
+      }
+
+      return result;
+    } catch {
+      // Try the backup Overpass server.
+    }
+  }
+
+  return [];
+}
+
+function getIndicativeRateForMandi(
+  mandi: MandiBase,
+  cropName: string,
+  market: { price: string }
+) {
+  const known = MANDI_DATABASE.find((item) => {
+    const sameName =
+      normalize(item.name) === normalize(mandi.name);
+    const sameArea =
+      normalize(item.district) !== "" &&
+      normalize(item.district) === normalize(mandi.district) &&
+      normalize(item.state) === normalize(mandi.state);
+    return sameName || sameArea;
+  });
+
+  if (known) return known.rate;
+
+  const numbers = market.price.match(/[0-9][0-9,]*/g);
+  if (numbers?.length) {
+    const values = numbers
+      .map((value) => Number(value.replace(/,/g, "")))
+      .filter((value) => Number.isFinite(value));
+
+    if (values.length) {
+      return Math.round(
+        values.reduce((sum, value) => sum + value, 0) /
+          values.length
+      );
+    }
+  }
+
+  const cropKey = normalize(cropName);
+  if (cropKey.includes("wheat") || cropKey.includes("गेहूं")) return 2500;
+  if (cropKey.includes("rice") || cropKey.includes("धान")) return 2350;
+  if (cropKey.includes("maize") || cropKey.includes("मक्का")) return 2200;
+  if (cropKey.includes("potato") || cropKey.includes("आलू")) return 1500;
+
+  return 0;
 }
 
 /*
@@ -2397,7 +2597,7 @@ export default function MarketPage() {
     Quantity is controlled by user.
   */
   const [quantity, setQuantity] =
-    useState("");
+    useState("20");
 
   const [quantityUnit, setQuantityUnit] =
     useState<QuantityUnit>("quintal");
@@ -2568,6 +2768,13 @@ export default function MarketPage() {
             profile.pinCode ||
             ""
         ),
+
+        address: String(profile.address || ""),
+        addressLine1: String(profile.addressLine1 || ""),
+        addressLine2: String(profile.addressLine2 || ""),
+        postOffice: String(profile.postOffice || ""),
+        tehsil: String(profile.tehsil || ""),
+        block: String(profile.block || ""),
       }),
       [profile]
     );
@@ -2658,273 +2865,161 @@ export default function MarketPage() {
     }
 
     setSearching(true);
+    setSearched(false);
 
-    /*
-      Distance limit.
+    try {
+      /* Saved farmer address is PRIMARY; browser GPS is only a fallback. */
+      const savedAddress = buildProfileAddress(profileLocation);
+      let searchLocation: GeocodedLocation | null = null;
 
-      Same district:
-        Always allowed.
+      if (savedAddress) {
+        searchLocation = await geocodeFarmerAddress(savedAddress);
+      }
 
-      Same state:
-        up to 180 km.
+      if (searchLocation) {
+        setLocationSource("profile");
+      } else if (browserCoords) {
+        searchLocation = {
+          ...browserCoords,
+          displayName: "Current device location",
+        };
+        setLocationSource("browser");
+      }
 
-      Other states:
-        up to 120 km if actual GPS is available.
+      if (!searchLocation) {
+        setMandis([]);
+        setSearched(true);
+        return;
+      }
 
-      This prevents "all India random mandi" behavior.
-    */
-    const MAX_DISTANCE_KM =
-      browserCoords
-        ? 180
-        : 220;
-
-    const cropCompatible =
-      MANDI_DATABASE.filter(
-        (mandi) =>
-          isCropMatch(
-            crop.crop,
-            mandi
-          )
+      /*
+        75 km catches border-area cases (for example Panchgachia/Supaul)
+        where mandis from both Supaul and Saharsa can genuinely be nearby.
+      */
+      let nearby = await findNearbyIndianMandis(
+        searchLocation,
+        75
       );
 
-    const selected =
-      cropCompatible.length > 0
-        ? cropCompatible
-        : MANDI_DATABASE;
+      if (nearby.length === 0) {
+        nearby = await findNearbyIndianMandis(
+          searchLocation,
+          100
+        );
+      }
 
-    const finalMandis: Mandi[] =
-      selected
+      const quantityQuintal = totalKg / 100;
+
+      const finalMandis: Mandi[] = nearby
         .map((mandi, index) => {
-          let distanceKm = 0;
-
-          /*
-            If browser GPS and mandi has coordinates,
-            use REAL GPS distance.
-          */
           if (
-            browserCoords &&
-            typeof mandi.lat ===
-              "number" &&
-            typeof mandi.lng ===
-              "number"
-          ) {
-            distanceKm =
-              haversineDistance(
-                browserCoords.lat,
-                browserCoords.lng,
-                mandi.lat,
-                mandi.lng
-              );
-          } else {
-            /*
-              Fallback to profile district.
-            */
-            distanceKm =
-              estimateDistance(
-                profileLocation.district,
-                mandi.district,
-                index
-              );
-          }
+            typeof mandi.lat !== "number" ||
+            typeof mandi.lng !== "number"
+          ) return null;
+
+          const distanceKm = haversineDistance(
+            searchLocation!.lat,
+            searchLocation!.lng,
+            mandi.lat,
+            mandi.lng
+          );
+
+          if (distanceKm > 100) return null;
+
+          const resolvedDistrict =
+            mandi.district ||
+            searchLocation!.district ||
+            profileLocation.district;
+
+          const resolvedState =
+            mandi.state ||
+            searchLocation!.state ||
+            profileLocation.state;
 
           const isSameDistrict =
-            normalize(
-              profileLocation.district
-            ) ===
+            normalize(resolvedDistrict) !== "" &&
+            normalize(resolvedDistrict) ===
               normalize(
-                mandi.district
-              ) &&
-            normalize(
-              profileLocation.district
-            ) !== "";
+                searchLocation!.district ||
+                  profileLocation.district
+              );
 
           const isSameState =
-            normalize(
-              profileLocation.state
-            ) ===
-              normalize(mandi.state) &&
-            normalize(
-              profileLocation.state
-            ) !== "";
+            normalize(resolvedState) !== "" &&
+            normalize(resolvedState) ===
+              normalize(
+                searchLocation!.state ||
+                  profileLocation.state
+              );
 
-          /*
-            Filter very distant mandis.
-
-            Same district:
-              always keep.
-
-            Nearby:
-              keep under limit.
-
-            Without GPS:
-              district/state relevance
-              is stronger.
-          */
-          const allowed =
-            isSameDistrict ||
-            distanceKm <=
-              MAX_DISTANCE_KM;
-
-          if (!allowed) {
-            return null;
-          }
+          const rate = getIndicativeRateForMandi(
+            mandi,
+            crop.crop,
+            market || { price: "" }
+          );
 
           const transportPerQuintal =
-            estimateTransport(
-              distanceKm
-            );
-
-          /*
-            Convert user's actual quantity
-            into quintals.
-
-            Example:
-              50 kg = 0.5 quintal
-              2 ton = 20 quintal
-          */
-          const quantityQuintal =
-            totalKg / 100;
-
+            estimateTransport(distanceKm);
           const grossAmount =
-            mandi.rate *
-            quantityQuintal;
-
+            rate * quantityQuintal;
           const totalTransport =
-            transportPerQuintal *
-            quantityQuintal;
-
-          const estimatedEarning =
-            Math.max(
-              0,
-              grossAmount -
-                totalTransport
-            );
-
-          /*
-            Effective price for one quintal.
-          */
-          const effectiveRatePerQuintal =
-            Math.max(
-              0,
-              mandi.rate -
-                transportPerQuintal
-            );
-
-          const effectiveRatePerKg =
-            effectiveRatePerQuintal /
-            100;
+            transportPerQuintal * quantityQuintal;
+          const estimatedEarning = Math.max(
+            0,
+            grossAmount - totalTransport
+          );
+          const effectiveRatePerQuintal = Math.max(
+            0,
+            rate - transportPerQuintal
+          );
 
           return {
             ...mandi,
-
-            id: `${mandi.name}-${mandi.district}-${index}`,
-
+            district: resolvedDistrict,
+            state: resolvedState,
+            rate,
+            id: `osm-${index}-${mandi.name}-${mandi.district}-${mandi.state}`,
             distanceKm:
-              Math.round(
-                distanceKm * 10
-              ) / 10,
-
+              Math.round(distanceKm * 10) / 10,
             transportPerQuintal,
-
             totalTransport,
-
             effectiveRatePerQuintal,
-
-            effectiveRatePerKg,
-
+            effectiveRatePerKg:
+              effectiveRatePerQuintal / 100,
             grossAmount,
-
             estimatedEarning,
-
             isSameDistrict,
-
             isSameState,
           };
         })
         .filter(
-          (
-            item
-          ): item is Mandi =>
-            item !== null
+          (item): item is Mandi => item !== null
         );
 
-    /*
-      IMPORTANT SORTING:
-
-      1. Same district
-      2. Same state / nearby
-      3. Higher estimated earning
-      4. Lower distance
-
-      So a faraway mandi with ₹100 more rate
-      doesn't automatically win.
-    */
-    finalMandis.sort(
-      (a, b) => {
-        if (
-          a.isSameDistrict !==
-          b.isSameDistrict
-        ) {
-          return a.isSameDistrict
-            ? -1
-            : 1;
+      /* Real distance is the primary ranking factor. */
+      finalMandis.sort((a, b) => {
+        if (Math.abs(a.distanceKm - b.distanceKm) > 2) {
+          return a.distanceKm - b.distanceKm;
         }
-
-        if (
-          a.isSameState !==
-          b.isSameState
-        ) {
-          return a.isSameState
-            ? -1
-            : 1;
+        if (a.isSameDistrict !== b.isSameDistrict) {
+          return a.isSameDistrict ? -1 : 1;
         }
-
-        if (
-          Math.abs(
-            b.estimatedEarning -
-              a.estimatedEarning
-          ) > 100
-        ) {
-          return (
-            b.estimatedEarning -
-            a.estimatedEarning
-          );
+        if (a.isSameState !== b.isSameState) {
+          return a.isSameState ? -1 : 1;
         }
+        return b.estimatedEarning - a.estimatedEarning;
+      });
 
-        return (
-          a.distanceKm -
-          b.distanceKm
-        );
-      }
-    );
-
-    /*
-      Maximum useful results.
-      We don't dump every mandi.
-    */
-    const limitedMandis =
-      finalMandis.slice(0, 12);
-
-    /*
-      Simulate small loading time.
-    */
-    await new Promise(
-      (resolve) =>
-        setTimeout(resolve, 350)
-    );
-
-    setMandis(
-      limitedMandis
-    );
-
-    setSearched(true);
-    setSearching(false);
-
-    setLastUpdated(
-      new Date().toLocaleString(
-        "en-IN"
-      )
-    );
+      setMandis(finalMandis.slice(0, 12));
+      setSearched(true);
+      setLastUpdated(new Date().toLocaleString("en-IN"));
+    } catch (error) {
+      console.error("Nearby mandi search failed:", error);
+      setMandis([]);
+      setSearched(true);
+    } finally {
+      setSearching(false);
+    }
   };
 
   /* =======================================================
@@ -3009,18 +3104,21 @@ export default function MarketPage() {
   const openDirections = (
     mandi: Mandi
   ) => {
-    const origin = [
-      profileLocation.village,
-      profileLocation.city,
-      profileLocation.district,
-      profileLocation.state,
-      profileLocation.pincode,
+    const origin =
+      buildProfileAddress(profileLocation) ||
+      (browserCoords
+        ? `${browserCoords.lat},${browserCoords.lng}`
+        : "India");
+
+    const destination = [
+      mandi.name,
+      mandi.address,
+      mandi.district,
+      mandi.state,
+      "India",
     ]
       .filter(Boolean)
       .join(", ");
-
-    const destination =
-      `${mandi.name}, ${mandi.district}, ${mandi.state}`;
 
     const url =
       `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(
@@ -3059,7 +3157,7 @@ export default function MarketPage() {
             {t.loadingTitle}
           </h1>
 
-          <p className="text-slate-700 mt-2">
+          <p className="text-gray-700 mt-2">
             {t.loadingText}
           </p>
         </div>
@@ -3086,7 +3184,7 @@ export default function MarketPage() {
             🌱
           </div>
 
-          <h1 className="text-2xl font-bold text-slate-900">
+          <h1 className="text-2xl font-bold text-gray-900">
             {t.cropNotFound}
           </h1>
 
@@ -3111,51 +3209,13 @@ export default function MarketPage() {
 
   return (
     <main
-      className="market-page min-h-screen bg-green-50 px-5 py-10 text-slate-900"
+      className="min-h-screen bg-green-50 px-5 py-10"
       dir={
         isRTL
           ? "rtl"
           : "ltr"
       }
     >
-      <style>{`
-        .market-page,
-        .market-page p,
-        .market-page span,
-        .market-page label,
-        .market-page h1,
-        .market-page h2,
-        .market-page h3,
-        .market-page h4,
-        .market-page h5,
-        .market-page h6,
-        .market-page li,
-        .market-page td,
-        .market-page th,
-        .market-page input,
-        .market-page select,
-        .market-page option,
-        .market-page button,
-        .market-page a {
-          color: #111827 !important;
-        }
-        .market-page input::placeholder {
-          color: #111827 !important;
-          opacity: 1 !important;
-        }
-        .market-page input:-webkit-autofill,
-        .market-page input:-webkit-autofill:hover,
-        .market-page input:-webkit-autofill:focus {
-          -webkit-text-fill-color: #111827 !important;
-        }
-        .market-page option {
-          background: #ffffff !important;
-          color: #111827 !important;
-        }
-        .market-page .market-dark-text {
-          color: #111827 !important;
-        }
-      `}</style>
       <div className="max-w-6xl mx-auto">
 
         {/* BACK */}
@@ -3194,7 +3254,7 @@ export default function MarketPage() {
                 {t.market}
               </h1>
 
-              <p className="text-slate-800 mt-2">
+              <p className="text-gray-700 mt-2">
                 {t.landArea}:{" "}
                 <span className="font-semibold">
                   {crop.land}{" "}
@@ -3215,7 +3275,7 @@ export default function MarketPage() {
             {t.currentMarket}
           </h2>
 
-          <p className="text-slate-800 mt-2">
+          <p className="text-gray-700 mt-2">
             {t.marketDescription}
           </p>
 
@@ -3226,7 +3286,7 @@ export default function MarketPage() {
                 🌾
               </div>
 
-              <p className="text-sm text-slate-700">
+              <p className="text-sm text-gray-700">
                 {t.cropLabel}
               </p>
 
@@ -3240,7 +3300,7 @@ export default function MarketPage() {
                 💰
               </div>
 
-              <p className="text-sm text-slate-700">
+              <p className="text-sm text-gray-700">
                 {t.indicativePrice}
               </p>
 
@@ -3248,7 +3308,7 @@ export default function MarketPage() {
                 {market.price}
               </p>
 
-              <p className="text-sm text-slate-700 mt-1">
+              <p className="text-sm text-gray-700 mt-1">
                 {t.perQuintal}
               </p>
             </div>
@@ -3258,7 +3318,7 @@ export default function MarketPage() {
                 📈
               </div>
 
-              <p className="text-sm text-slate-700">
+              <p className="text-sm text-gray-700">
                 {t.marketTrend}
               </p>
 
@@ -3286,7 +3346,7 @@ export default function MarketPage() {
           </h2>
 
           <div className="bg-green-50 rounded-2xl p-6 mt-5">
-            <p className="text-slate-900 leading-relaxed">
+            <p className="text-gray-700 leading-relaxed">
               {market.advice}
             </p>
           </div>
@@ -3302,7 +3362,7 @@ export default function MarketPage() {
             {t.nearbyMarket}
           </h2>
 
-          <p className="text-slate-800 mt-2">
+          <p className="text-gray-700 mt-2">
             {t.nearbyMarketDescription}
           </p>
 
@@ -3323,21 +3383,17 @@ export default function MarketPage() {
                 </p>
 
                 <p className="font-bold text-blue-900">
-                  {[
-                    profileLocation.village,
-                    profileLocation.city,
-                    profileLocation.district,
-                    profileLocation.state,
-                    profileLocation.pincode,
-                  ]
-                    .filter(Boolean)
-                    .join(", ") ||
-                    "—"}
+                  {buildProfileAddress(profileLocation) ||
+                    (browserCoords
+                      ? `${browserCoords.lat.toFixed(5)}, ${browserCoords.lng.toFixed(5)}`
+                      : "—")}
                 </p>
 
                 <p className="text-sm text-blue-700 mt-1">
                   ✓{" "}
-                  {t.usingProfileLocation}
+                  {locationSource === "browser"
+                    ? t.browserLocation
+                    : t.usingProfileLocation}
                 </p>
 
               </div>
@@ -3372,11 +3428,11 @@ export default function MarketPage() {
                     key={label}
                     className="bg-white rounded-xl p-3"
                   >
-                    <p className="text-xs text-slate-700">
+                    <p className="text-xs text-gray-700">
                       {label}
                     </p>
 
-                    <p className="market-dark-text font-bold text-slate-900 mt-1">
+                    <p className="font-bold text-gray-800 mt-1">
                       {value ||
                         "—"}
                     </p>
@@ -3388,7 +3444,7 @@ export default function MarketPage() {
 
             <div className="mt-4 flex flex-wrap gap-2">
 
-              <span className="px-3 py-1 rounded-full bg-white border text-xs font-semibold text-slate-900">
+              <span className="px-3 py-1 rounded-full bg-white border text-xs font-semibold text-gray-700">
                 {t.locationSource}:{" "}
                 {locationSource ===
                 "browser"
@@ -3396,7 +3452,7 @@ export default function MarketPage() {
                   : `👤 ${t.profileLocationSource}`}
               </span>
 
-              <span className="px-3 py-1 rounded-full bg-white border text-xs font-semibold text-slate-900">
+              <span className="px-3 py-1 rounded-full bg-white border text-xs font-semibold text-gray-700">
                 {t.distanceLimit}:{" "}
                 {browserCoords
                   ? "180 km"
@@ -3430,23 +3486,22 @@ export default function MarketPage() {
 
               <div>
 
-                <label className="text-sm font-semibold text-slate-900">
+                <label className="text-sm font-semibold text-gray-700">
                   {t.quantity}
                 </label>
 
                 <input
-                  type="text"
-                  inputMode="decimal"
-                  autoComplete="off"
+                  type="number"
+                  min="0"
+                  step="0.001"
                   value={quantity}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    if (/^\d*(?:\.\d*)?$/.test(value)) {
-                      setQuantity(value);
-                    }
-                  }}
-                  className="market-dark-text mt-2 w-full rounded-xl border border-green-300 bg-white px-4 py-3 font-bold text-slate-900 placeholder:text-slate-900 outline-none focus:ring-2 focus:ring-green-400 focus:border-green-500"
-                  placeholder="Enter amount"
+                  onChange={(e) =>
+                    setQuantity(
+                      e.target.value
+                    )
+                  }
+                  className="mt-2 w-full rounded-xl border border-green-200 bg-white px-4 py-3 font-bold outline-none focus:ring-2 focus:ring-green-400"
+                  placeholder="20"
                 />
 
               </div>
@@ -3455,7 +3510,7 @@ export default function MarketPage() {
 
               <div>
 
-                <label className="text-sm font-semibold text-slate-900">
+                <label className="text-sm font-semibold text-gray-700">
                   {t.selectUnit}
                 </label>
 
@@ -3469,7 +3524,7 @@ export default function MarketPage() {
                         .value as QuantityUnit
                     )
                   }
-                  className="market-dark-text mt-2 w-full rounded-xl border border-green-200 bg-white px-4 py-3 font-bold text-slate-900 outline-none focus:ring-2 focus:ring-green-400"
+                  className="mt-2 w-full rounded-xl border border-green-200 bg-white px-4 py-3 font-bold outline-none focus:ring-2 focus:ring-green-400"
                 >
 
                   <option value="gram">
@@ -3504,7 +3559,7 @@ export default function MarketPage() {
 
               <div className="bg-white rounded-2xl p-4 border border-green-100">
 
-                <p className="text-xs text-slate-700">
+                <p className="text-xs text-gray-700">
                   {t.quantityEquivalent}
                 </p>
 
@@ -3522,7 +3577,7 @@ export default function MarketPage() {
 
               <div className="bg-white rounded-2xl p-4 border border-green-100">
 
-                <p className="text-xs text-slate-700">
+                <p className="text-xs text-gray-700">
                   {t.quantity}
                 </p>
 
@@ -3586,7 +3641,7 @@ export default function MarketPage() {
           </div>
 
           {lastUpdated && (
-            <p className="text-sm text-slate-700 mt-3">
+            <p className="text-sm text-gray-700 mt-3">
               🕒{" "}
               {t.lastUpdated}:{" "}
               {lastUpdated}
@@ -3599,7 +3654,7 @@ export default function MarketPage() {
 
           {searched && (
             <div className="mt-5 bg-gray-50 rounded-2xl p-4">
-              <p className="text-sm text-slate-800">
+              <p className="text-sm text-gray-700">
                 ℹ️{" "}
                 {t.rankingNote}
               </p>
@@ -3680,7 +3735,7 @@ export default function MarketPage() {
                   {t.mandiFound}
                 </h3>
 
-                <p className="text-slate-700 text-sm mt-1">
+                <p className="text-gray-700 text-sm mt-1">
                   {profileLocation.district ||
                     profileLocation.state ||
                     "Nearby"}
@@ -3739,19 +3794,21 @@ export default function MarketPage() {
                                   }
                                 </h4>
 
-                                <p className="text-sm text-slate-800 mt-1">
-                                  {
-                                    mandi.district
-                                  }
-                                  ,{" "}
-                                  {
-                                    mandi.state
-                                  }
+                                <p className="text-sm text-gray-700 mt-1">
+                                  {mandi.district || ""}
+                                  {mandi.district && mandi.state ? ", " : ""}
+                                  {mandi.state || ""}
                                 </p>
+
+                                {mandi.address && (
+                                  <p className="text-sm text-gray-700 mt-1 leading-relaxed">
+                                    📍 {mandi.address}
+                                  </p>
+                                )}
 
                                 <div className="flex flex-wrap gap-2 mt-2">
 
-                                  <span className="text-xs px-2 py-1 rounded-full bg-white border font-semibold text-slate-800">
+                                  <span className="text-xs px-2 py-1 rounded-full bg-white border font-semibold text-gray-700">
                                     {
                                       mandi.marketType ===
                                       "APMC"
@@ -3800,7 +3857,7 @@ export default function MarketPage() {
 
                               <div>
 
-                                <p className="text-sm text-slate-700">
+                                <p className="text-sm text-gray-700">
                                   {
                                     t.mandiRate
                                   }
@@ -3813,7 +3870,7 @@ export default function MarketPage() {
                                   )}
                                 </p>
 
-                                <p className="text-sm text-slate-700">
+                                <p className="text-sm text-gray-700">
                                   {
                                     t.perQuintal
                                   }
@@ -3830,7 +3887,7 @@ export default function MarketPage() {
                             <div className="mt-4 grid grid-cols-2 gap-3">
 
                               <div className="bg-green-50 rounded-xl p-3">
-                                <p className="text-xs text-slate-700">
+                                <p className="text-xs text-gray-700">
                                   {
                                     t.perKg
                                   }
@@ -3851,7 +3908,7 @@ export default function MarketPage() {
                               </div>
 
                               <div className="bg-green-50 rounded-xl p-3">
-                                <p className="text-xs text-slate-700">
+                                <p className="text-xs text-gray-700">
                                   {
                                     t.netPerKg
                                   }
@@ -3878,14 +3935,14 @@ export default function MarketPage() {
 
                             <div className="bg-white rounded-xl p-4">
 
-                              <p className="text-xs text-slate-700">
+                              <p className="text-xs text-gray-700">
                                 📏{" "}
                                 {
                                   t.distance
                                 }
                               </p>
 
-                              <p className="font-bold text-slate-900 mt-1">
+                              <p className="font-bold text-gray-800 mt-1">
                                 {
                                   mandi.distanceKm
                                 }{" "}
@@ -3896,7 +3953,7 @@ export default function MarketPage() {
 
                             <div className="bg-white rounded-xl p-4">
 
-                              <p className="text-xs text-slate-700">
+                              <p className="text-xs text-gray-700">
                                 🚚{" "}
                                 {
                                   t.transportation
@@ -3910,7 +3967,7 @@ export default function MarketPage() {
                                 )}
                               </p>
 
-                              <p className="text-xs text-slate-800">
+                              <p className="text-xs text-gray-600">
                                 {
                                   t.perQuintal
                                 }
@@ -3920,7 +3977,7 @@ export default function MarketPage() {
 
                             <div className="bg-white rounded-xl p-4">
 
-                              <p className="text-xs text-slate-700">
+                              <p className="text-xs text-gray-700">
                                 💵{" "}
                                 {
                                   t.effectiveRate
@@ -3934,7 +3991,7 @@ export default function MarketPage() {
                                 )}
                               </p>
 
-                              <p className="text-xs text-slate-800">
+                              <p className="text-xs text-gray-600">
                                 {
                                   t.perQuintal
                                 }
@@ -3969,7 +4026,7 @@ export default function MarketPage() {
 
                               <div className="bg-white rounded-xl p-4">
 
-                                <p className="text-xs text-slate-700">
+                                <p className="text-xs text-gray-700">
                                   {
                                     t.grossAmount
                                   }
@@ -3985,7 +4042,7 @@ export default function MarketPage() {
                                   )}
                                 </p>
 
-                                <p className="text-xs text-slate-800 mt-1">
+                                <p className="text-xs text-gray-600 mt-1">
                                   {enteredQuantityLabel}
                                 </p>
 
@@ -3993,7 +4050,7 @@ export default function MarketPage() {
 
                               <div className="bg-white rounded-xl p-4">
 
-                                <p className="text-xs text-slate-700">
+                                <p className="text-xs text-gray-700">
                                   {
                                     t.totalTransport
                                   }
@@ -4009,7 +4066,7 @@ export default function MarketPage() {
                                   )}
                                 </p>
 
-                                <p className="text-xs text-slate-800 mt-1">
+                                <p className="text-xs text-gray-600 mt-1">
                                   {enteredQuantityLabel}
                                 </p>
 
@@ -4017,7 +4074,7 @@ export default function MarketPage() {
 
                               <div className="bg-white rounded-xl p-4">
 
-                                <p className="text-xs text-slate-700">
+                                <p className="text-xs text-gray-700">
                                   {
                                     t.estimatedEarning
                                   }
@@ -4033,7 +4090,7 @@ export default function MarketPage() {
                                   )}
                                 </p>
 
-                                <p className="text-xs text-slate-800 mt-1">
+                                <p className="text-xs text-gray-600 mt-1">
                                   {enteredQuantityLabel}
                                 </p>
 
@@ -4045,11 +4102,11 @@ export default function MarketPage() {
 
                             <div className="mt-4 bg-white rounded-xl p-4">
 
-                              <p className="text-xs text-slate-700">
+                              <p className="text-xs text-gray-700">
                                 Calculation
                               </p>
 
-                              <p className="text-sm text-slate-900 mt-1">
+                              <p className="text-sm text-gray-700 mt-1">
 
                                 {totalKg.toLocaleString(
                                   "en-IN",
@@ -4089,13 +4146,13 @@ export default function MarketPage() {
 
                               <div>
 
-                                <p className="text-xs font-semibold text-slate-900">
+                                <p className="text-xs text-gray-700">
                                   {
                                     t.availableCrop
                                   }
                                 </p>
 
-                                <p className="font-bold text-slate-900 mt-1">
+                                <p className="font-bold mt-1">
                                   {
                                     crop.crop
                                   }
@@ -4105,7 +4162,7 @@ export default function MarketPage() {
 
                               <div>
 
-                                <p className="text-xs text-slate-700">
+                                <p className="text-xs text-gray-700">
                                   {
                                     t.netPerQuintal
                                   }
@@ -4122,23 +4179,13 @@ export default function MarketPage() {
 
                             </div>
 
-                            <a
-                              href={`tel:${getMandiContactNumber(mandi).replace(/[^0-9+]/g, "")}`}
-                              className="market-dark-text mt-4 w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-white border-2 border-green-700 font-bold hover:bg-green-50 transition"
-                            >
-                              📞 {t.contactMandi}
-                              <span className="market-dark-text font-extrabold tracking-wide">
-                                {getMandiContactNumber(mandi)}
-                              </span>
-                            </a>
-
                             <button
                               onClick={() =>
                                 openDirections(
                                   mandi
                                 )
                               }
-                              className="mt-3 w-full px-4 py-3 rounded-xl border-2 border-green-700 text-green-700 font-bold hover:bg-green-50"
+                              className="mt-4 w-full px-4 py-3 rounded-xl border-2 border-green-700 text-green-700 font-bold hover:bg-green-50"
                             >
                               {
                                 t.directions
@@ -4248,17 +4295,6 @@ export default function MarketPage() {
         </div>
 
       </div>
-
-      <style jsx>{`
-        input[type="number"]::-webkit-outer-spin-button,
-        input[type="number"]::-webkit-inner-spin-button {
-          -webkit-appearance: none;
-          margin: 0;
-        }
-        input[type="number"] {
-          -moz-appearance: textfield;
-        }
-      `}</style>
     </main>
   );
 }
