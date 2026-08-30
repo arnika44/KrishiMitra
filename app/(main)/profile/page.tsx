@@ -3,20 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
-type LanguageCode =
-  | "en"
-  | "hi"
-  | "mr"
-  | "bn"
-  | "ta"
-  | "te"
-  | "gu"
-  | "kn"
-  | "ml"
-  | "pa"
-  | "or"
-  | "as"
-  | "ur";
+type LanguageCode = "en" | "hi";
 
 type StateItem = {
   name: string;
@@ -40,7 +27,6 @@ type PostOffice = {
   DeliveryStatus?: string;
   Pincode?: string;
 
-  // New API fields
   officeName?: string;
   officeType?: string;
   deliveryStatus?: string;
@@ -55,7 +41,6 @@ type PinApiResponse = {
   district?: string;
   offices?: PostOffice[];
 
-  // Old API compatibility
   Message?: string;
   Status?: string;
   PostOffice?: PostOffice[] | null;
@@ -162,529 +147,6 @@ const translations: Record<LanguageCode, any> = {
     locationHelp:
       "पहले पिन कोड दर्ज करें। राज्य, जिला और आसपास के स्थान अपने आप सुझाए जाएंगे।",
   },
-
-  mr: {
-    title: "शेतकरी प्रोफाइल",
-    subtitle: "तुमच्याबद्दल माहिती द्या",
-
-    fullName: "पूर्ण नाव",
-    fullNamePlaceholder: "तुमचे पूर्ण नाव टाका",
-
-    mobile: "मोबाईल नंबर",
-    mobilePlaceholder: "9876543210",
-
-    pinCode: "पिन कोड",
-    pinCodePlaceholder: "6 अंकी पिन कोड टाका",
-
-    village: "गाव / शहर / नगर",
-    villagePlaceholder: "गाव, शहर किंवा नगर टाका",
-
-    district: "जिल्हा",
-    districtPlaceholder: "जिल्ह्याचे नाव टाका",
-
-    state: "राज्य",
-    statePlaceholder: "राज्याचे नाव टाका",
-
-    save: "प्रोफाइल सेव्ह करा",
-    back: "डॅशबोर्डवर परत जा",
-    saved: "प्रोफाइल यशस्वीरित्या सेव्ह झाली!",
-
-    searchingPin: "स्थान शोधत आहे...",
-    pinFound: "स्थान सापडले",
-    invalidPin: "पिन कोड सापडला नाही.",
-
-    loadingStates: "राज्ये लोड होत आहेत...",
-    loadingDistricts: "जिल्हे लोड होत आहेत...",
-
-    noSuggestions: "कोणतेही जुळणारे पर्याय सापडले नाहीत.",
-    selectSuggestion: "पर्यायामधून निवडा",
-
-    enterPinFirst: "प्रथम पिन कोड टाका",
-    districtAfterState: "जिल्हे पाहण्यासाठी राज्य निवडा",
-
-    invalidMobile: "कृपया योग्य 10 अंकी मोबाईल नंबर टाका.",
-
-    locationHelp:
-      "प्रथम पिन कोड टाका. राज्य, जिल्हा आणि जवळची ठिकाणे आपोआप सुचवली जातील.",
-  },
-
-  bn: {
-    title: "কৃষক প্রোফাইল",
-    subtitle: "আপনার সম্পর্কে তথ্য দিন",
-
-    fullName: "পুরো নাম",
-    fullNamePlaceholder: "আপনার পুরো নাম লিখুন",
-
-    mobile: "মোবাইল নম্বর",
-    mobilePlaceholder: "9876543210",
-
-    pinCode: "পিন কোড",
-    pinCodePlaceholder: "৬ সংখ্যার পিন কোড লিখুন",
-
-    village: "গ্রাম / শহর / টাউন",
-    villagePlaceholder: "গ্রাম, শহর বা টাউন লিখুন",
-
-    district: "জেলা",
-    districtPlaceholder: "জেলার নাম লিখুন",
-
-    state: "রাজ্য",
-    statePlaceholder: "রাজ্যের নাম লিখুন",
-
-    save: "প্রোফাইল সংরক্ষণ করুন",
-    back: "ড্যাশবোর্ডে ফিরে যান",
-    saved: "প্রোফাইল সফলভাবে সংরক্ষিত হয়েছে!",
-
-    searchingPin: "স্থান খোঁজা হচ্ছে...",
-    pinFound: "স্থান পাওয়া গেছে",
-    invalidPin: "পিন কোড পাওয়া যায়নি।",
-
-    loadingStates: "রাজ্য লোড হচ্ছে...",
-    loadingDistricts: "জেলা লোড হচ্ছে...",
-
-    noSuggestions: "কোনও মিল পাওয়া যায়নি।",
-    selectSuggestion: "পরামর্শ থেকে নির্বাচন করুন",
-
-    enterPinFirst: "প্রথমে পিন কোড দিন",
-    districtAfterState: "জেলা দেখতে রাজ্য নির্বাচন করুন",
-
-    invalidMobile: "সঠিক ১০ সংখ্যার মোবাইল নম্বর দিন।",
-
-    locationHelp:
-      "প্রথমে পিন কোড দিন। রাজ্য, জেলা এবং কাছাকাছি স্থান স্বয়ংক্রিয়ভাবে সাজেস্ট হবে।",
-  },
-
-  ta: {
-    title: "விவசாயி சுயவிவரம்",
-    subtitle: "உங்களைப் பற்றிய தகவலை வழங்கவும்",
-
-    fullName: "முழு பெயர்",
-    fullNamePlaceholder: "உங்கள் முழு பெயரை உள்ளிடவும்",
-
-    mobile: "மொபைல் எண்",
-    mobilePlaceholder: "9876543210",
-
-    pinCode: "பின் குறியீடு",
-    pinCodePlaceholder: "6 இலக்க பின் குறியீட்டை உள்ளிடவும்",
-
-    village: "கிராமம் / நகரம் / டவுன்",
-    villagePlaceholder: "கிராமம், நகரம் அல்லது டவுனை உள்ளிடவும்",
-
-    district: "மாவட்டம்",
-    districtPlaceholder: "மாவட்டத்தின் பெயரை உள்ளிடவும்",
-
-    state: "மாநிலம்",
-    statePlaceholder: "மாநிலத்தின் பெயரை உள்ளிடவும்",
-
-    save: "சுயவிவரத்தை சேமிக்கவும்",
-    back: "டாஷ்போர்டுக்குத் திரும்பு",
-    saved: "சுயவிவரம் வெற்றிகரமாக சேமிக்கப்பட்டது!",
-
-    searchingPin: "இடம் தேடப்படுகிறது...",
-    pinFound: "இடம் கிடைத்தது",
-    invalidPin: "பின் குறியீடு கிடைக்கவில்லை.",
-
-    loadingStates: "மாநிலங்கள் ஏற்றப்படுகின்றன...",
-    loadingDistricts: "மாவட்டங்கள் ஏற்றப்படுகின்றன...",
-
-    noSuggestions: "பொருத்தமான பரிந்துரைகள் இல்லை.",
-    selectSuggestion: "பரிந்துரையிலிருந்து தேர்ந்தெடுக்கவும்",
-
-    enterPinFirst: "முதலில் பின் குறியீட்டை உள்ளிடவும்",
-    districtAfterState:
-      "மாவட்டங்களை பார்க்க மாநிலத்தைத் தேர்ந்தெடுக்கவும்",
-
-    invalidMobile:
-      "சரியான 10 இலக்க மொபைல் எண்ணை உள்ளிடவும்.",
-
-    locationHelp:
-      "முதலில் பின் குறியீட்டை உள்ளிடவும். மாநிலம், மாவட்டம் மற்றும் அருகிலுள்ள இடங்கள் தானாக பரிந்துரைக்கப்படும்.",
-  },
-
-  te: {
-    title: "రైతు ప్రొఫైల్",
-    subtitle: "మీ గురించి సమాచారం ఇవ్వండి",
-
-    fullName: "పూర్తి పేరు",
-    fullNamePlaceholder: "మీ పూర్తి పేరు నమోదు చేయండి",
-
-    mobile: "మొబైల్ నంబర్",
-    mobilePlaceholder: "9876543210",
-
-    pinCode: "పిన్ కోడ్",
-    pinCodePlaceholder: "6 అంకెల పిన్ కోడ్ నమోదు చేయండి",
-
-    village: "గ్రామం / నగరం / పట్టణం",
-    villagePlaceholder:
-      "గ్రామం, నగరం లేదా పట్టణం నమోదు చేయండి",
-
-    district: "జిల్లా",
-    districtPlaceholder: "జిల్లా పేరు నమోదు చేయండి",
-
-    state: "రాష్ట్రం",
-    statePlaceholder: "రాష్ట్రం పేరు నమోదు చేయండి",
-
-    save: "ప్రొఫైల్ సేవ్ చేయండి",
-    back: "డ్యాష్‌బోర్డ్‌కు తిరిగి వెళ్లండి",
-    saved: "ప్రొఫైల్ విజయవంతంగా సేవ్ చేయబడింది!",
-
-    searchingPin: "స్థానం వెతుకుతోంది...",
-    pinFound: "స్థానం కనుగొనబడింది",
-    invalidPin: "పిన్ కోడ్ కనుగొనబడలేదు.",
-
-    loadingStates: "రాష్ట్రాలు లోడ్ అవుతున్నాయి...",
-    loadingDistricts: "జిల్లాలు లోడ్ అవుతున్నాయి...",
-
-    noSuggestions: "సరిపోలే సూచనలు లేవు.",
-    selectSuggestion: "సూచనల నుండి ఎంచుకోండి",
-
-    enterPinFirst: "ముందుగా పిన్ కోడ్ నమోదు చేయండి",
-    districtAfterState:
-      "జిల్లాలను చూడటానికి రాష్ట్రాన్ని ఎంచుకోండి",
-
-    invalidMobile:
-      "దయచేసి సరైన 10 అంకెల మొబైల్ నంబర్ నమోదు చేయండి.",
-
-    locationHelp:
-      "ముందుగా పిన్ కోడ్ నమోదు చేయండి. రాష్ట్రం, జిల్లా మరియు సమీప ప్రాంతాలు ఆటోమేటిక్‌గా సూచించబడతాయి.",
-  },
-
-  gu: {
-    title: "ખેડૂત પ્રોફાઇલ",
-    subtitle: "તમારા વિશે માહિતી આપો",
-
-    fullName: "પૂરું નામ",
-    fullNamePlaceholder: "તમારું પૂરું નામ દાખલ કરો",
-
-    mobile: "મોબાઇલ નંબર",
-    mobilePlaceholder: "9876543210",
-
-    pinCode: "પિન કોડ",
-    pinCodePlaceholder: "6 અંકનો પિન કોડ દાખલ કરો",
-
-    village: "ગામ / શહેર / ટાઉન",
-    villagePlaceholder:
-      "ગામ, શહેર અથવા ટાઉન દાખલ કરો",
-
-    district: "જિલ્લો",
-    districtPlaceholder: "જિલ્લાનું નામ દાખલ કરો",
-
-    state: "રાજ્ય",
-    statePlaceholder: "રાજ્યનું નામ દાખલ કરો",
-
-    save: "પ્રોફાઇલ સેવ કરો",
-    back: "ડેશબોર્ડ પર પાછા જાઓ",
-    saved: "પ્રોફાઇલ સફળતાપૂર્વક સેવ થઈ!",
-
-    searchingPin: "સ્થાન શોધી રહ્યા છીએ...",
-    pinFound: "સ્થાન મળી ગયું",
-    invalidPin: "પિન કોડ મળ્યો નથી.",
-
-    loadingStates: "રાજ્યો લોડ થઈ રહ્યા છે...",
-    loadingDistricts: "જિલ્લાઓ લોડ થઈ રહ્યા છે...",
-
-    noSuggestions: "કોઈ મેળ ખાતા વિકલ્પો મળ્યા નથી.",
-    selectSuggestion: "સૂચનમાંથી પસંદ કરો",
-
-    enterPinFirst: "પહેલા પિન કોડ દાખલ કરો",
-    districtAfterState:
-      "જિલ્લાઓ જોવા માટે રાજ્ય પસંદ કરો",
-
-    invalidMobile:
-      "કૃપા કરીને સાચો 10 અંકનો મોબાઇલ નંબર દાખલ કરો.",
-
-    locationHelp:
-      "પહેલા પિન કોડ દાખલ કરો. રાજ્ય, જિલ્લો અને નજીકના સ્થળો આપમેળે સૂચવાશે.",
-  },
-
-  kn: {
-    title: "ರೈತ ಪ್ರೊಫೈಲ್",
-    subtitle: "ನಿಮ್ಮ ಬಗ್ಗೆ ಮಾಹಿತಿ ನೀಡಿ",
-
-    fullName: "ಪೂರ್ಣ ಹೆಸರು",
-    fullNamePlaceholder: "ನಿಮ್ಮ ಪೂರ್ಣ ಹೆಸರನ್ನು ನಮೂದಿಸಿ",
-
-    mobile: "ಮೊಬೈಲ್ ಸಂಖ್ಯೆ",
-    mobilePlaceholder: "9876543210",
-
-    pinCode: "ಪಿನ್ ಕೋಡ್",
-    pinCodePlaceholder: "6 ಅಂಕಿಯ ಪಿನ್ ಕೋಡ್ ನಮೂದಿಸಿ",
-
-    village: "ಗ್ರಾಮ / ನಗರ / ಪಟ್ಟಣ",
-    villagePlaceholder:
-      "ಗ್ರಾಮ, ನಗರ ಅಥವಾ ಪಟ್ಟಣ ನಮೂದಿಸಿ",
-
-    district: "ಜಿಲ್ಲೆ",
-    districtPlaceholder: "ಜಿಲ್ಲೆಯ ಹೆಸರು ನಮೂದಿಸಿ",
-
-    state: "ರಾಜ್ಯ",
-    statePlaceholder: "ರಾಜ್ಯದ ಹೆಸರು ನಮೂದಿಸಿ",
-
-    save: "ಪ್ರೊಫೈಲ್ ಉಳಿಸಿ",
-    back: "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗೆ ಹಿಂತಿರುಗಿ",
-    saved: "ಪ್ರೊಫೈಲ್ ಯಶಸ್ವಿಯಾಗಿ ಉಳಿಸಲಾಗಿದೆ!",
-
-    searchingPin: "ಸ್ಥಳ ಹುಡುಕಲಾಗುತ್ತಿದೆ...",
-    pinFound: "ಸ್ಥಳ ಕಂಡುಬಂದಿದೆ",
-    invalidPin: "ಪಿನ್ ಕೋಡ್ ಕಂಡುಬಂದಿಲ್ಲ.",
-
-    loadingStates: "ರಾಜ್ಯಗಳನ್ನು ಲೋಡ್ ಮಾಡಲಾಗುತ್ತಿದೆ...",
-    loadingDistricts: "ಜಿಲ್ಲೆಗಳನ್ನು ಲೋಡ್ ಮಾಡಲಾಗುತ್ತಿದೆ...",
-
-    noSuggestions: "ಯಾವುದೇ ಹೊಂದಾಣಿಕೆಯ ಸಲಹೆಗಳಿಲ್ಲ.",
-    selectSuggestion: "ಸಲಹೆಯಿಂದ ಆಯ್ಕೆಮಾಡಿ",
-
-    enterPinFirst: "ಮೊದಲು ಪಿನ್ ಕೋಡ್ ನಮೂದಿಸಿ",
-    districtAfterState:
-      "ಜಿಲ್ಲೆಗಳನ್ನು ನೋಡಲು ರಾಜ್ಯ ಆಯ್ಕೆಮಾಡಿ",
-
-    invalidMobile:
-      "ದಯವಿಟ್ಟು ಸರಿಯಾದ 10 ಅಂಕಿಯ ಮೊಬೈಲ್ ಸಂಖ್ಯೆಯನ್ನು ನಮೂದಿಸಿ.",
-
-    locationHelp:
-      "ಮೊದಲು ಪಿನ್ ಕೋಡ್ ನಮೂದಿಸಿ. ರಾಜ್ಯ, ಜಿಲ್ಲೆ ಮತ್ತು ಹತ್ತಿರದ ಸ್ಥಳಗಳು ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಸೂಚಿಸಲಾಗುತ್ತದೆ.",
-  },
-
-  ml: {
-    title: "കർഷക പ്രൊഫൈൽ",
-    subtitle: "നിങ്ങളെക്കുറിച്ചുള്ള വിവരങ്ങൾ നൽകുക",
-
-    fullName: "പൂർണ്ണ പേര്",
-    fullNamePlaceholder: "നിങ്ങളുടെ പൂർണ്ണ പേര് നൽകുക",
-
-    mobile: "മൊബൈൽ നമ്പർ",
-    mobilePlaceholder: "9876543210",
-
-    pinCode: "പിൻ കോഡ്",
-    pinCodePlaceholder: "6 അക്ക പിൻ കോഡ് നൽകുക",
-
-    village: "ഗ്രാമം / നഗരം / ടൗൺ",
-    villagePlaceholder:
-      "ഗ്രാമം, നഗരം അല്ലെങ്കിൽ ടൗൺ നൽകുക",
-
-    district: "ജില്ല",
-    districtPlaceholder: "ജില്ലയുടെ പേര് നൽകുക",
-
-    state: "സംസ്ഥാനം",
-    statePlaceholder: "സംസ്ഥാനത്തിന്റെ പേര് നൽകുക",
-
-    save: "പ്രൊഫൈൽ സേവ് ചെയ്യുക",
-    back: "ഡാഷ്ബോർഡിലേക്ക് മടങ്ങുക",
-    saved: "പ്രൊഫൈൽ വിജയകരമായി സേവ് ചെയ്തു!",
-
-    searchingPin: "സ്ഥലം കണ്ടെത്തുന്നു...",
-    pinFound: "സ്ഥലം കണ്ടെത്തി",
-    invalidPin: "പിൻ കോഡ് കണ്ടെത്താനായില്ല.",
-
-    loadingStates: "സംസ്ഥാനങ്ങൾ ലോഡ് ചെയ്യുന്നു...",
-    loadingDistricts: "ജില്ലകൾ ലോഡ് ചെയ്യുന്നു...",
-
-    noSuggestions: "പൊരുത്തപ്പെടുന്ന നിർദ്ദേശങ്ങളില്ല.",
-    selectSuggestion: "നിർദ്ദേശത്തിൽ നിന്ന് തിരഞ്ഞെടുക്കുക",
-
-    enterPinFirst: "ആദ്യം പിൻ കോഡ് നൽകുക",
-    districtAfterState:
-      "ജില്ലകൾ കാണാൻ സംസ്ഥാനം തിരഞ്ഞെടുക്കുക",
-
-    invalidMobile:
-      "ദയവായി ശരിയായ 10 അക്ക മൊബൈൽ നമ്പർ നൽകുക.",
-
-    locationHelp:
-      "ആദ്യം പിൻ കോഡ് നൽകുക. സംസ്ഥാനം, ജില്ല, സമീപ പ്രദേശങ്ങൾ എന്നിവ സ്വയം നിർദ്ദേശിക്കും.",
-  },
-
-  pa: {
-    title: "ਕਿਸਾਨ ਪ੍ਰੋਫਾਈਲ",
-    subtitle: "ਆਪਣੇ ਬਾਰੇ ਜਾਣਕਾਰੀ ਦਿਓ",
-
-    fullName: "ਪੂਰਾ ਨਾਮ",
-    fullNamePlaceholder: "ਆਪਣਾ ਪੂਰਾ ਨਾਮ ਦਰਜ ਕਰੋ",
-
-    mobile: "ਮੋਬਾਈਲ ਨੰਬਰ",
-    mobilePlaceholder: "9876543210",
-
-    pinCode: "ਪਿਨ ਕੋਡ",
-    pinCodePlaceholder: "6 ਅੰਕਾਂ ਦਾ ਪਿਨ ਕੋਡ ਦਰਜ ਕਰੋ",
-
-    village: "ਪਿੰਡ / ਸ਼ਹਿਰ / ਕਸਬਾ",
-    villagePlaceholder:
-      "ਪਿੰਡ, ਸ਼ਹਿਰ ਜਾਂ ਕਸਬਾ ਦਰਜ ਕਰੋ",
-
-    district: "ਜ਼ਿਲ੍ਹਾ",
-    districtPlaceholder: "ਜ਼ਿਲ੍ਹੇ ਦਾ ਨਾਮ ਦਰਜ ਕਰੋ",
-
-    state: "ਰਾਜ",
-    statePlaceholder: "ਰਾਜ ਦਾ ਨਾਮ ਦਰਜ ਕਰੋ",
-
-    save: "ਪ੍ਰੋਫਾਈਲ ਸੇਵ ਕਰੋ",
-    back: "ਡੈਸ਼ਬੋਰਡ ਤੇ ਵਾਪਸ ਜਾਓ",
-    saved: "ਪ੍ਰੋਫਾਈਲ ਸਫਲਤਾਪੂਰਵਕ ਸੇਵ ਹੋ ਗਈ!",
-
-    searchingPin: "ਸਥਾਨ ਲੱਭਿਆ ਜਾ ਰਿਹਾ ਹੈ...",
-    pinFound: "ਸਥਾਨ ਮਿਲ ਗਿਆ",
-    invalidPin: "ਪਿਨ ਕੋਡ ਨਹੀਂ ਮਿਲਿਆ।",
-
-    loadingStates: "ਰਾਜ ਲੋਡ ਹੋ ਰਹੇ ਹਨ...",
-    loadingDistricts: "ਜ਼ਿਲ੍ਹੇ ਲੋਡ ਹੋ ਰਹੇ ਹਨ...",
-
-    noSuggestions: "ਕੋਈ ਮਿਲਦਾ ਸੁਝਾਅ ਨਹੀਂ ਮਿਲਿਆ।",
-    selectSuggestion: "ਸੁਝਾਅ ਵਿੱਚੋਂ ਚੁਣੋ",
-
-    enterPinFirst: "ਪਹਿਲਾਂ ਪਿਨ ਕੋਡ ਦਰਜ ਕਰੋ",
-    districtAfterState:
-      "ਜ਼ਿਲ੍ਹੇ ਦੇਖਣ ਲਈ ਰਾਜ ਚੁਣੋ",
-
-    invalidMobile:
-      "ਕਿਰਪਾ ਕਰਕੇ ਸਹੀ 10 ਅੰਕਾਂ ਦਾ ਮੋਬਾਈਲ ਨੰਬਰ ਦਰਜ ਕਰੋ।",
-
-    locationHelp:
-      "ਪਹਿਲਾਂ ਪਿਨ ਕੋਡ ਦਰਜ ਕਰੋ। ਰਾਜ, ਜ਼ਿਲ੍ਹਾ ਅਤੇ ਨੇੜਲੇ ਸਥਾਨ ਆਪਣੇ ਆਪ ਸੁਝਾਏ ਜਾਣਗੇ।",
-  },
-
-  or: {
-    title: "ଚାଷୀ ପ୍ରୋଫାଇଲ୍",
-    subtitle: "ଆପଣଙ୍କ ବିଷୟରେ ସୂଚନା ଦିଅନ୍ତୁ",
-
-    fullName: "ପୂର୍ଣ୍ଣ ନାମ",
-    fullNamePlaceholder: "ଆପଣଙ୍କ ପୂର୍ଣ୍ଣ ନାମ ଦିଅନ୍ତୁ",
-
-    mobile: "ମୋବାଇଲ୍ ନମ୍ବର",
-    mobilePlaceholder: "9876543210",
-
-    pinCode: "ପିନ୍ କୋଡ୍",
-    pinCodePlaceholder: "6 ଅଙ୍କର ପିନ୍ କୋଡ୍ ଦିଅନ୍ତୁ",
-
-    village: "ଗାଁ / ସହର / ଟାଉନ୍",
-    villagePlaceholder:
-      "ଗାଁ, ସହର କିମ୍ବା ଟାଉନ୍ ଦିଅନ୍ତୁ",
-
-    district: "ଜିଲ୍ଲା",
-    districtPlaceholder: "ଜିଲ୍ଲାର ନାମ ଦିଅନ୍ତୁ",
-
-    state: "ରାଜ୍ୟ",
-    statePlaceholder: "ରାଜ୍ୟର ନାମ ଦିଅନ୍ତୁ",
-
-    save: "ପ୍ରୋଫାଇଲ୍ ସେଭ୍ କରନ୍ତୁ",
-    back: "ଡ୍ୟାସବୋର୍ଡକୁ ଫେରନ୍ତୁ",
-    saved: "ପ୍ରୋଫାଇଲ୍ ସଫଳତାର ସହ ସେଭ୍ ହୋଇଛି!",
-
-    searchingPin: "ସ୍ଥାନ ଖୋଜାଯାଉଛି...",
-    pinFound: "ସ୍ଥାନ ମିଳିଲା",
-    invalidPin: "ପିନ୍ କୋଡ୍ ମିଳିଲା ନାହିଁ।",
-
-    loadingStates: "ରାଜ୍ୟ ଲୋଡ୍ ହେଉଛି...",
-    loadingDistricts: "ଜିଲ୍ଲା ଲୋଡ୍ ହେଉଛି...",
-
-    noSuggestions: "କୌଣସି ମେଳ ମିଳିଲା ନାହିଁ।",
-    selectSuggestion: "ପରାମର୍ଶରୁ ବାଛନ୍ତୁ",
-
-    enterPinFirst: "ପ୍ରଥମେ ପିନ୍ କୋଡ୍ ଦିଅନ୍ତୁ",
-    districtAfterState:
-      "ଜିଲ୍ଲା ଦେଖିବା ପାଇଁ ରାଜ୍ୟ ବାଛନ୍ତୁ",
-
-    invalidMobile:
-      "ଦୟାକରି ସଠିକ୍ 10 ଅଙ୍କର ମୋବାଇଲ୍ ନମ୍ବର ଦିଅନ୍ତୁ।",
-
-    locationHelp:
-      "ପ୍ରଥମେ ପିନ୍ କୋଡ୍ ଦିଅନ୍ତୁ। ରାଜ୍ୟ, ଜିଲ୍ଲା ଏବଂ ନିକଟସ୍ଥ ସ୍ଥାନ ସ୍ୱୟଂଚାଳିତ ଭାବେ ସୁପାରିଶ ହେବ।",
-  },
-
-  as: {
-    title: "কৃষকৰ প্ৰফাইল",
-    subtitle: "আপোনাৰ বিষয়ে তথ্য দিয়ক",
-
-    fullName: "সম্পূৰ্ণ নাম",
-    fullNamePlaceholder: "আপোনাৰ সম্পূৰ্ণ নাম লিখক",
-
-    mobile: "ম'বাইল নম্বৰ",
-    mobilePlaceholder: "9876543210",
-
-    pinCode: "পিন কোড",
-    pinCodePlaceholder: "6 সংখ্যাৰ পিন কোড লিখক",
-
-    village: "গাঁও / চহৰ / টাউন",
-    villagePlaceholder:
-      "গাঁও, চহৰ বা টাউন লিখক",
-
-    district: "জিলা",
-    districtPlaceholder: "জিলাৰ নাম লিখক",
-
-    state: "ৰাজ্য",
-    statePlaceholder: "ৰাজ্যৰ নাম লিখক",
-
-    save: "প্ৰফাইল সংৰক্ষণ কৰক",
-    back: "ডেশ্বব'ৰ্ডলৈ উভতি যাওক",
-    saved: "প্ৰফাইল সফলভাৱে সংৰক্ষণ কৰা হৈছে!",
-
-    searchingPin: "স্থান বিচৰা হৈছে...",
-    pinFound: "স্থান পোৱা গ'ল",
-    invalidPin: "পিন কোড পোৱা নগ'ল।",
-
-    loadingStates: "ৰাজ্যসমূহ লোড হৈ আছে...",
-    loadingDistricts: "জিলাসমূহ লোড হৈ আছে...",
-
-    noSuggestions:
-      "কোনো মিল থকা পৰামৰ্শ পোৱা নগ'ল।",
-
-    selectSuggestion: "পৰামৰ্শৰ পৰা বাছনি কৰক",
-
-    enterPinFirst: "প্ৰথমে পিন কোড দিয়ক",
-    districtAfterState:
-      "জিলা চাবলৈ ৰাজ্য বাছনি কৰক",
-
-    invalidMobile:
-      "অনুগ্ৰহ কৰি সঠিক 10 সংখ্যাৰ ম'বাইল নম্বৰ দিয়ক।",
-
-    locationHelp:
-      "প্ৰথমে পিন কোড দিয়ক। ৰাজ্য, জিলা আৰু ওচৰৰ স্থানসমূহ স্বয়ংক্ৰিয়ভাৱে পৰামৰ্শ দিয়া হ'ব।",
-  },
-
-  ur: {
-    title: "کسان پروفائل",
-    subtitle: "اپنے بارے میں معلومات دیں",
-
-    fullName: "پورا نام",
-    fullNamePlaceholder: "اپنا پورا نام درج کریں",
-
-    mobile: "موبائل نمبر",
-    mobilePlaceholder: "9876543210",
-
-    pinCode: "پن کوڈ",
-    pinCodePlaceholder: "6 ہندسوں کا پن کوڈ درج کریں",
-
-    village: "گاؤں / شہر / قصبہ",
-    villagePlaceholder:
-      "گاؤں، شہر یا قصبہ درج کریں",
-
-    district: "ضلع",
-    districtPlaceholder: "ضلع کا نام درج کریں",
-
-    state: "ریاست",
-    statePlaceholder: "ریاست کا نام درج کریں",
-
-    save: "پروفائل محفوظ کریں",
-    back: "ڈیش بورڈ پر واپس جائیں",
-    saved: "پروفائل کامیابی سے محفوظ ہو گیا!",
-
-    searchingPin: "مقام تلاش کیا جا رہا ہے...",
-    pinFound: "مقام مل گیا",
-    invalidPin: "پن کوڈ نہیں ملا۔",
-
-    loadingStates: "ریاستیں لوڈ ہو رہی ہیں...",
-    loadingDistricts: "اضلاع لوڈ ہو رہے ہیں...",
-
-    noSuggestions: "کوئی مماثل تجویز نہیں ملی۔",
-    selectSuggestion: "تجویز میں سے منتخب کریں",
-
-    enterPinFirst: "پہلے پن کوڈ درج کریں",
-    districtAfterState:
-      "اضلاع دیکھنے کے لیے ریاست منتخب کریں",
-
-    invalidMobile:
-      "براہ کرم درست 10 ہندسوں کا موبائل نمبر درج کریں۔",
-
-    locationHelp:
-      "پہلے پن کوڈ درج کریں۔ ریاست، ضلع اور قریبی مقامات خودکار طور پر تجویز کیے جائیں گے۔",
-  },
 };
 
 /* =========================================================
@@ -707,13 +169,11 @@ export default function FarmerProfile() {
   });
 
   const [states, setStates] = useState<StateItem[]>([]);
-  const [districts, setDistricts] = useState<DistrictItem[]>(
-    []
-  );
+  const [districts, setDistricts] =
+    useState<DistrictItem[]>([]);
 
-  const [postOffices, setPostOffices] = useState<
-    PostOffice[]
-  >([]);
+  const [postOffices, setPostOffices] =
+    useState<PostOffice[]>([]);
 
   const [loadingStates, setLoadingStates] =
     useState(false);
@@ -727,15 +187,11 @@ export default function FarmerProfile() {
   const [showStateSuggestions, setShowStateSuggestions] =
     useState(false);
 
-  const [
-    showDistrictSuggestions,
-    setShowDistrictSuggestions,
-  ] = useState(false);
+  const [showDistrictSuggestions, setShowDistrictSuggestions] =
+    useState(false);
 
-  const [
-    showVillageSuggestions,
-    setShowVillageSuggestions,
-  ] = useState(false);
+  const [showVillageSuggestions, setShowVillageSuggestions] =
+    useState(false);
 
   const [pinMessage, setPinMessage] = useState("");
 
@@ -823,13 +279,16 @@ export default function FarmerProfile() {
               name: String(
                 item?.name || ""
               ).trim(),
+
               slug: String(
                 item?.slug || ""
               ).trim(),
+
               districtCount:
                 Number(
                   item?.districtCount
                 ) || 0,
+
               officeCount:
                 Number(
                   item?.officeCount
@@ -984,13 +443,6 @@ export default function FarmerProfile() {
 
   /* =======================================================
      PIN CODE LOOKUP
-     
-     IMPORTANT:
-     Uses:
-     /pincodes/XXXXXX.json
-     
-     NOT:
-     /api/v1/pincode/XXXXXX
   ======================================================= */
 
   useEffect(() => {
@@ -1030,24 +482,10 @@ export default function FarmerProfile() {
         const data: PinApiResponse =
           await response.json();
 
-        /* -----------------------------------------------
-           NEW API FORMAT
-           
-           {
-             state,
-             district,
-             offices: [...]
-           }
-        ------------------------------------------------ */
-
         let offices: PostOffice[] =
           Array.isArray(data?.offices)
             ? data.offices
             : [];
-
-        /* -----------------------------------------------
-           OLD API FORMAT COMPATIBILITY
-        ------------------------------------------------ */
 
         if (
           offices.length === 0 &&
@@ -1066,10 +504,6 @@ export default function FarmerProfile() {
           );
           return;
         }
-
-        /* -----------------------------------------------
-           NORMALIZE OFFICE DATA
-        ------------------------------------------------ */
 
         const normalizedOffices =
           offices.map(
@@ -1107,10 +541,6 @@ export default function FarmerProfile() {
           normalizedOffices
         );
 
-        /* -----------------------------------------------
-           STATE FROM PIN
-        ------------------------------------------------ */
-
         const detectedState =
           String(
             data?.state ||
@@ -1119,10 +549,6 @@ export default function FarmerProfile() {
               ""
           ).trim();
 
-        /* -----------------------------------------------
-           DISTRICT FROM PIN
-        ------------------------------------------------ */
-
         const detectedDistrict =
           String(
             data?.district ||
@@ -1130,10 +556,6 @@ export default function FarmerProfile() {
                 ?.District ||
               ""
           ).trim();
-
-        /* -----------------------------------------------
-           SET LOCATION
-        ------------------------------------------------ */
 
         if (
           detectedState ||
@@ -1310,8 +732,6 @@ export default function FarmerProfile() {
       value,
     } = e.target;
 
-    /* MOBILE */
-
     if (name === "phone") {
       const numericValue =
         value
@@ -1325,8 +745,6 @@ export default function FarmerProfile() {
 
       return;
     }
-
-    /* PIN */
 
     if (name === "pinCode") {
       const numericValue =
@@ -1348,8 +766,6 @@ export default function FarmerProfile() {
 
       return;
     }
-
-    /* STATE */
 
     if (name === "state") {
       setForm((prev) => ({
@@ -1374,8 +790,6 @@ export default function FarmerProfile() {
       return;
     }
 
-    /* DISTRICT */
-
     if (name === "district") {
       setForm((prev) => ({
         ...prev,
@@ -1389,8 +803,6 @@ export default function FarmerProfile() {
 
       return;
     }
-
-    /* VILLAGE */
 
     if (name === "village") {
       setForm((prev) => ({
@@ -1507,16 +919,12 @@ export default function FarmerProfile() {
   ) => {
     e.preventDefault();
 
-    /* NAME */
-
     if (!form.name.trim()) {
       alert(
         t.fullNamePlaceholder
       );
       return;
     }
-
-    /* MOBILE */
 
     if (
       !/^\d{10}$/.test(
@@ -1529,8 +937,6 @@ export default function FarmerProfile() {
       return;
     }
 
-    /* PIN */
-
     if (
       !/^\d{6}$/.test(
         form.pinCode
@@ -1542,8 +948,6 @@ export default function FarmerProfile() {
       return;
     }
 
-    /* PIN MUST ACTUALLY BE FOUND */
-
     if (
       !postOffices.length
     ) {
@@ -1553,16 +957,12 @@ export default function FarmerProfile() {
       return;
     }
 
-    /* STATE */
-
     if (!form.state.trim()) {
       alert(
         t.statePlaceholder
       );
       return;
     }
-
-    /* DISTRICT */
 
     if (
       !form.district.trim()
@@ -1573,8 +973,6 @@ export default function FarmerProfile() {
       return;
     }
 
-    /* VILLAGE */
-
     if (
       !form.village.trim()
     ) {
@@ -1583,8 +981,6 @@ export default function FarmerProfile() {
       );
       return;
     }
-
-    /* SAVE */
 
     localStorage.setItem(
       "farmerProfile",
@@ -1621,11 +1017,7 @@ export default function FarmerProfile() {
   return (
     <main
       className="min-h-screen bg-green-50 px-5 py-10"
-      dir={
-        language === "ur"
-          ? "rtl"
-          : "ltr"
-      }
+      dir="ltr"
     >
       <div className="max-w-3xl mx-auto">
 
@@ -1669,9 +1061,7 @@ export default function FarmerProfile() {
             }
           >
 
-            {/* =================================================
-                FULL NAME
-            ================================================= */}
+            {/* FULL NAME */}
 
             <div className="mb-5">
 
@@ -1695,9 +1085,7 @@ export default function FarmerProfile() {
 
             </div>
 
-            {/* =================================================
-                MOBILE
-            ================================================= */}
+            {/* MOBILE */}
 
             <div className="mb-5">
 
@@ -1723,9 +1111,7 @@ export default function FarmerProfile() {
 
             </div>
 
-            {/* =================================================
-                PIN CODE
-            ================================================= */}
+            {/* PIN CODE */}
 
             <div className="mb-5">
 
@@ -1735,7 +1121,9 @@ export default function FarmerProfile() {
 
               <input
                 name="pinCode"
-                value={form.pinCode}
+                value={
+                  form.pinCode
+                }
                 onChange={
                   handleChange
                 }
@@ -1753,16 +1141,12 @@ export default function FarmerProfile() {
                 {t.locationHelp}
               </p>
 
-              {/* SEARCHING */}
-
               {searchingPin && (
                 <p className="text-sm text-blue-600 mt-2 font-medium">
                   🔎{" "}
                   {t.searchingPin}
                 </p>
               )}
-
-              {/* RESULT */}
 
               {!searchingPin &&
                 pinMessage && (
@@ -1785,9 +1169,7 @@ export default function FarmerProfile() {
 
             </div>
 
-            {/* =================================================
-                STATE
-            ================================================= */}
+            {/* STATE */}
 
             <div className="mb-5 relative">
 
@@ -1885,9 +1267,7 @@ export default function FarmerProfile() {
 
             </div>
 
-            {/* =================================================
-                DISTRICT
-            ================================================= */}
+            {/* DISTRICT */}
 
             <div className="mb-5 relative">
 
@@ -1921,8 +1301,6 @@ export default function FarmerProfile() {
                 required
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-green-500 text-gray-900 placeholder-gray-400 disabled:bg-gray-100 disabled:cursor-not-allowed"
               />
-
-              {/* DISTRICT DROPDOWN */}
 
               {form.state &&
                 showDistrictSuggestions && (
@@ -1984,9 +1362,7 @@ export default function FarmerProfile() {
 
             </div>
 
-            {/* =================================================
-                VILLAGE / CITY / TOWN
-            ================================================= */}
+            {/* VILLAGE / CITY / TOWN */}
 
             <div className="mb-7 relative">
 
@@ -2015,8 +1391,6 @@ export default function FarmerProfile() {
                 required
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-green-500 text-gray-900 placeholder-gray-400"
               />
-
-              {/* POST OFFICE SUGGESTIONS */}
 
               {postOffices.length >
                 0 &&
@@ -2061,6 +1435,7 @@ export default function FarmerProfile() {
                               {office.District
                                 ? `${office.District}, `
                                 : ""}
+
                               {
                                 office.State
                               }
@@ -2079,8 +1454,6 @@ export default function FarmerProfile() {
                   </div>
                 )}
 
-              {/* PIN NOT ENTERED */}
-
               {form.pinCode.length <
                 6 && (
                 <p className="text-xs text-gray-400 mt-2">
@@ -2092,9 +1465,7 @@ export default function FarmerProfile() {
 
             </div>
 
-            {/* =================================================
-                SAVE
-            ================================================= */}
+            {/* SAVE */}
 
             <button
               type="submit"
@@ -2107,9 +1478,7 @@ export default function FarmerProfile() {
         </div>
       </div>
 
-      {/* =====================================================
-          BACKGROUND CLICK AREA
-      ===================================================== */}
+      {/* BACKGROUND CLICK AREA */}
 
       <button
         type="button"
@@ -2119,6 +1488,7 @@ export default function FarmerProfile() {
           closeSuggestions
         }
       />
+
     </main>
   );
 }

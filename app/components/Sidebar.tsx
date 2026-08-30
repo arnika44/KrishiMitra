@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -37,143 +38,11 @@ const sidebarText: Record<
     logout: "Logout",
     companion: "Your digital companion",
   },
-
-  bn: {
-    profile: "প্রোফাইল",
-    changeUser: "ব্যবহারকারী পরিবর্তন করুন",
-    myCrop: "আমার ফসল",
-    moreSettings: "আরও সেটিংস",
-    language: "ভাষা",
-    changePassword: "পাসওয়ার্ড পরিবর্তন করুন",
-    logout: "লগ আউট",
-    companion: "আপনার ডিজিটাল সঙ্গী",
-  },
-
-  mr: {
-    profile: "प्रोफाइल",
-    changeUser: "वापरकर्ता बदला",
-    myCrop: "माझे पीक",
-    moreSettings: "अधिक सेटिंग्ज",
-    language: "भाषा",
-    changePassword: "पासवर्ड बदला",
-    logout: "लॉग आउट",
-    companion: "तुमचा डिजिटल साथीदार",
-  },
-
-  ta: {
-    profile: "சுயவிவரம்",
-    changeUser: "பயனரை மாற்றவும்",
-    myCrop: "எனது பயிர்",
-    moreSettings: "மேலும் அமைப்புகள்",
-    language: "மொழி",
-    changePassword: "கடவுச்சொல்லை மாற்றவும்",
-    logout: "வெளியேறு",
-    companion: "உங்கள் டிஜிட்டல் துணை",
-  },
-
-  te: {
-    profile: "ప్రొఫైల్",
-    changeUser: "వినియోగదారుని మార్చండి",
-    myCrop: "నా పంట",
-    moreSettings: "మరిన్ని సెట్టింగ్‌లు",
-    language: "భాష",
-    changePassword: "పాస్‌వర్డ్ మార్చండి",
-    logout: "లాగ్ అవుట్",
-    companion: "మీ డిజిటల్ సహచరుడు",
-  },
-
-  gu: {
-    profile: "પ્રોફાઇલ",
-    changeUser: "વપરાશકર્તા બદલો",
-    myCrop: "મારો પાક",
-    moreSettings: "વધુ સેટિંગ્સ",
-    language: "ભાષા",
-    changePassword: "પાસવર્ડ બદલો",
-    logout: "લૉગ આઉટ",
-    companion: "તમારો ડિજિટલ સાથી",
-  },
-
-  kn: {
-    profile: "ಪ್ರೊಫೈಲ್",
-    changeUser: "ಬಳಕೆದಾರರನ್ನು ಬದಲಾಯಿಸಿ",
-    myCrop: "ನನ್ನ ಬೆಳೆ",
-    moreSettings: "ಹೆಚ್ಚಿನ ಸೆಟ್ಟಿಂಗ್‌ಗಳು",
-    language: "ಭಾಷೆ",
-    changePassword: "ಪಾಸ್‌ವರ್ಡ್ ಬದಲಾಯಿಸಿ",
-    logout: "ಲಾಗ್ ಔಟ್",
-    companion: "ನಿಮ್ಮ ಡಿಜಿಟಲ್ ಸಂಗಾತಿ",
-  },
-
-  ml: {
-    profile: "പ്രൊഫൈൽ",
-    changeUser: "ഉപയോക്താവിനെ മാറ്റുക",
-    myCrop: "എന്റെ വിള",
-    moreSettings: "കൂടുതൽ ക്രമീകരണങ്ങൾ",
-    language: "ഭാഷ",
-    changePassword: "പാസ്‌വേഡ് മാറ്റുക",
-    logout: "ലോഗ് ഔട്ട്",
-    companion: "നിങ്ങളുടെ ഡിജിറ്റൽ സഹായി",
-  },
-
-  pa: {
-    profile: "ਪ੍ਰੋਫਾਈਲ",
-    changeUser: "ਯੂਜ਼ਰ ਬਦਲੋ",
-    myCrop: "ਮੇਰੀ ਫਸਲ",
-    moreSettings: "ਹੋਰ ਸੈਟਿੰਗਾਂ",
-    language: "ਭਾਸ਼ਾ",
-    changePassword: "ਪਾਸਵਰਡ ਬਦਲੋ",
-    logout: "ਲੌਗ ਆਊਟ",
-    companion: "ਤੁਹਾਡਾ ਡਿਜੀਟਲ ਸਾਥੀ",
-  },
-
-  or: {
-    profile: "ପ୍ରୋଫାଇଲ୍",
-    changeUser: "ବ୍ୟବହାରକାରୀ ବଦଳାନ୍ତୁ",
-    myCrop: "ମୋ ଫସଲ",
-    moreSettings: "ଅଧିକ ସେଟିଂସ୍",
-    language: "ଭାଷା",
-    changePassword: "ପାସୱାର୍ଡ ବଦଳାନ୍ତୁ",
-    logout: "ଲଗ୍ ଆଉଟ୍",
-    companion: "ଆପଣଙ୍କ ଡିଜିଟାଲ୍ ସାଥୀ",
-  },
-
-  as: {
-    profile: "প্ৰফাইল",
-    changeUser: "ব্যৱহাৰকাৰী সলনি কৰক",
-    myCrop: "মোৰ শস্য",
-    moreSettings: "অধিক ছেটিংছ",
-    language: "ভাষা",
-    changePassword: "পাছৱৰ্ড সলনি কৰক",
-    logout: "লগ আউট",
-    companion: "আপোনাৰ ডিজিটেল সংগী",
-  },
-
-  ur: {
-    profile: "پروفائل",
-    changeUser: "صارف تبدیل کریں",
-    myCrop: "میری فصل",
-    moreSettings: "مزید ترتیبات",
-    language: "زبان",
-    changePassword: "پاس ورڈ تبدیل کریں",
-    logout: "لاگ آؤٹ",
-    companion: "آپ کا ڈیجیٹل ساتھی",
-  },
 };
 
 const languageNames: Record<string, string> = {
   hi: "हिंदी",
   en: "English",
-  bn: "বাংলা",
-  mr: "मराठी",
-  ta: "தமிழ்",
-  te: "తెలుగు",
-  gu: "ગુજરાતી",
-  kn: "ಕನ್ನಡ",
-  ml: "മലയാളം",
-  pa: "ਪੰਜਾਬੀ",
-  or: "ଓଡ଼ିଆ",
-  as: "অসমীয়া",
-  ur: "اردو",
 };
 
 export default function Sidebar() {

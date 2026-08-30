@@ -37,143 +37,11 @@ const sidebarText: Record<
     logout: "Logout",
     companion: "Your digital companion",
   },
-
-  bn: {
-    profile: "প্রোফাইল",
-    userSelection: "ইউজার পরিবর্তন",
-    myCrop: "আমার ফসল",
-    moreSettings: "আরও সেটিংস",
-    language: "ভাষা",
-    changePassword: "পাসওয়ার্ড পরিবর্তন",
-    logout: "লগআউট",
-    companion: "আপনার ডিজিটাল সঙ্গী",
-  },
-
-  mr: {
-    profile: "प्रोफाइल",
-    userSelection: "वापरकर्ता बदला",
-    myCrop: "माझे पीक",
-    moreSettings: "अधिक सेटिंग्ज",
-    language: "भाषा",
-    changePassword: "पासवर्ड बदला",
-    logout: "लॉगआउट",
-    companion: "तुमचा डिजिटल साथीदार",
-  },
-
-  ta: {
-    profile: "சுயவிவரம்",
-    userSelection: "பயனரை மாற்று",
-    myCrop: "என் பயிர்",
-    moreSettings: "மேலும் அமைப்புகள்",
-    language: "மொழி",
-    changePassword: "கடவுச்சொல்லை மாற்று",
-    logout: "வெளியேறு",
-    companion: "உங்கள் டிஜிட்டல் துணை",
-  },
-
-  te: {
-    profile: "ప్రొఫైల్",
-    userSelection: "వినియోగదారుని మార్చండి",
-    myCrop: "నా పంట",
-    moreSettings: "మరిన్ని సెట్టింగ్‌లు",
-    language: "భాష",
-    changePassword: "పాస్‌వర్డ్ మార్చండి",
-    logout: "లాగౌట్",
-    companion: "మీ డిజిటల్ సహచరుడు",
-  },
-
-  gu: {
-    profile: "પ્રોફાઇલ",
-    userSelection: "યુઝર બદલો",
-    myCrop: "મારો પાક",
-    moreSettings: "વધુ સેટિંગ્સ",
-    language: "ભાષા",
-    changePassword: "પાસવર્ડ બદલો",
-    logout: "લોગઆઉટ",
-    companion: "તમારો ડિજિટલ સાથી",
-  },
-
-  kn: {
-    profile: "ಪ್ರೊಫೈಲ್",
-    userSelection: "ಬಳಕೆದಾರರನ್ನು ಬದಲಾಯಿಸಿ",
-    myCrop: "ನನ್ನ ಬೆಳೆ",
-    moreSettings: "ಹೆಚ್ಚಿನ ಸೆಟ್ಟಿಂಗ್‌ಗಳು",
-    language: "ಭಾಷೆ",
-    changePassword: "ಪಾಸ್‌ವರ್ಡ್ ಬದಲಾಯಿಸಿ",
-    logout: "ಲಾಗ್‌ಔಟ್",
-    companion: "ನಿಮ್ಮ ಡಿಜಿಟಲ್ ಸಂಗಾತಿ",
-  },
-
-  ml: {
-    profile: "പ്രൊഫൈൽ",
-    userSelection: "യൂസറെ മാറ്റുക",
-    myCrop: "എന്റെ വിള",
-    moreSettings: "കൂടുതൽ സെറ്റിംഗുകൾ",
-    language: "ഭാഷ",
-    changePassword: "പാസ്‌വേഡ് മാറ്റുക",
-    logout: "ലോഗൗട്ട്",
-    companion: "നിങ്ങളുടെ ഡിജിറ്റൽ സഹായി",
-  },
-
-  pa: {
-    profile: "ਪ੍ਰੋਫਾਈਲ",
-    userSelection: "ਯੂਜ਼ਰ ਬਦਲੋ",
-    myCrop: "ਮੇਰੀ ਫਸਲ",
-    moreSettings: "ਹੋਰ ਸੈਟਿੰਗਾਂ",
-    language: "ਭਾਸ਼ਾ",
-    changePassword: "ਪਾਸਵਰਡ ਬਦਲੋ",
-    logout: "ਲੌਗਆਊਟ",
-    companion: "ਤੁਹਾਡਾ ਡਿਜੀਟਲ ਸਾਥੀ",
-  },
-
-  or: {
-    profile: "ପ୍ରୋଫାଇଲ୍",
-    userSelection: "ୟୁଜର ବଦଳାନ୍ତୁ",
-    myCrop: "ମୋ ଫସଲ",
-    moreSettings: "ଅଧିକ ସେଟିଂସ୍",
-    language: "ଭାଷା",
-    changePassword: "ପାସୱାର୍ଡ ବଦଳାନ୍ତୁ",
-    logout: "ଲଗଆଉଟ୍",
-    companion: "ଆପଣଙ୍କ ଡିଜିଟାଲ୍ ସାଥୀ",
-  },
-
-  as: {
-    profile: "প্ৰফাইল",
-    userSelection: "ইউজাৰ সলনি কৰক",
-    myCrop: "মোৰ শস্য",
-    moreSettings: "অধিক ছেটিংছ",
-    language: "ভাষা",
-    changePassword: "পাছৱৰ্ড সলনি কৰক",
-    logout: "লগআউট",
-    companion: "আপোনাৰ ডিজিটেল সংগী",
-  },
-
-  ur: {
-    profile: "پروفائل",
-    userSelection: "صارف تبدیل کریں",
-    myCrop: "میری فصل",
-    moreSettings: "مزید ترتیبات",
-    language: "زبان",
-    changePassword: "پاس ورڈ تبدیل کریں",
-    logout: "لاگ آؤٹ",
-    companion: "آپ کا ڈیجیٹل ساتھی",
-  },
 };
 
 const languageNames: Record<string, string> = {
   hi: "हिंदी",
   en: "English",
-  bn: "বাংলা",
-  mr: "मराठी",
-  ta: "தமிழ்",
-  te: "తెలుగు",
-  gu: "ગુજરાતી",
-  kn: "ಕನ್ನಡ",
-  ml: "മലയാളം",
-  pa: "ਪੰਜਾਬੀ",
-  or: "ଓଡ଼ିଆ",
-  as: "অসমীয়া",
-  ur: "اردو",
 };
 
 export default function MainLayout({
@@ -237,7 +105,7 @@ export default function MainLayout({
   return (
     <div
       className="min-h-screen bg-green-50"
-      dir={language === "ur" ? "rtl" : "ltr"}
+      dir="ltr"
     >
       {/* =====================================================
           MENU BUTTON
@@ -246,9 +114,7 @@ export default function MainLayout({
       <button
         type="button"
         onClick={() => setSidebarOpen(true)}
-        className={`fixed top-4 z-50 w-11 h-11 rounded-xl bg-white border border-gray-200 shadow-md flex flex-col items-center justify-center gap-1.5 hover:bg-gray-50 transition ${
-          language === "ur" ? "right-4" : "left-4"
-        }`}
+        className="fixed top-4 z-50 w-11 h-11 rounded-xl bg-white border border-gray-200 shadow-md flex flex-col items-center justify-center gap-1.5 hover:bg-gray-50 transition left-4"
         aria-label="Open Menu"
       >
         <span className="block w-5 h-0.5 bg-gray-700 rounded" />
@@ -274,19 +140,11 @@ export default function MainLayout({
       ====================================================== */}
 
       <aside
-        dir={language === "ur" ? "rtl" : "ltr"}
-        className={`fixed top-0 bottom-0 z-50 w-80 max-w-[85vw] bg-white shadow-2xl transform transition-transform duration-300 ${
-          language === "ur"
-            ? `right-0 ${
-                sidebarOpen
-                  ? "translate-x-0"
-                  : "translate-x-full"
-              }`
-            : `left-0 ${
-                sidebarOpen
-                  ? "translate-x-0"
-                  : "-translate-x-full"
-              }`
+        dir="ltr"
+        className={`fixed top-0 bottom-0 z-50 w-80 max-w-[85vw] bg-white shadow-2xl transform transition-transform duration-300 left-0 ${
+          sidebarOpen
+            ? "translate-x-0"
+            : "-translate-x-full"
         }`}
       >
         {/* =================================================
@@ -412,13 +270,7 @@ export default function MainLayout({
             ================================================== */}
 
             {settingsOpen && (
-              <div
-                className={`mt-1 border-green-100 ${
-                  language === "ur"
-                    ? "mr-8 pr-4 border-r-2"
-                    : "ml-8 pl-4 border-l-2"
-                }`}
-              >
+              <div className="mt-1 border-green-100 ml-8 pl-4 border-l-2">
                 {/* =================================================
                     LANGUAGE
                 ================================================== */}
