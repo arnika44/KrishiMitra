@@ -29,6 +29,12 @@ type Profile = {
   districtName?: string;
   stateName?: string;
   pinCode?: string;
+
+  phone?: string;
+  mobile?: string;
+  mobileNumber?: string;
+  phoneNumber?: string;
+  contactNumber?: string;
 };
 
 type QuantityUnit =
@@ -2301,10 +2307,42 @@ function getMarketInfo(
 ========================================================= */
 
 const pageStyles = `
-  input, select, textarea { color-scheme: dark; }
-  select option { background: #020617; color: #f8fafc; }
-  input::placeholder { color: #64748b; }
-`;
+  .market-page { background: #f8fafc !important; color: #111827; }
+  .market-page .bg-slate-950 { background: #ffffff !important; }
+  .market-page .bg-slate-900 { background: #f8fafc !important; }
+  .market-page .bg-green-950\/50 { background: #f0fdf4 !important; }
+  .market-page .bg-yellow-950\/40 { background: #fffbeb !important; }
+  .market-page .border-slate-700 { border-color: #cbd5e1 !important; }
+  .market-page .border-slate-800 { border-color: #e2e8f0 !important; }
+  .market-page .border-yellow-800 { border-color: #facc15 !important; }
+  .market-page .text-white { color: #111827 !important; }
+  .market-page .text-slate-100,
+  .market-page .text-slate-200,
+  .market-page .text-slate-300,
+  .market-page .text-slate-400,
+  .market-page .text-slate-500 { color: #1f2937 !important; }
+  .market-page .text-green-200 { color: #166534 !important; }
+  .market-page .text-green-300 { color: #15803d !important; }
+  .market-page .text-yellow-200 { color: #854d0e !important; }
+  .market-page .text-yellow-300 { color: #713f12 !important; }
+  .market-page input,
+  .market-page select,
+  .market-page textarea {
+    color-scheme: dark;
+    background: #111827 !important;
+    color: #ffffff !important;
+    border-color: #475569 !important;
+  }
+  .market-page input::placeholder { color: #94a3b8 !important; }
+  .market-page select option { background: #111827; color: #ffffff; }
+  .market-page button.bg-green-700,
+  .market-page button.bg-green-800,
+  .market-page button.bg-green-600,
+  .market-page button.bg-green-500 { color: #ffffff !important; }
+  .market-page input[type="number"]::-webkit-outer-spin-button,
+  .market-page input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .market-page input[type="number"] { -moz-appearance: textfield; }
+`
 
 export default function MarketPage() {
   const params = useParams();
@@ -2475,6 +2513,23 @@ export default function MarketPage() {
      PROFILE LOCATION
   ======================================================= */
 
+  const phoneLabel =
+    ({
+      en: "Phone Number",
+      hi: "मोबाइल नंबर",
+      mr: "मोबाइल नंबर",
+      bn: "মোবাইল নম্বর",
+      ta: "மொபைல் எண்",
+      te: "మొబైల్ నంబర్",
+      gu: "મોબાઇલ નંબર",
+      kn: "ಮೊಬೈಲ್ ಸಂಖ್ಯೆ",
+      ml: "മൊബൈൽ നമ്പർ",
+      pa: "ਮੋਬਾਈਲ ਨੰਬਰ",
+      ur: "موبائل نمبر",
+      or: "ମୋବାଇଲ୍ ନମ୍ବର",
+      as: "ম'বাইল নম্বৰ",
+    } as Record<string, string>)[language] || "Phone Number";
+
   const profileLocation =
     useMemo(
       () => ({
@@ -2505,6 +2560,15 @@ export default function MarketPage() {
         pincode: String(
           profile.pincode ||
             profile.pinCode ||
+            ""
+        ),
+
+        phone: String(
+          profile.phone ||
+            profile.mobile ||
+            profile.mobileNumber ||
+            profile.phoneNumber ||
+            profile.contactNumber ||
             ""
         ),
       }),
@@ -3050,7 +3114,7 @@ export default function MarketPage() {
 
   return (
     <main
-      className="min-h-screen bg-slate-950 px-5 py-10"
+      className="market-page min-h-screen bg-slate-950 px-5 py-10"
       dir={
         isRTL
           ? "rtl"
@@ -3246,7 +3310,7 @@ export default function MarketPage() {
 
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
 
               {[
                 [
@@ -3267,6 +3331,11 @@ export default function MarketPage() {
                 [
                   t.pincode,
                   profileLocation.pincode,
+                ],
+
+                [
+                  phoneLabel,
+                  profileLocation.phone,
                 ],
               ].map(
                 ([label, value]) => (
