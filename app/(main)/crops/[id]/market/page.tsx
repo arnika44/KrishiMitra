@@ -298,7 +298,7 @@ const en: T = {
   bestOption: "Best option",
 
   quantityCalculator: "💰 Quantity-wise Earning Calculator",
-  quantity: "Amount to Sell",
+  quantity: "Quantity to Sell",
 
   selectUnit: "Unit",
 
@@ -2300,6 +2300,12 @@ function getMarketInfo(
    COMPONENT
 ========================================================= */
 
+const pageStyles = `
+  input, select, textarea { color-scheme: dark; }
+  select option { background: #020617; color: #f8fafc; }
+  input::placeholder { color: #64748b; }
+`;
+
 export default function MarketPage() {
   const params = useParams();
   const router = useRouter();
@@ -2330,7 +2336,7 @@ export default function MarketPage() {
     Quantity is controlled by user.
   */
   const [quantity, setQuantity] =
-    useState("20");
+    useState("");
 
   const [quantityUnit, setQuantityUnit] =
     useState<QuantityUnit>("quintal");
@@ -2976,23 +2982,23 @@ export default function MarketPage() {
   if (loading) {
     return (
       <main
-        className="min-h-screen bg-green-50 flex items-center justify-center px-5"
+        className="min-h-screen bg-slate-950 flex items-center justify-center px-5"
         dir={
           isRTL
             ? "rtl"
             : "ltr"
         }
       >
-        <div className="bg-white rounded-3xl shadow-lg p-8 text-center">
+        <div className="bg-slate-900 rounded-3xl shadow-lg p-8 text-center">
           <div className="text-6xl mb-4">
             🏪
           </div>
 
-          <h1 className="text-2xl font-bold text-green-800">
+          <h1 className="text-2xl font-bold text-green-300">
             {t.loadingTitle}
           </h1>
 
-          <p className="text-gray-500 mt-2">
+          <p className="text-slate-400 mt-2">
             {t.loadingText}
           </p>
         </div>
@@ -3007,19 +3013,19 @@ export default function MarketPage() {
   if (!crop || !market) {
     return (
       <main
-        className="min-h-screen bg-green-50 flex items-center justify-center px-5"
+        className="min-h-screen bg-slate-950 flex items-center justify-center px-5"
         dir={
           isRTL
             ? "rtl"
             : "ltr"
         }
       >
-        <div className="bg-white rounded-3xl shadow-lg p-8 text-center">
+        <div className="bg-slate-900 rounded-3xl shadow-lg p-8 text-center">
           <div className="text-5xl mb-4">
             🌱
           </div>
 
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-slate-100">
             {t.cropNotFound}
           </h1>
 
@@ -3044,13 +3050,14 @@ export default function MarketPage() {
 
   return (
     <main
-      className="min-h-screen bg-green-50 px-5 py-10"
+      className="min-h-screen bg-slate-950 px-5 py-10"
       dir={
         isRTL
           ? "rtl"
           : "ltr"
       }
     >
+      <style jsx global>{pageStyles}</style>
       <div className="max-w-6xl mx-auto">
 
         {/* BACK */}
@@ -3060,7 +3067,7 @@ export default function MarketPage() {
               `/crops/${crop.id}`
             )
           }
-          className="text-green-700 font-semibold mb-6 hover:text-green-900"
+          className="text-green-300 font-semibold mb-6 hover:text-green-200"
         >
           ← {t.backTo}{" "}
           {crop.crop}
@@ -3070,26 +3077,26 @@ export default function MarketPage() {
             CROP HEADER
         ================================================= */}
 
-        <div className="bg-white rounded-3xl shadow-lg p-7 mb-8">
+        <div className="bg-slate-900 rounded-3xl shadow-lg p-7 mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center gap-5">
-            <div className="w-20 h-20 bg-green-100 rounded-3xl flex items-center justify-center text-5xl">
+            <div className="w-20 h-20 bg-green-950/50 rounded-3xl flex items-center justify-center text-5xl">
               🌾
             </div>
 
             <div>
-              <p className="text-sm text-green-600 font-semibold">
+              <p className="text-sm text-green-400 font-semibold">
                 {getSeasonName(
                   crop.season
                 )}{" "}
                 {t.season}
               </p>
 
-              <h1 className="text-3xl font-bold text-green-800 mt-1">
+              <h1 className="text-3xl font-bold text-green-300 mt-1">
                 {crop.crop}{" "}
                 {t.market}
               </h1>
 
-              <p className="text-gray-600 mt-2">
+              <p className="text-slate-300 mt-2">
                 {t.landArea}:{" "}
                 <span className="font-semibold">
                   {crop.land}{" "}
@@ -3105,67 +3112,67 @@ export default function MarketPage() {
             CURRENT MARKET
         ================================================= */}
 
-        <div className="bg-white rounded-3xl shadow-lg p-7 mb-8">
-          <h2 className="text-2xl font-bold text-green-800">
+        <div className="bg-slate-900 rounded-3xl shadow-lg p-7 mb-8">
+          <h2 className="text-2xl font-bold text-green-300">
             {t.currentMarket}
           </h2>
 
-          <p className="text-gray-600 mt-2">
+          <p className="text-slate-300 mt-2">
             {t.marketDescription}
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-6">
 
-            <div className="bg-green-50 rounded-2xl p-5">
+            <div className="bg-slate-950 rounded-2xl p-5">
               <div className="text-3xl mb-3">
                 🌾
               </div>
 
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-slate-400">
                 {t.cropLabel}
               </p>
 
-              <p className="text-xl font-bold text-green-800 mt-1">
+              <p className="text-xl font-bold text-green-300 mt-1">
                 {crop.crop}
               </p>
             </div>
 
-            <div className="bg-green-50 rounded-2xl p-5">
+            <div className="bg-slate-950 rounded-2xl p-5">
               <div className="text-3xl mb-3">
                 💰
               </div>
 
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-slate-400">
                 {t.indicativePrice}
               </p>
 
-              <p className="text-xl font-bold text-green-800 mt-1">
+              <p className="text-xl font-bold text-green-300 mt-1">
                 {market.price}
               </p>
 
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm text-slate-400 mt-1">
                 {t.perQuintal}
               </p>
             </div>
 
-            <div className="bg-green-50 rounded-2xl p-5">
+            <div className="bg-slate-950 rounded-2xl p-5">
               <div className="text-3xl mb-3">
                 📈
               </div>
 
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-slate-400">
                 {t.marketTrend}
               </p>
 
-              <p className="text-xl font-bold text-green-800 mt-1">
+              <p className="text-xl font-bold text-green-300 mt-1">
                 {market.trend}
               </p>
             </div>
 
           </div>
 
-          <div className="mt-5 bg-blue-50 border border-blue-200 rounded-2xl p-4">
-            <p className="text-sm text-blue-900">
+          <div className="mt-5 bg-slate-900 border border-slate-700 rounded-2xl p-4">
+            <p className="text-sm text-blue-200">
               ℹ️ {t.rateUnitNote}
             </p>
           </div>
@@ -3175,13 +3182,13 @@ export default function MarketPage() {
             SELLING ADVICE
         ================================================= */}
 
-        <div className="bg-white rounded-3xl shadow-lg p-7 mb-8">
-          <h2 className="text-2xl font-bold text-green-800">
+        <div className="bg-slate-900 rounded-3xl shadow-lg p-7 mb-8">
+          <h2 className="text-2xl font-bold text-green-300">
             {t.sellingAdvice}
           </h2>
 
-          <div className="bg-green-50 rounded-2xl p-6 mt-5">
-            <p className="text-gray-700 leading-relaxed">
+          <div className="bg-slate-950 rounded-2xl p-6 mt-5">
+            <p className="text-slate-200 leading-relaxed">
               {market.advice}
             </p>
           </div>
@@ -3191,19 +3198,19 @@ export default function MarketPage() {
             NEARBY MANDI
         ================================================= */}
 
-        <div className="bg-white rounded-3xl shadow-lg p-7 mb-8">
+        <div className="bg-slate-900 rounded-3xl shadow-lg p-7 mb-8">
 
-          <h2 className="text-2xl font-bold text-green-800">
+          <h2 className="text-2xl font-bold text-green-300">
             {t.nearbyMarket}
           </h2>
 
-          <p className="text-gray-600 mt-2">
+          <p className="text-slate-300 mt-2">
             {t.nearbyMarketDescription}
           </p>
 
           {/* LOCATION CARD */}
 
-          <div className="mt-6 bg-blue-50 border border-blue-200 rounded-2xl p-5">
+          <div className="mt-6 bg-slate-900 border border-slate-700 rounded-2xl p-5">
 
             <div className="flex items-center gap-3 mb-4">
 
@@ -3213,11 +3220,11 @@ export default function MarketPage() {
 
               <div>
 
-                <p className="text-sm text-blue-600 font-semibold">
+                <p className="text-sm text-blue-400 font-semibold">
                   {t.profileLocation}
                 </p>
 
-                <p className="font-bold text-blue-900">
+                <p className="font-bold text-blue-200">
                   {[
                     profileLocation.village,
                     profileLocation.city,
@@ -3230,7 +3237,7 @@ export default function MarketPage() {
                     "—"}
                 </p>
 
-                <p className="text-sm text-blue-700 mt-1">
+                <p className="text-sm text-blue-300 mt-1">
                   ✓{" "}
                   {t.usingProfileLocation}
                 </p>
@@ -3265,13 +3272,13 @@ export default function MarketPage() {
                 ([label, value]) => (
                   <div
                     key={label}
-                    className="bg-white rounded-xl p-3"
+                    className="bg-slate-900 rounded-xl p-3"
                   >
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-slate-400">
                       {label}
                     </p>
 
-                    <p className="font-bold text-gray-800 mt-1">
+                    <p className="font-bold text-slate-100 mt-1">
                       {value ||
                         "—"}
                     </p>
@@ -3283,7 +3290,7 @@ export default function MarketPage() {
 
             <div className="mt-4 flex flex-wrap gap-2">
 
-              <span className="px-3 py-1 rounded-full bg-white border text-xs font-semibold text-gray-700">
+              <span className="px-3 py-1 rounded-full bg-slate-900 border text-xs font-semibold text-slate-200">
                 {t.locationSource}:{" "}
                 {locationSource ===
                 "browser"
@@ -3291,7 +3298,7 @@ export default function MarketPage() {
                   : `👤 ${t.profileLocationSource}`}
               </span>
 
-              <span className="px-3 py-1 rounded-full bg-white border text-xs font-semibold text-gray-700">
+              <span className="px-3 py-1 rounded-full bg-slate-900 border text-xs font-semibold text-slate-200">
                 {t.distanceLimit}:{" "}
                 {browserCoords
                   ? "180 km"
@@ -3306,13 +3313,13 @@ export default function MarketPage() {
               QUANTITY INPUT
           ================================================= */}
 
-          <div className="mt-7 bg-green-50 border border-green-200 rounded-3xl p-6">
+          <div className="mt-7 bg-slate-950 border border-slate-700 rounded-3xl p-6">
 
-            <h3 className="text-xl font-bold text-green-900">
+            <h3 className="text-xl font-bold text-green-200">
               {t.quantityCalculator}
             </h3>
 
-            <p className="text-sm text-green-800 mt-1">
+            <p className="text-sm text-green-300 mt-1">
               {t.quantity}:{" "}
               <strong>
                 {enteredQuantityLabel}
@@ -3325,22 +3332,24 @@ export default function MarketPage() {
 
               <div>
 
-                <label className="text-sm font-semibold text-gray-700">
+                <label className="text-sm font-semibold text-slate-200">
                   {t.quantity}
                 </label>
 
                 <input
-                  type="number"
-                  min="0"
-                  step="0.001"
+                  type="text"
+                  inputMode="decimal"
+                  autoComplete="off"
                   value={quantity}
                   onChange={(e) =>
                     setQuantity(
                       e.target.value
+                        .replace(/[^0-9.]/g, "")
+                        .replace(/(\..*)\./g, "$1")
                     )
                   }
-                  className="mt-2 w-full rounded-xl border border-green-200 bg-white px-4 py-3 font-bold outline-none focus:ring-2 focus:ring-green-400"
-                  placeholder="20"
+                  className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 font-bold text-white placeholder:text-slate-500 outline-none focus:ring-2 focus:ring-green-400"
+                  placeholder="Enter quantity"
                 />
 
               </div>
@@ -3349,7 +3358,7 @@ export default function MarketPage() {
 
               <div>
 
-                <label className="text-sm font-semibold text-gray-700">
+                <label className="text-sm font-semibold text-slate-200">
                   {t.selectUnit}
                 </label>
 
@@ -3363,7 +3372,7 @@ export default function MarketPage() {
                         .value as QuantityUnit
                     )
                   }
-                  className="mt-2 w-full rounded-xl border border-green-200 bg-white px-4 py-3 font-bold outline-none focus:ring-2 focus:ring-green-400"
+                  className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 font-bold text-white placeholder:text-slate-500 outline-none focus:ring-2 focus:ring-green-400"
                 >
 
                   <option value="gram">
@@ -3396,13 +3405,13 @@ export default function MarketPage() {
 
             <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
 
-              <div className="bg-white rounded-2xl p-4 border border-green-100">
+              <div className="bg-slate-900 rounded-2xl p-4 border border-slate-700">
 
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-slate-400">
                   {t.quantityEquivalent}
                 </p>
 
-                <p className="text-xl font-extrabold text-green-800 mt-1">
+                <p className="text-xl font-extrabold text-green-300 mt-1">
                   {totalKg.toLocaleString(
                     "en-IN",
                     {
@@ -3414,13 +3423,13 @@ export default function MarketPage() {
 
               </div>
 
-              <div className="bg-white rounded-2xl p-4 border border-green-100">
+              <div className="bg-slate-900 rounded-2xl p-4 border border-slate-700">
 
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-slate-400">
                   {t.quantity}
                 </p>
 
-                <p className="text-xl font-extrabold text-green-800 mt-1">
+                <p className="text-xl font-extrabold text-green-300 mt-1">
                   {enteredQuantityLabel}
                 </p>
 
@@ -3431,7 +3440,7 @@ export default function MarketPage() {
             {safeQuantity <=
               0 && (
               <div className="mt-4 bg-red-50 border border-red-200 rounded-xl p-3">
-                <p className="text-sm text-red-700 font-semibold">
+                <p className="text-sm text-red-300 font-semibold">
                   {t.invalidQuantity}
                 </p>
               </div>
@@ -3469,7 +3478,7 @@ export default function MarketPage() {
                   searching ||
                   totalKg <= 0
                 }
-                className="px-7 py-3 rounded-xl bg-white border-2 border-green-700 text-green-700 font-bold hover:bg-green-50 disabled:opacity-60 transition"
+                className="px-7 py-3 rounded-xl bg-slate-900 border-2 border-green-700 text-green-300 font-bold hover:bg-slate-950 disabled:opacity-60 transition"
               >
                 {searching
                   ? t.refreshing
@@ -3480,7 +3489,7 @@ export default function MarketPage() {
           </div>
 
           {lastUpdated && (
-            <p className="text-sm text-gray-500 mt-3">
+            <p className="text-sm text-slate-400 mt-3">
               🕒{" "}
               {t.lastUpdated}:{" "}
               {lastUpdated}
@@ -3492,8 +3501,8 @@ export default function MarketPage() {
           ================================================= */}
 
           {searched && (
-            <div className="mt-5 bg-gray-50 rounded-2xl p-4">
-              <p className="text-sm text-gray-600">
+            <div className="mt-5 bg-slate-900 rounded-2xl p-4">
+              <p className="text-sm text-slate-300">
                 ℹ️{" "}
                 {t.rankingNote}
               </p>
@@ -3531,7 +3540,7 @@ export default function MarketPage() {
                   </strong>
                 </p>
 
-                <p className="text-sm text-green-100 mt-2">
+                <p className="text-sm text-green-200 mt-2">
                   {t.mandiRate}: ₹
                   {bestMandi.rate.toLocaleString(
                     "en-IN"
@@ -3539,13 +3548,13 @@ export default function MarketPage() {
                   {t.perQuintal}
                 </p>
 
-                <p className="text-sm text-green-100 mt-1">
+                <p className="text-sm text-green-200 mt-1">
                   {t.distance}:{" "}
                   {bestMandi.distanceKm}{" "}
                   km
                 </p>
 
-                <p className="text-sm text-green-100 mt-1">
+                <p className="text-sm text-green-200 mt-1">
                   {t.totalTransport}: ₹
                   {bestMandi.totalTransport.toLocaleString(
                     "en-IN",
@@ -3567,14 +3576,14 @@ export default function MarketPage() {
               0 && (
               <div className="mt-8">
 
-                <h3 className="text-2xl font-bold text-green-800">
+                <h3 className="text-2xl font-bold text-green-300">
                   {
                     recalculatedMandis.length
                   }{" "}
                   {t.mandiFound}
                 </h3>
 
-                <p className="text-gray-500 text-sm mt-1">
+                <p className="text-slate-400 text-sm mt-1">
                   {profileLocation.district ||
                     profileLocation.state ||
                     "Nearby"}
@@ -3605,10 +3614,10 @@ export default function MarketPage() {
                           key={
                             mandi.id
                           }
-                          className={`border rounded-3xl p-6 bg-green-50 hover:shadow-md transition ${
+                          className={`border rounded-3xl p-6 bg-slate-950 hover:shadow-md transition ${
                             index === 0
-                              ? "border-green-400 ring-2 ring-green-100"
-                              : "border-green-100"
+                              ? "border-green-400 ring-2 ring-green-900"
+                              : "border-slate-700"
                           }`}
                         >
 
@@ -3618,13 +3627,13 @@ export default function MarketPage() {
 
                             <div className="flex gap-4">
 
-                              <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-3xl shadow-sm">
+                              <div className="w-14 h-14 bg-slate-900 rounded-2xl flex items-center justify-center text-3xl shadow-sm">
                                 🏪
                               </div>
 
                               <div>
 
-                                <h4 className="text-xl font-bold text-green-900">
+                                <h4 className="text-xl font-bold text-green-200">
                                   {index ===
                                     0 &&
                                     "⭐ "}
@@ -3633,7 +3642,7 @@ export default function MarketPage() {
                                   }
                                 </h4>
 
-                                <p className="text-sm text-gray-600 mt-1">
+                                <p className="text-sm text-slate-300 mt-1">
                                   {
                                     mandi.district
                                   }
@@ -3645,7 +3654,7 @@ export default function MarketPage() {
 
                                 <div className="flex flex-wrap gap-2 mt-2">
 
-                                  <span className="text-xs px-2 py-1 rounded-full bg-white border font-semibold text-gray-600">
+                                  <span className="text-xs px-2 py-1 rounded-full bg-slate-900 border font-semibold text-slate-300">
                                     {
                                       mandi.marketType ===
                                       "APMC"
@@ -3654,7 +3663,7 @@ export default function MarketPage() {
                                     }
                                   </span>
 
-                                  <span className="text-xs px-2 py-1 rounded-full bg-white border font-semibold text-green-700">
+                                  <span className="text-xs px-2 py-1 rounded-full bg-slate-900 border font-semibold text-green-300">
                                     {
                                       areaLabel
                                     }
@@ -3672,7 +3681,7 @@ export default function MarketPage() {
                                   mandi
                                 )
                               }
-                              className="shrink-0 px-3 py-2 rounded-xl bg-white border text-sm font-bold hover:bg-yellow-50"
+                              className="shrink-0 px-3 py-2 rounded-xl bg-slate-900 border text-sm font-bold hover:bg-yellow-950/40"
                               title={
                                 isFavorite
                                   ? t.saved
@@ -3688,26 +3697,26 @@ export default function MarketPage() {
 
                           {/* RATE */}
 
-                          <div className="mt-6 bg-white rounded-2xl p-5">
+                          <div className="mt-6 bg-slate-900 rounded-2xl p-5">
 
                             <div className="flex items-center justify-between">
 
                               <div>
 
-                                <p className="text-sm text-gray-500">
+                                <p className="text-sm text-slate-400">
                                   {
                                     t.mandiRate
                                   }
                                 </p>
 
-                                <p className="text-3xl font-extrabold text-green-700 mt-1">
+                                <p className="text-3xl font-extrabold text-green-300 mt-1">
                                   ₹
                                   {mandi.rate.toLocaleString(
                                     "en-IN"
                                   )}
                                 </p>
 
-                                <p className="text-sm text-gray-500">
+                                <p className="text-sm text-slate-400">
                                   {
                                     t.perQuintal
                                   }
@@ -3723,14 +3732,14 @@ export default function MarketPage() {
 
                             <div className="mt-4 grid grid-cols-2 gap-3">
 
-                              <div className="bg-green-50 rounded-xl p-3">
-                                <p className="text-xs text-gray-500">
+                              <div className="bg-slate-950 rounded-xl p-3">
+                                <p className="text-xs text-slate-400">
                                   {
                                     t.perKg
                                   }
                                 </p>
 
-                                <p className="font-bold text-green-700 mt-1">
+                                <p className="font-bold text-green-300 mt-1">
                                   ₹
                                   {(
                                     mandi.rate /
@@ -3744,14 +3753,14 @@ export default function MarketPage() {
                                 </p>
                               </div>
 
-                              <div className="bg-green-50 rounded-xl p-3">
-                                <p className="text-xs text-gray-500">
+                              <div className="bg-slate-950 rounded-xl p-3">
+                                <p className="text-xs text-slate-400">
                                   {
                                     t.netPerKg
                                   }
                                 </p>
 
-                                <p className="font-bold text-green-700 mt-1">
+                                <p className="font-bold text-green-300 mt-1">
                                   ₹
                                   {mandi.effectiveRatePerKg.toLocaleString(
                                     "en-IN",
@@ -3770,16 +3779,16 @@ export default function MarketPage() {
 
                           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
 
-                            <div className="bg-white rounded-xl p-4">
+                            <div className="bg-slate-900 rounded-xl p-4">
 
-                              <p className="text-xs text-gray-500">
+                              <p className="text-xs text-slate-400">
                                 📏{" "}
                                 {
                                   t.distance
                                 }
                               </p>
 
-                              <p className="font-bold text-gray-800 mt-1">
+                              <p className="font-bold text-slate-100 mt-1">
                                 {
                                   mandi.distanceKm
                                 }{" "}
@@ -3788,23 +3797,23 @@ export default function MarketPage() {
 
                             </div>
 
-                            <div className="bg-white rounded-xl p-4">
+                            <div className="bg-slate-900 rounded-xl p-4">
 
-                              <p className="text-xs text-gray-500">
+                              <p className="text-xs text-slate-400">
                                 🚚{" "}
                                 {
                                   t.transportation
                                 }
                               </p>
 
-                              <p className="font-bold text-orange-700 mt-1">
+                              <p className="font-bold text-orange-300 mt-1">
                                 ₹
                                 {mandi.transportPerQuintal.toLocaleString(
                                   "en-IN"
                                 )}
                               </p>
 
-                              <p className="text-xs text-gray-400">
+                              <p className="text-xs text-slate-500">
                                 {
                                   t.perQuintal
                                 }
@@ -3812,23 +3821,23 @@ export default function MarketPage() {
 
                             </div>
 
-                            <div className="bg-white rounded-xl p-4">
+                            <div className="bg-slate-900 rounded-xl p-4">
 
-                              <p className="text-xs text-gray-500">
+                              <p className="text-xs text-slate-400">
                                 💵{" "}
                                 {
                                   t.effectiveRate
                                 }
                               </p>
 
-                              <p className="font-bold text-green-700 mt-1">
+                              <p className="font-bold text-green-300 mt-1">
                                 ₹
                                 {mandi.effectiveRatePerQuintal.toLocaleString(
                                   "en-IN"
                                 )}
                               </p>
 
-                              <p className="text-xs text-gray-400">
+                              <p className="text-xs text-slate-500">
                                 {
                                   t.perQuintal
                                 }
@@ -3842,15 +3851,15 @@ export default function MarketPage() {
                               EXACT QUANTITY CALCULATION
                           ================================================= */}
 
-                          <div className="mt-4 bg-green-100 rounded-2xl p-5">
+                          <div className="mt-4 bg-green-950/50 rounded-2xl p-5">
 
-                            <p className="font-bold text-green-900">
+                            <p className="font-bold text-green-200">
                               {
                                 t.quantityCalculator
                               }
                             </p>
 
-                            <p className="text-sm text-green-800 mt-1">
+                            <p className="text-sm text-green-300 mt-1">
                               {t.quantity}:{" "}
                               <strong>
                                 {
@@ -3861,15 +3870,15 @@ export default function MarketPage() {
 
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
 
-                              <div className="bg-white rounded-xl p-4">
+                              <div className="bg-slate-900 rounded-xl p-4">
 
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs text-slate-400">
                                   {
                                     t.grossAmount
                                   }
                                 </p>
 
-                                <p className="font-bold text-blue-700 mt-1">
+                                <p className="font-bold text-blue-300 mt-1">
                                   ₹
                                   {mandi.grossAmount.toLocaleString(
                                     "en-IN",
@@ -3879,21 +3888,21 @@ export default function MarketPage() {
                                   )}
                                 </p>
 
-                                <p className="text-xs text-gray-400 mt-1">
+                                <p className="text-xs text-slate-500 mt-1">
                                   {enteredQuantityLabel}
                                 </p>
 
                               </div>
 
-                              <div className="bg-white rounded-xl p-4">
+                              <div className="bg-slate-900 rounded-xl p-4">
 
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs text-slate-400">
                                   {
                                     t.totalTransport
                                   }
                                 </p>
 
-                                <p className="font-bold text-orange-700 mt-1">
+                                <p className="font-bold text-orange-300 mt-1">
                                   ₹
                                   {mandi.totalTransport.toLocaleString(
                                     "en-IN",
@@ -3903,21 +3912,21 @@ export default function MarketPage() {
                                   )}
                                 </p>
 
-                                <p className="text-xs text-gray-400 mt-1">
+                                <p className="text-xs text-slate-500 mt-1">
                                   {enteredQuantityLabel}
                                 </p>
 
                               </div>
 
-                              <div className="bg-white rounded-xl p-4">
+                              <div className="bg-slate-900 rounded-xl p-4">
 
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs text-slate-400">
                                   {
                                     t.estimatedEarning
                                   }
                                 </p>
 
-                                <p className="font-extrabold text-green-700 mt-1">
+                                <p className="font-extrabold text-green-300 mt-1">
                                   ₹
                                   {mandi.estimatedEarning.toLocaleString(
                                     "en-IN",
@@ -3927,7 +3936,7 @@ export default function MarketPage() {
                                   )}
                                 </p>
 
-                                <p className="text-xs text-gray-400 mt-1">
+                                <p className="text-xs text-slate-500 mt-1">
                                   {enteredQuantityLabel}
                                 </p>
 
@@ -3937,13 +3946,13 @@ export default function MarketPage() {
 
                             {/* FORMULA */}
 
-                            <div className="mt-4 bg-white rounded-xl p-4">
+                            <div className="mt-4 bg-slate-900 rounded-xl p-4">
 
-                              <p className="text-xs text-gray-500">
+                              <p className="text-xs text-slate-400">
                                 Calculation
                               </p>
 
-                              <p className="text-sm text-gray-700 mt-1">
+                              <p className="text-sm text-slate-200 mt-1">
 
                                 {totalKg.toLocaleString(
                                   "en-IN",
@@ -3977,13 +3986,13 @@ export default function MarketPage() {
 
                           {/* AVAILABLE CROP */}
 
-                          <div className="mt-4 bg-white rounded-2xl p-5">
+                          <div className="mt-4 bg-slate-900 rounded-2xl p-5">
 
                             <div className="grid grid-cols-2 gap-3">
 
                               <div>
 
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs text-slate-400">
                                   {
                                     t.availableCrop
                                   }
@@ -3999,13 +4008,13 @@ export default function MarketPage() {
 
                               <div>
 
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs text-slate-400">
                                   {
                                     t.netPerQuintal
                                   }
                                 </p>
 
-                                <p className="font-bold text-green-700 mt-1">
+                                <p className="font-bold text-green-300 mt-1">
                                   ₹
                                   {mandi.effectiveRatePerQuintal.toLocaleString(
                                     "en-IN"
@@ -4022,7 +4031,7 @@ export default function MarketPage() {
                                   mandi
                                 )
                               }
-                              className="mt-4 w-full px-4 py-3 rounded-xl border-2 border-green-700 text-green-700 font-bold hover:bg-green-50"
+                              className="mt-4 w-full px-4 py-3 rounded-xl border-2 border-green-700 text-green-300 font-bold hover:bg-slate-950"
                             >
                               {
                                 t.directions
@@ -4040,9 +4049,9 @@ export default function MarketPage() {
 
                 {/* NOTICE */}
 
-                <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-2xl p-5">
+                <div className="mt-6 bg-yellow-950/40 border border-yellow-800 rounded-2xl p-5">
 
-                  <p className="text-sm text-yellow-900 leading-relaxed">
+                  <p className="text-sm text-yellow-200 leading-relaxed">
                     ⚠️{" "}
                     {
                       t.indicativeNotice
@@ -4059,9 +4068,9 @@ export default function MarketPage() {
           {searched &&
             recalculatedMandis.length ===
               0 && (
-              <div className="mt-7 bg-yellow-50 border border-yellow-200 rounded-2xl p-6">
+              <div className="mt-7 bg-yellow-950/40 border border-yellow-800 rounded-2xl p-6">
 
-                <p className="text-yellow-900">
+                <p className="text-yellow-200">
                   {t.noMandi}
                 </p>
 
@@ -4083,9 +4092,9 @@ export default function MarketPage() {
             IMPORTANT BEFORE SELLING
         ================================================= */}
 
-        <div className="bg-yellow-50 border border-yellow-200 rounded-3xl p-7">
+        <div className="bg-yellow-950/40 border border-yellow-800 rounded-3xl p-7">
 
-          <h2 className="text-2xl font-bold text-yellow-800">
+          <h2 className="text-2xl font-bold text-yellow-300">
             {
               t.importantBeforeSelling
             }
@@ -4120,7 +4129,7 @@ export default function MarketPage() {
                     {icon}
                   </div>
 
-                  <p className="text-yellow-900">
+                  <p className="text-yellow-200">
                     {text}
                   </p>
                 </div>
