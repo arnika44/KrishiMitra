@@ -795,23 +795,24 @@ async function findNearbyIndianMandis(
   location: GeocodedLocation,
   radiusKm: number
 ): Promise<MandiBase[]> {
-  const radiusMeters = Math.round(radiusKm * 1000);
   const { lat, lng } = location;
+  const radiusMeters = Math.round(radiusKm * 1000);
 
-  // Use OSM Overpass only as one data source. It can be slow or temporarily
-  // unavailable, so Nominatim is queried in parallel as a fast fallback.
+  // Dynamic search only: nothing is hard-coded into the mandi database.
+  // We use several OSM market tags/names because real mandis are mapped
+  // inconsistently across districts and states.
   const overpassQuery = `
-[out:json][timeout:7];
+[out:json][timeout:10];
 (
   nwr["amenity"="marketplace"](around:${radiusMeters},${lat},${lng});
-  nwr["name"~"mandi|apmc|krishi|agricultural market|agriculture market|kisan market|कृषि मंडी|कृषि बाजार|मंडी|बाज़ार|बाजार",i](around:${radiusMeters},${lat},${lng});
+  nwr["marketplace"](around:${radiusMeters},${lat},${lng});
+  nwr["name"~"mandi|apmc|agricultural market|agriculture market|wholesale market|krishi|kisan|कृषि मंडी|कृषि बाजार|मंडी|बाजार|बाज़ार",i](around:${radiusMeters},${lat},${lng});
 );
 out center tags;`;
 
   const overpassEndpoints = [
     "https://overpass-api.de/api/interpreter",
     "https://overpass.kumi.systems/api/interpreter",
-    "https://overpass.private.coffee/api/interpreter",
   ];
 
   const parseOverpass = async (endpoint: string): Promise<MandiBase[]> => {
@@ -823,13 +824,12 @@ out center tags;`;
           Accept: "application/json",
         },
         body: overpassQuery,
-      }, 7000);
+      }, 10000);
 
       if (!response.ok) return [];
+
       const raw = await response.json() as {
         elements?: Array<{
-          type: string;
-          id: number;
           lat?: number;
           lon?: number;
           center?: { lat?: number; lon?: number };
@@ -839,10 +839,16 @@ out center tags;`;
 
       return (raw.elements || []).flatMap((element) => {
         const tags = element.tags || {};
-        const name = tags.name || tags["name:en"] || tags["name:hi"] || "Agricultural Market";
         const elementLat = typeof element.lat === "number" ? element.lat : element.center?.lat;
         const elementLng = typeof element.lon === "number" ? element.lon : element.center?.lon;
         if (typeof elementLat !== "number" || typeof elementLng !== "number") return [];
+
+        const name = tags.name || tags["name:en"] || tags["name:hi"] || "Agricultural Market";
+        const distance = haversineDistance(lat, lng, elementLat, elementLng);
+        if (distance > radiusKm) return [];
+
+        const haystack = `${name} ${tags.operator || ""} ${tags["marketplace"] || ""}`.toLowerCase();
+        const isMandi = /mandi|apmc|agricultural|wholesale|krishi|kisan|कृषि|मंडी/.test(haystack);
 
         return [{
           name,
@@ -853,9 +859,7 @@ out center tags;`;
             tags["addr:city"], tags["addr:district"], tags["addr:state"], tags["addr:postcode"],
           ].filter(Boolean).join(", ") || tags["addr:full"] || undefined,
           rate: 0,
-          marketType: /apmc|mandi/i.test(name) || /apmc|mandi/i.test(tags.operator || "")
-            ? "APMC"
-            : "Local Market",
+          marketType: isMandi ? "APMC" : "Local Market",
           lat: elementLat,
           lng: elementLng,
         } as MandiBase];
@@ -865,22 +869,31 @@ out center tags;`;
     }
   };
 
+  // Coordinate-based Nominatim searches are much more useful than searching
+  // only by district name. This also handles villages on district borders.
+  const delta = radiusKm / 111;
+  const viewbox = `${lng - delta},${lat + delta},${lng + delta},${lat - delta}`;
   const nominatimQueries = [
-    `mandi near ${location.city || location.district || location.state || ""}`,
-    `agricultural market near ${location.city || location.district || location.state || ""}`,
-    `APMC near ${location.district || location.state || ""}`,
-    `market near ${location.city || location.district || location.state || ""}`,
-  ].filter((q, i, arr) => q.trim() && arr.indexOf(q) === i);
+    "mandi",
+    "APMC",
+    "agricultural market",
+    "wholesale market",
+    "krishi mandi",
+    "कृषि मंडी",
+  ];
 
   const parseNominatim = async (q: string): Promise<MandiBase[]> => {
     try {
       const params = new URLSearchParams({
         q,
         format: "jsonv2",
-        limit: "12",
+        limit: "20",
         addressdetails: "1",
+        bounded: "1",
+        viewbox,
         "accept-language": "en",
       });
+
       const response = await fetchWithTimeout(
         `https://nominatim.openstreetmap.org/search?${params.toString()}`,
         {
@@ -889,8 +902,9 @@ out center tags;`;
             "User-Agent": "KrishiMitra/1.0 (agricultural market finder)",
           },
         },
-        6500
+        7000
       );
+
       if (!response.ok) return [];
 
       const raw = await response.json() as Array<{
@@ -899,7 +913,7 @@ out center tags;`;
         display_name?: string;
         name?: string;
         type?: string;
-        class?: string;
+        category?: string;
         address?: Record<string, string | undefined>;
       }>;
 
@@ -908,10 +922,13 @@ out center tags;`;
         const itemLng = Number(item.lon);
         if (!Number.isFinite(itemLat) || !Number.isFinite(itemLng)) return [];
 
+        const distance = haversineDistance(lat, lng, itemLat, itemLng);
+        if (distance > radiusKm) return [];
+
         const address = item.address || {};
         const name = item.name || item.display_name?.split(",")[0] || "Agricultural Market";
-        const haystack = `${name} ${item.display_name || ""} ${item.type || ""}`.toLowerCase();
-        const looksLikeMarket = /mandi|apmc|agricultural|wholesale|market|bazaar|बाजार|मंडी|कृषि/.test(haystack);
+        const haystack = `${name} ${item.display_name || ""} ${item.type || ""} ${item.category || ""}`.toLowerCase();
+        const looksLikeMarket = /mandi|apmc|agricultural|wholesale|market|bazaar|बाजार|मंडी|कृषि|krishi/.test(haystack);
         if (!looksLikeMarket) return [];
 
         return [{
@@ -930,36 +947,29 @@ out center tags;`;
     }
   };
 
-  // Start all providers together. We do not wait for a slow provider before
-  // trying the next one. The first provider returning useful data wins.
-  const allRequests = [
+  // Run all discovery sources concurrently so one slow provider never blocks
+  // the complete search.
+  const results = await Promise.all([
     ...overpassEndpoints.map(parseOverpass),
     ...nominatimQueries.map(parseNominatim),
-  ];
+  ]);
 
-  const results = await Promise.all(allRequests);
   const merged = new Map<string, MandiBase>();
-
   for (const list of results) {
     for (const mandi of list) {
       if (typeof mandi.lat !== "number" || typeof mandi.lng !== "number") continue;
       const distance = haversineDistance(lat, lng, mandi.lat, mandi.lng);
       if (distance > radiusKm) continue;
+
       const key = `${normalize(mandi.name)}|${normalize(mandi.district)}|${normalize(mandi.state)}`;
       if (!merged.has(key)) merged.set(key, mandi);
     }
   }
 
   return Array.from(merged.values()).sort((a, b) => {
-    const distanceA =
-      typeof a.lat === "number" && typeof a.lng === "number"
-        ? haversineDistance(lat, lng, a.lat, a.lng)
-        : Number.POSITIVE_INFINITY;
-    const distanceB =
-      typeof b.lat === "number" && typeof b.lng === "number"
-        ? haversineDistance(lat, lng, b.lat, b.lng)
-        : Number.POSITIVE_INFINITY;
-    return distanceA - distanceB;
+    const da = haversineDistance(lat, lng, a.lat!, a.lng!);
+    const db = haversineDistance(lat, lng, b.lat!, b.lng!);
+    return da - db;
   });
 }
 
@@ -1373,7 +1383,7 @@ export default function MarketPage() {
       */
       // One bounded search keeps the UI fast while still allowing a nearby
       // mandi from a neighbouring district. There is no fixed mandi list.
-      const nearby = await findNearbyIndianMandis(searchLocation, 150);
+      const nearby = await findNearbyIndianMandis(searchLocation, 250);
 
       const quantityQuintal = totalKg / 100;
 
@@ -1391,7 +1401,7 @@ export default function MarketPage() {
             mandi.lng
           );
 
-          if (distanceKm > 150) return null;
+          if (distanceKm > 250) return null;
 
           const resolvedDistrict =
             mandi.district ||
