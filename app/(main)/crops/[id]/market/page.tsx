@@ -791,22 +791,90 @@ async function geocodeFarmerAddress(
   return results.find(Boolean) || null;
 }
 
+function cropSearchProfile(cropName: string) {
+  // IMPORTANT: crop is fully dynamic. Nothing is hard-coded here.
+  // Whatever crop the farmer selected is used as the search term.
+  const cleaned = cropName.trim();
+  const terms = Array.from(new Set(
+    cleaned
+      .split(/[\/,;|]+/)
+      .map((part) => part.trim())
+      .filter(Boolean)
+  ));
+
+  return {
+    terms: terms.length ? terms : [cleaned],
+    crop: cleaned,
+  };
+}
+
+function cropMatchesMarket(cropName: string, marketText: string) {
+  const crop = normalize(cropName);
+  const text = normalize(marketText);
+  if (!crop) return false;
+
+  // Direct crop/commodity match. This works for ANY farmer-selected crop.
+  const cropWords = crop
+    .split(/\s+/)
+    .map((word) => word.trim())
+    .filter((word) => word.length >= 2);
+
+  return cropWords.length > 0 && cropWords.some((word) => text.includes(word));
+}
+
+function isMarketRelevantForCrop(
+  cropName: string,
+  name: string,
+  extraText = ""
+) {
+  const haystack = normalize(`${name} ${extraText}`);
+  const crop = normalize(cropName);
+
+  if (!crop) return false;
+
+  // If the source explicitly tells us which commodity the market handles,
+  // require that commodity to match the farmer's selected crop.
+  const commodityMatch = haystack.match(
+    /(?:commodity|produce|crop)[:=\s-]+([^,;|]+)/i
+  );
+  if (commodityMatch) {
+    return cropMatchesMarket(cropName, commodityMatch[1]);
+  }
+
+  // A market whose name/description contains the selected crop is relevant.
+  if (cropMatchesMarket(cropName, haystack)) return true;
+
+  // Generic APMC/agricultural markets are not rejected just because their
+  // name does not contain the crop: such markets commonly handle multiple
+  // commodities. They are accepted only when they are actually an
+  // agricultural/wholesale market, never a random place/business.
+  return /\b(?:apmc|agricultural market|agriculture market|wholesale market|krishi mandi|kisan mandi)\b/i.test(haystack)
+    || /कृषि मंडी|कृषि बाजार|कृषि मार्केट|मंडी/.test(haystack);
+}
+
 async function findNearbyIndianMandis(
   location: GeocodedLocation,
-  radiusKm: number
+  radiusKm: number,
+  cropName: string
 ): Promise<MandiBase[]> {
   const { lat, lng } = location;
   const radiusMeters = Math.round(radiusKm * 1000);
+  const { terms } = cropSearchProfile(cropName);
 
-  // Dynamic search only: nothing is hard-coded into the mandi database.
-  // We use several OSM market tags/names because real mandis are mapped
-  // inconsistently across districts and states.
+  const escapedTerms = terms
+    .filter(Boolean)
+    .map((term) => term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+  const cropRegex = escapedTerms.join("|") || ".+";
+
+  // The selected crop is inserted dynamically. No fixed crop list is used.
   const overpassQuery = `
-[out:json][timeout:10];
+[out:json][timeout:8];
 (
-  nwr["amenity"="marketplace"](around:${radiusMeters},${lat},${lng});
-  nwr["marketplace"](around:${radiusMeters},${lat},${lng});
-  nwr["name"~"mandi|apmc|agricultural market|agriculture market|wholesale market|krishi|kisan|कृषि मंडी|कृषि बाजार|मंडी|बाजार|बाज़ार",i](around:${radiusMeters},${lat},${lng});
+  nwr["commodity"~"${cropRegex}",i](around:${radiusMeters},${lat},${lng});
+  nwr["produce"~"${cropRegex}",i](around:${radiusMeters},${lat},${lng});
+  nwr["crop"~"${cropRegex}",i](around:${radiusMeters},${lat},${lng});
+  nwr["name"~"${cropRegex}",i](around:${radiusMeters},${lat},${lng});
+  nwr["name"~"mandi|apmc|agricultural market|agriculture market|wholesale market|krishi|कृषि|मंडी",i](around:${radiusMeters},${lat},${lng});
 );
 out center tags;`;
 
@@ -824,7 +892,7 @@ out center tags;`;
           Accept: "application/json",
         },
         body: overpassQuery,
-      }, 10000);
+      }, 8500);
 
       if (!response.ok) return [];
 
@@ -847,8 +915,18 @@ out center tags;`;
         const distance = haversineDistance(lat, lng, elementLat, elementLng);
         if (distance > radiusKm) return [];
 
-        const haystack = `${name} ${tags.operator || ""} ${tags["marketplace"] || ""}`.toLowerCase();
-        const isMandi = /mandi|apmc|agricultural|wholesale|krishi|kisan|कृषि|मंडी/.test(haystack);
+        const commodity = [tags.commodity, tags.produce, tags.crop].filter(Boolean).join(" ");
+        const extra = [
+          tags.operator, tags.marketplace, commodity, tags.description,
+          tags["addr:city"], tags["addr:district"], tags["addr:state"],
+        ].filter(Boolean).join(" ");
+
+        const haystack = `${name} ${extra}`;
+        const hasCropTag = cropMatchesMarket(cropName, commodity);
+        const looksLikeAgriculturalMarket = /mandi|apmc|agricultural|wholesale|krishi|कृषि|मंडी/i.test(haystack);
+
+        if (!hasCropTag && !looksLikeAgriculturalMarket) return [];
+        if (!isMarketRelevantForCrop(cropName, name, extra)) return [];
 
         return [{
           name,
@@ -859,9 +937,10 @@ out center tags;`;
             tags["addr:city"], tags["addr:district"], tags["addr:state"], tags["addr:postcode"],
           ].filter(Boolean).join(", ") || tags["addr:full"] || undefined,
           rate: 0,
-          marketType: isMandi ? "APMC" : "Local Market",
+          marketType: hasCropTag ? "Crop Market" : "APMC / Agricultural Market",
           lat: elementLat,
           lng: elementLng,
+          crops: hasCropTag ? terms : undefined,
         } as MandiBase];
       });
     } catch {
@@ -869,29 +948,27 @@ out center tags;`;
     }
   };
 
-  // Coordinate-based Nominatim searches are much more useful than searching
-  // only by district name. This also handles villages on district borders.
   const delta = radiusKm / 111;
   const viewbox = `${lng - delta},${lat + delta},${lng + delta},${lat - delta}`;
-  const nominatimQueries = [
-    "mandi",
-    "APMC",
-    "agricultural market",
-    "wholesale market",
-    "krishi mandi",
-    "कृषि मंडी",
-  ];
+
+  // Every query is generated from the currently selected crop.
+  const queryTerms = Array.from(new Set([
+    ...terms.map((term) => `${term} mandi`),
+    ...terms.map((term) => `${term} APMC`),
+    ...terms.map((term) => `${term} agricultural market`),
+    ...terms.map((term) => `${term} wholesale market`),
+  ].filter(Boolean)));
 
   const parseNominatim = async (q: string): Promise<MandiBase[]> => {
     try {
       const params = new URLSearchParams({
         q,
         format: "jsonv2",
-        limit: "20",
+        limit: "30",
         addressdetails: "1",
+        "accept-language": "en",
         bounded: "1",
         viewbox,
-        "accept-language": "en",
       });
 
       const response = await fetchWithTimeout(
@@ -902,9 +979,8 @@ out center tags;`;
             "User-Agent": "KrishiMitra/1.0 (agricultural market finder)",
           },
         },
-        7000
+        6500
       );
-
       if (!response.ok) return [];
 
       const raw = await response.json() as Array<{
@@ -927,9 +1003,11 @@ out center tags;`;
 
         const address = item.address || {};
         const name = item.name || item.display_name?.split(",")[0] || "Agricultural Market";
-        const haystack = `${name} ${item.display_name || ""} ${item.type || ""} ${item.category || ""}`.toLowerCase();
-        const looksLikeMarket = /mandi|apmc|agricultural|wholesale|market|bazaar|बाजार|मंडी|कृषि|krishi/.test(haystack);
-        if (!looksLikeMarket) return [];
+        const extra = `${item.display_name || ""} ${item.type || ""} ${item.category || ""}`;
+        const haystack = `${name} ${extra}`;
+        const looksLikeAgriculturalMarket = /mandi|apmc|agricultural|wholesale|krishi|कृषि|मंडी/i.test(haystack);
+        if (!looksLikeAgriculturalMarket) return [];
+        if (!isMarketRelevantForCrop(cropName, name, extra)) return [];
 
         return [{
           name,
@@ -937,7 +1015,7 @@ out center tags;`;
           state: address.state || "",
           address: item.display_name,
           rate: 0,
-          marketType: /apmc|mandi/i.test(haystack) ? "APMC" : "Local Market",
+          marketType: cropMatchesMarket(cropName, haystack) ? "Crop Market" : "APMC / Agricultural Market",
           lat: itemLat,
           lng: itemLng,
         } as MandiBase];
@@ -947,30 +1025,31 @@ out center tags;`;
     }
   };
 
-  // Run all discovery sources concurrently so one slow provider never blocks
-  // the complete search.
+  // Fast local search. No fixed crop names or fixed mandi coordinates.
   const results = await Promise.all([
     ...overpassEndpoints.map(parseOverpass),
-    ...nominatimQueries.map(parseNominatim),
+    ...queryTerms.map((q) => parseNominatim(q)),
   ]);
 
   const merged = new Map<string, MandiBase>();
   for (const list of results) {
     for (const mandi of list) {
       if (typeof mandi.lat !== "number" || typeof mandi.lng !== "number") continue;
-      const distance = haversineDistance(lat, lng, mandi.lat, mandi.lng);
-      if (distance > radiusKm) continue;
-
       const key = `${normalize(mandi.name)}|${normalize(mandi.district)}|${normalize(mandi.state)}`;
       if (!merged.has(key)) merged.set(key, mandi);
     }
   }
 
-  return Array.from(merged.values()).sort((a, b) => {
-    const da = haversineDistance(lat, lng, a.lat!, a.lng!);
-    const db = haversineDistance(lat, lng, b.lat!, b.lng!);
-    return da - db;
-  });
+  return Array.from(merged.values())
+    .sort((a, b) => {
+      const aCrop = cropMatchesMarket(cropName, `${a.name} ${a.address || ""}`) ? 0 : 1;
+      const bCrop = cropMatchesMarket(cropName, `${b.name} ${b.address || ""}`) ? 0 : 1;
+      if (aCrop !== bCrop) return aCrop - bCrop;
+
+      const da = haversineDistance(lat, lng, a.lat!, a.lng!);
+      const db = haversineDistance(lat, lng, b.lat!, b.lng!);
+      return da - db;
+    });
 }
 
 function getIndicativeRateForMandi(
@@ -1383,7 +1462,7 @@ export default function MarketPage() {
       */
       // One bounded search keeps the UI fast while still allowing a nearby
       // mandi from a neighbouring district. There is no fixed mandi list.
-      const nearby = await findNearbyIndianMandis(searchLocation, 250);
+      const nearby = await findNearbyIndianMandis(searchLocation, 250, crop.crop);
 
       const quantityQuintal = totalKg / 100;
 
