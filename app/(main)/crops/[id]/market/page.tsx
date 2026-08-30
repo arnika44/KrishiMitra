@@ -514,10 +514,6 @@ const translations: Record<string, Partial<T>> = {
 };
 
 /* =========================================================
-   COMPONENT
-========================================================= */
-
-/* =========================================================
    MANDI DATABASE
 
    NOTE:
@@ -553,92 +549,20 @@ function isCropMatch(
   cropName: string,
   mandi: MandiBase
 ): boolean {
+  // Farmer can add ANY crop name.
+  // A mandi without an explicit crop list is generic.
   if (!mandi.crops || mandi.crops.length === 0) {
     return true;
   }
 
   const crop = normalize(cropName);
-
-  const aliases: Record<string, string[]> = {
-    wheat: [
-      "wheat",
-      "गेहूं",
-      "गेहू",
-      "गहू",
-      "গম",
-      "கோதுமை",
-      "గోధుమ",
-      "ઘઉં",
-      "ಗೋಧಿ",
-      "ഗോതമ്പ്",
-      "ਗੇਹੂੰ",
-      "گندم",
-    ],
-
-    rice: [
-      "rice",
-      "paddy",
-      "धान",
-      "चावल",
-      "तांदूळ",
-      "ধান",
-      "அரிசி",
-      "వరి",
-      "ચોખા",
-      "ಅಕ್ಕಿ",
-      "അരി",
-      "ਝੋਨਾ",
-      "چاول",
-    ],
-
-    maize: [
-      "maize",
-      "corn",
-      "मक्का",
-      "मका",
-      "ভুট্টা",
-      "மக்காச்சோளம்",
-      "మొక్కజొన్న",
-      "મકાઈ",
-      "ಮೆಕ್ಕೆಜೋಳ",
-      "ചോളം",
-      "ਮੱਕੀ",
-      "مکئی",
-    ],
-
-    potato: [
-      "potato",
-      "aloo",
-      "आलू",
-      "बटाटा",
-      "আলু",
-      "உருளைக்கிழங்கு",
-      "బంగాళాదుంప",
-      "બટાકા",
-      "ಆಲೂಗಡ್ಡೆ",
-      "ഉരുളക്കിഴങ്ങ്",
-      "ਆਲੂ",
-      "آلو",
-    ],
-  };
-
-  for (const [canonical, names] of Object.entries(aliases)) {
-    if (
-      names.some((name) =>
-        crop.includes(normalize(name))
-      )
-    ) {
-      return mandi.crops.some(
-        (mCrop) => normalize(mCrop) === canonical
-      );
-    }
-  }
-
-  return true;
+  return mandi.crops.some(
+    (mCrop) => normalize(mCrop) === crop
+  );
 }
 
 /*
-  Convert entered quantity into kg.
+  Convert entered quantity into kg into kg.
 
   1 gram = 0.001 kg
   1 kg = 1 kg
@@ -1025,12 +949,8 @@ function getIndicativeRateForMandi(
     }
   }
 
-  const cropKey = normalize(cropName);
-  if (cropKey.includes("wheat") || cropKey.includes("गेहूं")) return 2500;
-  if (cropKey.includes("rice") || cropKey.includes("धान")) return 2350;
-  if (cropKey.includes("maize") || cropKey.includes("मक्का")) return 2200;
-  if (cropKey.includes("potato") || cropKey.includes("आलू")) return 1500;
-
+  // No fixed crop names or fixed crop rates.
+  // Any farmer-entered crop is accepted.
   return 0;
 }
 
@@ -1099,86 +1019,22 @@ function getMarketInfo(
   language: string,
   t: T
 ) {
-  const name = normalize(cropName);
-
-  const isWheat =
-    /wheat|गेहूं|गेहू|गहू|গম|கோதுமை|గోధుమ|ઘઉં|ಗೋಧಿ|ഗോതമ്പ്|ਗੇਹੂੰ|گندم/.test(
-      name
-    );
-
-  const isRice =
-    /rice|paddy|धान|चावल|तांदूळ|ধান|அரிசி|వరి|ચોખા|ಅಕ್ಕಿ|അരി|ਝੋਨਾ|چاول/.test(
-      name
-    );
-
-  const isMaize =
-    /maize|corn|मक्का|मका|ভুট্টা|மக்காச்சோளம்|మొక్కజొన్న|મકાઈ|ಮೆಕ್ಕೆಜೋಳ|ചോളം|ਮੱਕੀ|مکئی/.test(
-      name
-    );
-
-  const isPotato =
-    /potato|aloo|आलू|बटाटा|আলু|உருளைக்கிழங்கு|బంగాళాదుంప|બટાકા|ಆಲೂಗಡ್ಡೆ|ഉരുളക്കിഴങ്ങ്|ਆਲੂ|آلو/.test(
-      name
-    );
-
-  if (isWheat) {
-    return {
-      price: "₹2,400 – ₹2,600",
-      trend: t.trendStable,
-
-      advice:
-        language === "hi"
-          ? "बेचने से पहले आसपास की मंडियों के भाव की तुलना करें। स्थानीय भाव बहुत कम हो तो तुरंत बेचने से बचें।"
-          : "Compare nearby mandi prices before selling.",
-    };
-  }
-
-  if (isRice) {
-    return {
-      price: "₹2,200 – ₹2,500",
-      trend: t.trendModerate,
-
-      advice:
-        language === "hi"
-          ? "धान की गुणवत्ता और मंडी भाव की तुलना करें।"
-          : "Check rice quality requirements and compare mandi rates before selling.",
-    };
-  }
-
-  if (isMaize) {
-    return {
-      price: "₹2,000 – ₹2,400",
-      trend: t.trendStable,
-
-      advice:
-        language === "hi"
-          ? "नमी और दाने की गुणवत्ता जाँचें।"
-          : "Check moisture and grain quality before selling.",
-    };
-  }
-
-  if (isPotato) {
-    return {
-      price: "₹1,200 – ₹1,800",
-      trend: t.trendVariable,
-
-      advice:
-        language === "hi"
-          ? "आज के स्थानीय भाव और भंडारण विकल्प की तुलना करें।"
-          : "Compare today's local rates and storage options.",
-    };
-  }
-
+  // Do not restrict the farmer to a fixed crop list.
+  // The crop name comes directly from the farmer's saved crop.
+  // Market information is therefore generic unless a live/known rate is available.
   return {
     price: t.unknownPrice,
     trend: t.trendCheck,
-
     advice:
       language === "hi"
         ? "इस फसल का नवीनतम भाव जानने के लिए अपनी नज़दीकी मंडी से संपर्क करें।"
-        : "Check your nearest mandi for the latest price.",
+        : "Check your nearest mandi for the latest price before selling.",
   };
 }
+
+/* =========================================================
+   COMPONENT
+========================================================= */
 
 export default function MarketPage() {
   const params = useParams();
@@ -1309,8 +1165,7 @@ export default function MarketPage() {
       {}),
   };
 
-  const isRTL =
-    language === "ur";
+  const isRTL = false;
 
   /* =======================================================
      PROFILE LOCATION
