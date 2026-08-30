@@ -710,50 +710,54 @@ type GeocodedLocation = {
   pincode?: string;
 };
 
+async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}, timeoutMs = 9000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(input, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function geocodeFarmerAddress(
   address: string
 ): Promise<GeocodedLocation | null> {
   if (!address.trim()) return null;
 
-  const cleaned = address.replace(/\s+/g, " ").trim();
+  const cleaned = address.replace(/\\s+/g, " ").trim();
+  const parts = cleaned.split(",").map((p) => p.trim()).filter(Boolean);
 
-  // Try the complete saved profile address first, then progressively
-  // simpler variants. This keeps the search tied to the farmer's
-  // saved address and works for locations anywhere in India.
-  const parts = cleaned
-    .split(",")
-    .map((part) => part.trim())
-    .filter(Boolean);
-
-  const queries = [
-    `${cleaned}, India`,
+  // Keep the farmer's saved address as the source. Try a few progressively
+  // simpler forms because post-office/village names are often indexed differently.
+  const queries = Array.from(new Set([
     cleaned,
     parts.slice(-5).join(", "),
     parts.slice(-4).join(", "),
-  ].filter(
-    (value, index, list) =>
-      value && list.indexOf(value) === index
-  );
+    parts.slice(-3).join(", "),
+  ].filter(Boolean)));
 
-  for (const query of queries) {
+  // Try address variants in parallel so a slow geocoder cannot make the page wait minutes.
+  const attempts = queries.map(async (query) => {
     try {
-      const url =
-        "https://nominatim.openstreetmap.org/search?" +
+      const url = "https://nominatim.openstreetmap.org/search?" +
         new URLSearchParams({
           format: "jsonv2",
           addressdetails: "1",
           limit: "1",
-          countrycodes: "in",
           q: query,
         }).toString();
 
-      const response = await fetch(url, {
-        headers: { Accept: "application/json" },
-      });
+      const response = await fetchWithTimeout(url, {
+        headers: {
+          Accept: "application/json",
+          "Accept-Language": "en",
+        },
+      }, 6000);
 
-      if (!response.ok) continue;
+      if (!response.ok) return null;
 
-      const data = (await response.json()) as Array<{
+      const data = await response.json() as Array<{
         lat?: string;
         lon?: string;
         display_name?: string;
@@ -761,37 +765,30 @@ async function geocodeFarmerAddress(
       }>;
 
       const item = data?.[0];
-      if (!item?.lat || !item?.lon) continue;
+      if (!item?.lat || !item?.lon) return null;
+
+      const lat = Number(item.lat);
+      const lng = Number(item.lon);
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
 
       const a = item.address || {};
-
       return {
-        lat: Number(item.lat),
-        lng: Number(item.lon),
+        lat,
+        lng,
         displayName: item.display_name || address,
-        village:
-          a.village ||
-          a.hamlet ||
-          a.suburb ||
-          a.neighbourhood,
-        city:
-          a.city ||
-          a.town ||
-          a.municipality ||
-          a.city_district,
-        district:
-          a.state_district ||
-          a.district ||
-          a.county,
+        village: a.village || a.hamlet || a.suburb || a.neighbourhood,
+        city: a.city || a.town || a.municipality || a.city_district,
+        district: a.state_district || a.district || a.county,
         state: a.state,
         pincode: a.postcode,
-      };
+      } as GeocodedLocation;
     } catch {
-      // Try the next query variant.
+      return null;
     }
-  }
+  });
 
-  return null;
+  const results = await Promise.all(attempts);
+  return results.find(Boolean) || null;
 }
 
 async function findNearbyIndianMandis(
@@ -801,35 +798,38 @@ async function findNearbyIndianMandis(
   const radiusMeters = Math.round(radiusKm * 1000);
   const { lat, lng } = location;
 
+  // Query the two most useful OSM market signals. A 220 km search is intentionally
+  // avoided because it is slow and often times out; the caller can expand only if needed.
   const query = `
-[out:json][timeout:45];
+[out:json][timeout:12];
 (
   nwr["amenity"="marketplace"](around:${radiusMeters},${lat},${lng});
-  nwr["shop"="agrarian"](around:${radiusMeters},${lat},${lng});
-  nwr["name"~"mandi|apmc|agricultural market|agriculture market|krishi bazar|krishi market|kisan market|कृषि बाजार|कृषि मंडी|मंडी|बाजार|बाज़ार",i](around:${radiusMeters},${lat},${lng});
+  nwr["name"~"mandi|apmc|krishi|agricultural market|agriculture market|kisan market|कृषि मंडी|कृषि बाजार|मंडी|बाज़ार|बाजार",i](around:${radiusMeters},${lat},${lng});
 );
-out center tags;
-`;
+out center tags;`;
 
   const endpoints = [
     "https://overpass-api.de/api/interpreter",
     "https://overpass.kumi.systems/api/interpreter",
+    "https://overpass.private.coffee/api/interpreter",
   ];
 
-  for (const endpoint of endpoints) {
+  // Race the public Overpass servers. The first useful response wins, so a single
+  // overloaded server cannot leave the farmer staring at "Searching...".
+  const requests = endpoints.map(async (endpoint) => {
     try {
-      const response = await fetch(endpoint, {
+      const response = await fetchWithTimeout(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "text/plain;charset=UTF-8",
           Accept: "application/json",
         },
         body: query,
-      });
+      }, 12000);
 
-      if (!response.ok) continue;
+      if (!response.ok) return [] as MandiBase[];
 
-      const raw = (await response.json()) as {
+      const raw = await response.json() as {
         elements?: Array<{
           type: string;
           id: number;
@@ -840,70 +840,34 @@ out center tags;
         }>;
       };
 
-      if (!raw.elements?.length) continue;
-
       const seen = new Set<string>();
       const result: MandiBase[] = [];
 
-      for (const element of raw.elements) {
+      for (const element of raw.elements || []) {
         const tags = element.tags || {};
-        const name =
-          tags.name ||
-          tags["name:en"] ||
-          tags["name:hi"] ||
-          "Agricultural Market";
-
-        const elementLat =
-          typeof element.lat === "number"
-            ? element.lat
-            : element.center?.lat;
-        const elementLng =
-          typeof element.lon === "number"
-            ? element.lon
-            : element.center?.lon;
-
-        if (
-          typeof elementLat !== "number" ||
-          typeof elementLng !== "number"
-        ) continue;
+        const name = tags.name || tags["name:en"] || tags["name:hi"] || "Agricultural Market";
+        const elementLat = typeof element.lat === "number" ? element.lat : element.center?.lat;
+        const elementLng = typeof element.lon === "number" ? element.lon : element.center?.lon;
+        if (typeof elementLat !== "number" || typeof elementLng !== "number") continue;
 
         const key = `${element.type}-${element.id}`;
         if (seen.has(key)) continue;
         seen.add(key);
 
         const address = [
-          tags["addr:housenumber"],
-          tags["addr:street"],
-          tags["addr:suburb"],
-          tags["addr:city"],
-          tags["addr:district"],
-          tags["addr:state"],
-          tags["addr:postcode"],
-        ]
-          .filter(Boolean)
-          .join(", ");
+          tags["addr:housenumber"], tags["addr:street"], tags["addr:suburb"],
+          tags["addr:city"], tags["addr:district"], tags["addr:state"], tags["addr:postcode"],
+        ].filter(Boolean).join(", ");
 
         result.push({
           name,
-          district:
-            tags["addr:district"] ||
-            tags["is_in:district"] ||
-            tags.district ||
-            "",
-          state:
-            tags["addr:state"] ||
-            tags.state ||
-            "",
-          address:
-            address ||
-            tags["addr:full"] ||
-            undefined,
+          district: tags["addr:district"] || tags["is_in:district"] || tags.district || "",
+          state: tags["addr:state"] || tags.state || "",
+          address: address || tags["addr:full"] || undefined,
           rate: 0,
-          marketType:
-            /apmc|mandi/i.test(name) ||
-            /apmc|mandi/i.test(tags.operator || "")
-              ? "APMC"
-              : "Local Market",
+          marketType: /apmc|mandi/i.test(name) || /apmc|mandi/i.test(tags.operator || "")
+            ? "APMC"
+            : "Local Market",
           lat: elementLat,
           lng: elementLng,
         });
@@ -911,11 +875,19 @@ out center tags;
 
       return result;
     } catch {
-      // Try the backup Overpass server.
+      return [] as MandiBase[];
+    }
+  });
+
+  const settled = await Promise.all(requests);
+  const merged = new Map<string, MandiBase>();
+  for (const list of settled) {
+    for (const mandi of list) {
+      const key = `${normalize(mandi.name)}|${normalize(mandi.district)}|${normalize(mandi.state)}`;
+      if (!merged.has(key)) merged.set(key, mandi);
     }
   }
-
-  return [];
+  return Array.from(merged.values());
 }
 
 function getIndicativeRateForMandi(
@@ -1326,16 +1298,11 @@ export default function MarketPage() {
         75 km catches border-area cases (for example Panchgachia/Supaul)
         where mandis from both Supaul and Saharsa can genuinely be nearby.
       */
-      let nearby = await findNearbyIndianMandis(
-        searchLocation,
-        100
-      );
-
-      if (nearby.length < 5) {
-        nearby = await findNearbyIndianMandis(
-          searchLocation,
-          180
-        );
+      // Start with 60 km for speed. If the area is sparse, expand once to 150 km.
+      // This naturally includes a nearby mandi from a neighbouring district.
+      let nearby = await findNearbyIndianMandis(searchLocation, 60);
+      if (nearby.length < 3) {
+        nearby = await findNearbyIndianMandis(searchLocation, 150);
       }
 
       const quantityQuintal = totalKg / 100;
@@ -1354,7 +1321,7 @@ export default function MarketPage() {
             mandi.lng
           );
 
-          if (distanceKm > 100) return null;
+          if (distanceKm > 150) return null;
 
           const resolvedDistrict =
             mandi.district ||
