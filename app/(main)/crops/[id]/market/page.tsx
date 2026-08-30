@@ -549,16 +549,11 @@ function isCropMatch(
   cropName: string,
   mandi: MandiBase
 ): boolean {
-  // Farmer can add ANY crop name.
-  // A mandi without an explicit crop list is generic.
-  if (!mandi.crops || mandi.crops.length === 0) {
-    return true;
-  }
-
-  const crop = normalize(cropName);
-  return mandi.crops.some(
-    (mCrop) => normalize(mCrop) === crop
-  );
+  // Farmers can sell ANY crop. Mandi discovery is based on the
+  // farmer's profile location, not a fixed crop list.
+  // If a mandi has no crop metadata, it is considered suitable.
+  // Even when crop metadata exists, do not block the farmer's crop.
+  return true;
 }
 
 /*
@@ -726,7 +721,6 @@ async function geocodeFarmerAddress(
     .filter(Boolean);
 
   const queries = [
-    `${cleaned}, India`,
     cleaned,
     parts.slice(-5).join(", "),
     parts.slice(-4).join(", "),
@@ -743,7 +737,6 @@ async function geocodeFarmerAddress(
           format: "jsonv2",
           addressdetails: "1",
           limit: "1",
-          countrycodes: "in",
           q: query,
         }).toString();
 
@@ -794,7 +787,7 @@ async function geocodeFarmerAddress(
   return null;
 }
 
-async function findNearbyIndianMandis(
+async function findNearbyMandis(
   location: GeocodedLocation,
   radiusKm: number
 ): Promise<MandiBase[]> {
@@ -806,7 +799,7 @@ async function findNearbyIndianMandis(
 (
   nwr["amenity"="marketplace"](around:${radiusMeters},${lat},${lng});
   nwr["shop"="agrarian"](around:${radiusMeters},${lat},${lng});
-  nwr["name"~"mandi|apmc|agricultural market|agriculture market|krishi bazar|krishi market|kisan market|कृषि बाजार|कृषि मंडी|मंडी|बाजार|बाज़ार",i](around:${radiusMeters},${lat},${lng});
+  nwr["name"~"mandi|apmc|agricultural market|agriculture market|farmers market|farmer market|wholesale market|produce market|fresh market|marketplace|krishi bazar|krishi market|kisan market|कृषि बाजार|कृषि मंडी|मंडी|बाजार|बाज़ार",i](around:${radiusMeters},${lat},${lng});
 );
 out center tags;
 `;
@@ -1326,15 +1319,22 @@ export default function MarketPage() {
         75 km catches border-area cases (for example Panchgachia/Supaul)
         where mandis from both Supaul and Saharsa can genuinely be nearby.
       */
-      let nearby = await findNearbyIndianMandis(
+      // Search around the farmer's SAVED PROFILE location.
+      // Start locally, then expand so a village near a district border
+      // can also find a mandi in the neighbouring district.
+      let searchRadiusKm = 50;
+      let nearby = await findNearbyMandis(
         searchLocation,
-        100
+        searchRadiusKm
       );
 
-      if (nearby.length < 5) {
-        nearby = await findNearbyIndianMandis(
+      const radii = [100, 180, 300, 500];
+      for (const radius of radii) {
+        if (nearby.length >= 5) break;
+        searchRadiusKm = radius;
+        nearby = await findNearbyMandis(
           searchLocation,
-          180
+          radius
         );
       }
 
@@ -1354,7 +1354,7 @@ export default function MarketPage() {
             mandi.lng
           );
 
-          if (distanceKm > 100) return null;
+          if (distanceKm > searchRadiusKm) return null;
 
           const resolvedDistrict =
             mandi.district ||
