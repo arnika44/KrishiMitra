@@ -772,38 +772,53 @@ export default function CropDetailsPage() {
   const handleFeatureClick = (key: string) => {
     if (!crop) return;
 
-    /*
-     * MANDI & MARKET
-     */
     if (key === "Mandi") {
       router.push(`/crops/${crop.id}/market`);
       return;
     }
 
-    /*
-     * WEATHER
-     */
     if (key === "Weather") {
       router.push(`/crops/${crop.id}/weather`);
       return;
     }
 
-    /*
-     * IRRIGATION
-     */
     if (key === "Irrigation") {
       router.push(`/crops/${crop.id}/irrigation`);
       return;
     }
 
-    /*
-     * OTHER SERVICES
-     */
-    alert(
-      language === "en"
-        ? `${key} for ${crop.crop} ${t.alertMessage}`
-        : `${key} - ${crop.crop} ${t.alertMessage}`
-    );
+    if (key === "Waste") {
+      router.push(`/crops/${crop.id}/waste`);
+      return;
+    }
+
+    if (key === "Storage") {
+      router.push(`/crops/${crop.id}/storage`);
+      return;
+    }
+
+    if (key === "Disease") {
+      router.push(`/crops/${crop.id}/disease`);
+      return;
+    }
+
+    if (key === "AI Crop Detector") {
+      router.push(`/crops/${crop.id}/ai-detector`);
+      return;
+    }
+
+    if (key === "Fertilizer") {
+      router.push(`/crops/${crop.id}/fertilizer`);
+      return;
+    }
+
+    if (key === "Price") {
+      alert(
+        language === "en"
+          ? `${key} for ${crop.crop} ${t.alertMessage}`
+          : `${key} - ${crop.crop} ${t.alertMessage}`
+      );
+    }
   };
 
   if (loading) {
@@ -915,7 +930,6 @@ export default function CropDetailsPage() {
     >
       <div className="max-w-5xl mx-auto">
 
-        {/* Back */}
         <button
           onClick={() => router.push("/crops")}
           className="text-green-700 font-semibold mb-6 hover:text-green-900"
@@ -923,7 +937,6 @@ export default function CropDetailsPage() {
           {t.back}
         </button>
 
-        {/* Crop Header */}
         <div className="bg-white rounded-3xl shadow-lg p-7 mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center gap-5">
 
@@ -951,7 +964,6 @@ export default function CropDetailsPage() {
           </div>
         </div>
 
-        {/* Services Heading */}
         <div className="mb-6">
           <h2 className="text-2xl font-bold text-green-800">
             {crop.crop} {t.services}
@@ -962,7 +974,6 @@ export default function CropDetailsPage() {
           </p>
         </div>
 
-        {/* Features */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
 
           {features.map((feature) => (
