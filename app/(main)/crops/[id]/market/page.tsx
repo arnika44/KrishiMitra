@@ -798,25 +798,23 @@ async function findNearbyIndianMandis(
   const radiusMeters = Math.round(radiusKm * 1000);
   const { lat, lng } = location;
 
-  // Query the two most useful OSM market signals. A 220 km search is intentionally
-  // avoided because it is slow and often times out; the caller can expand only if needed.
-  const query = `
-[out:json][timeout:12];
+  // Use OSM Overpass only as one data source. It can be slow or temporarily
+  // unavailable, so Nominatim is queried in parallel as a fast fallback.
+  const overpassQuery = `
+[out:json][timeout:7];
 (
   nwr["amenity"="marketplace"](around:${radiusMeters},${lat},${lng});
   nwr["name"~"mandi|apmc|krishi|agricultural market|agriculture market|kisan market|कृषि मंडी|कृषि बाजार|मंडी|बाज़ार|बाजार",i](around:${radiusMeters},${lat},${lng});
 );
 out center tags;`;
 
-  const endpoints = [
+  const overpassEndpoints = [
     "https://overpass-api.de/api/interpreter",
     "https://overpass.kumi.systems/api/interpreter",
     "https://overpass.private.coffee/api/interpreter",
   ];
 
-  // Race the public Overpass servers. The first useful response wins, so a single
-  // overloaded server cannot leave the farmer staring at "Searching...".
-  const requests = endpoints.map(async (endpoint) => {
+  const parseOverpass = async (endpoint: string): Promise<MandiBase[]> => {
     try {
       const response = await fetchWithTimeout(endpoint, {
         method: "POST",
@@ -824,11 +822,10 @@ out center tags;`;
           "Content-Type": "text/plain;charset=UTF-8",
           Accept: "application/json",
         },
-        body: query,
-      }, 12000);
+        body: overpassQuery,
+      }, 7000);
 
-      if (!response.ok) return [] as MandiBase[];
-
+      if (!response.ok) return [];
       const raw = await response.json() as {
         elements?: Array<{
           type: string;
@@ -840,54 +837,130 @@ out center tags;`;
         }>;
       };
 
-      const seen = new Set<string>();
-      const result: MandiBase[] = [];
-
-      for (const element of raw.elements || []) {
+      return (raw.elements || []).flatMap((element) => {
         const tags = element.tags || {};
         const name = tags.name || tags["name:en"] || tags["name:hi"] || "Agricultural Market";
         const elementLat = typeof element.lat === "number" ? element.lat : element.center?.lat;
         const elementLng = typeof element.lon === "number" ? element.lon : element.center?.lon;
-        if (typeof elementLat !== "number" || typeof elementLng !== "number") continue;
+        if (typeof elementLat !== "number" || typeof elementLng !== "number") return [];
 
-        const key = `${element.type}-${element.id}`;
-        if (seen.has(key)) continue;
-        seen.add(key);
-
-        const address = [
-          tags["addr:housenumber"], tags["addr:street"], tags["addr:suburb"],
-          tags["addr:city"], tags["addr:district"], tags["addr:state"], tags["addr:postcode"],
-        ].filter(Boolean).join(", ");
-
-        result.push({
+        return [{
           name,
           district: tags["addr:district"] || tags["is_in:district"] || tags.district || "",
           state: tags["addr:state"] || tags.state || "",
-          address: address || tags["addr:full"] || undefined,
+          address: [
+            tags["addr:housenumber"], tags["addr:street"], tags["addr:suburb"],
+            tags["addr:city"], tags["addr:district"], tags["addr:state"], tags["addr:postcode"],
+          ].filter(Boolean).join(", ") || tags["addr:full"] || undefined,
           rate: 0,
           marketType: /apmc|mandi/i.test(name) || /apmc|mandi/i.test(tags.operator || "")
             ? "APMC"
             : "Local Market",
           lat: elementLat,
           lng: elementLng,
-        });
-      }
-
-      return result;
+        } as MandiBase];
+      });
     } catch {
-      return [] as MandiBase[];
+      return [];
     }
-  });
+  };
 
-  const settled = await Promise.all(requests);
+  const nominatimQueries = [
+    `mandi near ${location.city || location.district || location.state || ""}`,
+    `agricultural market near ${location.city || location.district || location.state || ""}`,
+    `APMC near ${location.district || location.state || ""}`,
+    `market near ${location.city || location.district || location.state || ""}`,
+  ].filter((q, i, arr) => q.trim() && arr.indexOf(q) === i);
+
+  const parseNominatim = async (q: string): Promise<MandiBase[]> => {
+    try {
+      const params = new URLSearchParams({
+        q,
+        format: "jsonv2",
+        limit: "12",
+        addressdetails: "1",
+        "accept-language": "en",
+      });
+      const response = await fetchWithTimeout(
+        `https://nominatim.openstreetmap.org/search?${params.toString()}`,
+        {
+          headers: {
+            Accept: "application/json",
+            "User-Agent": "KrishiMitra/1.0 (agricultural market finder)",
+          },
+        },
+        6500
+      );
+      if (!response.ok) return [];
+
+      const raw = await response.json() as Array<{
+        lat?: string;
+        lon?: string;
+        display_name?: string;
+        name?: string;
+        type?: string;
+        class?: string;
+        address?: Record<string, string | undefined>;
+      }>;
+
+      return raw.flatMap((item) => {
+        const itemLat = Number(item.lat);
+        const itemLng = Number(item.lon);
+        if (!Number.isFinite(itemLat) || !Number.isFinite(itemLng)) return [];
+
+        const address = item.address || {};
+        const name = item.name || item.display_name?.split(",")[0] || "Agricultural Market";
+        const haystack = `${name} ${item.display_name || ""} ${item.type || ""}`.toLowerCase();
+        const looksLikeMarket = /mandi|apmc|agricultural|wholesale|market|bazaar|बाजार|मंडी|कृषि/.test(haystack);
+        if (!looksLikeMarket) return [];
+
+        return [{
+          name,
+          district: address.state_district || address.district || address.county || "",
+          state: address.state || "",
+          address: item.display_name,
+          rate: 0,
+          marketType: /apmc|mandi/i.test(haystack) ? "APMC" : "Local Market",
+          lat: itemLat,
+          lng: itemLng,
+        } as MandiBase];
+      });
+    } catch {
+      return [];
+    }
+  };
+
+  // Start all providers together. We do not wait for a slow provider before
+  // trying the next one. The first provider returning useful data wins.
+  const allRequests = [
+    ...overpassEndpoints.map(parseOverpass),
+    ...nominatimQueries.map(parseNominatim),
+  ];
+
+  const results = await Promise.all(allRequests);
   const merged = new Map<string, MandiBase>();
-  for (const list of settled) {
+
+  for (const list of results) {
     for (const mandi of list) {
+      if (typeof mandi.lat !== "number" || typeof mandi.lng !== "number") continue;
+      const distance = haversineDistance(lat, lng, mandi.lat, mandi.lng);
+      if (distance > radiusKm) continue;
       const key = `${normalize(mandi.name)}|${normalize(mandi.district)}|${normalize(mandi.state)}`;
       if (!merged.has(key)) merged.set(key, mandi);
     }
   }
-  return Array.from(merged.values());
+
+  return Array.from(merged.values()).sort((a, b) => {
+    const distanceA =
+      typeof a.lat === "number" && typeof a.lng === "number"
+        ? haversineDistance(lat, lng, a.lat, a.lng)
+        : Number.POSITIVE_INFINITY;
+    const distanceB =
+      typeof b.lat === "number" && typeof b.lng === "number"
+        ? haversineDistance(lat, lng, b.lat, b.lng)
+        : Number.POSITIVE_INFINITY;
+    return distanceA - distanceB;
+  });
 }
 
 function getIndicativeRateForMandi(
@@ -1298,12 +1371,9 @@ export default function MarketPage() {
         75 km catches border-area cases (for example Panchgachia/Supaul)
         where mandis from both Supaul and Saharsa can genuinely be nearby.
       */
-      // Start with 60 km for speed. If the area is sparse, expand once to 150 km.
-      // This naturally includes a nearby mandi from a neighbouring district.
-      let nearby = await findNearbyIndianMandis(searchLocation, 60);
-      if (nearby.length < 3) {
-        nearby = await findNearbyIndianMandis(searchLocation, 150);
-      }
+      // One bounded search keeps the UI fast while still allowing a nearby
+      // mandi from a neighbouring district. There is no fixed mandi list.
+      const nearby = await findNearbyIndianMandis(searchLocation, 150);
 
       const quantityQuintal = totalKg / 100;
 
