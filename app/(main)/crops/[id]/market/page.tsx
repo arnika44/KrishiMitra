@@ -51,6 +51,10 @@ type MandiBase = {
   district: string;
   state: string;
   address?: string;
+  phone?: string;
+  arrivalDate?: string;
+  minPrice?: number;
+  maxPrice?: number;
 
   /*
     IMPORTANT:
@@ -186,6 +190,8 @@ type T = {
   saved: string;
 
   directions: string;
+  contact: string;
+  priceDate: string;
 
   availableCrop: string;
 
@@ -328,6 +334,8 @@ const en: T = {
   saved: "Saved Mandi",
 
   directions: "📍 Directions",
+  contact: "📞 Contact Mandi",
+  priceDate: "Price date",
 
   availableCrop: "Available Crop",
 
@@ -792,19 +800,9 @@ async function geocodeFarmerAddress(
 }
 
 function cropSearchProfile(cropName: string) {
-  // IMPORTANT: the crop is completely dynamic. No fixed crop list is used.
-  // The selected crop is only used as an optional commodity keyword.
+  // No fixed crop list. The selected crop is always the source of truth.
   const crop = normalize(cropName);
-  return {
-    crop,
-    terms: crop ? [crop] : [],
-    isVegetableCrop: [
-      "vegetable", "sabzi", "सब्जी", "tomato", "onion", "potato",
-      "brinjal", "eggplant", "cabbage", "cauliflower", "carrot", "radish",
-      "peas", "pea", "chilli", "chili", "capsicum", "okra", "ladyfinger",
-      "garlic", "ginger", "spinach", "टमाटर", "प्याज", "आलू", "भिंडी", "मिर्च"
-    ].some((term) => crop.includes(term)),
-  };
+  return { crop, terms: crop ? [crop] : [] };
 }
 
 function isMarketRelevantForCrop(
@@ -813,32 +811,19 @@ function isMarketRelevantForCrop(
   extraText = "",
   tags?: Record<string, string | undefined>
 ) {
-  const { isVegetableCrop } = cropSearchProfile(cropName);
   const haystack = normalize(`${name} ${extraText}`);
 
-  // Explicitly unrelated markets must never be shown.
-  const alwaysReject = [
-    "fish market", "fish mandi", "meat market", "slaughter", "grocery market",
-    "shopping mall", "supermarket", "restaurant", "hotel", "फल मंडी", "मछली बाजार",
-    "fish", "meat market", "seafood"
+  // Non-agricultural markets are never valid.
+  const reject = [
+    "fish market", "fish mandi", "fish", "meat market", "meat",
+    "slaughter", "seafood", "grocery market", "shopping mall",
+    "supermarket", "restaurant", "hotel", "मछली बाजार"
   ];
-  if (alwaysReject.some((term) => haystack.includes(term))) return false;
+  if (reject.some((term) => haystack.includes(term))) return false;
 
-  // For non-vegetable crops, an explicitly vegetable/fruit market is not a
-  // valid result. A normal APMC/mandi/agricultural market IS valid because
-  // such markets handle multiple agricultural commodities, including the
-  // selected crop, even when OSM does not store a commodity tag.
-  if (!isVegetableCrop) {
-    const unrelated = [
-      "sabzi mandi", "vegetable market", "vegetable mandi", "fruit market",
-      "fruit mandi", "सब्जी मंडी", "सब्जी बाजार", "फल मंडी"
-    ];
-    if (unrelated.some((term) => haystack.includes(term))) return false;
-  }
-
-  // If the map explicitly says this market handles a different crop,
-  // reject it. If no commodity/produce/crop tag exists, keep a genuine
-  // APMC/mandi/agricultural/wholesale market as a valid generic farm market.
+  // Crop relevance is determined by the Government commodity record, not by
+  // hard-coded crop lists. If OSM explicitly declares a different commodity,
+  // reject it immediately. Otherwise let the government price matching decide.
   const explicitCommodity = normalize(
     tags?.commodity || tags?.produce || tags?.crop || ""
   );
@@ -850,6 +835,90 @@ function isMarketRelevantForCrop(
   }
 
   return true;
+}
+
+type GovtPriceRecord = {
+  state?: string;
+  district?: string;
+  market?: string;
+  commodity?: string;
+  variety?: string;
+  grade?: string;
+  arrival_date?: string;
+  min_price?: string | number;
+  max_price?: string | number;
+  modal_price?: string | number;
+};
+
+async function fetchGovernmentMandiPrices(
+  cropName: string,
+  state?: string,
+  district?: string
+): Promise<GovtPriceRecord[]> {
+  const params = new URLSearchParams();
+  params.set("commodity", cropName.trim());
+  if (state?.trim()) params.set("state", state.trim());
+  if (district?.trim()) params.set("district", district.trim());
+
+  try {
+    const response = await fetchWithTimeout(
+      `/api/mandi-prices?${params.toString()}`,
+      { cache: "no-store" },
+      12000
+    );
+    if (!response.ok) return [];
+    const json = await response.json() as { records?: GovtPriceRecord[] };
+    return Array.isArray(json.records) ? json.records : [];
+  } catch {
+    return [];
+  }
+}
+
+function normalizedMarketKey(value: unknown) {
+  return normalize(value)
+    .replace(/\b(apmc|mandi|market|agricultural|agri|krishi)\b/g, "")
+    .replace(/[^a-z0-9\u0900-\u097f]+/g, " ")
+    .trim();
+}
+
+function governmentRateForMarket(
+  mandi: MandiBase,
+  records: GovtPriceRecord[]
+) {
+  const target = normalizedMarketKey(mandi.name);
+  const district = normalize(mandi.district);
+  const state = normalize(mandi.state);
+
+  const matches = records.filter((r) => {
+    const market = normalizedMarketKey(r.market);
+    const rDistrict = normalize(r.district);
+    const rState = normalize(r.state);
+    const nameMatch = !!target && !!market && (
+      target === market || target.includes(market) || market.includes(target)
+    );
+    return nameMatch &&
+      (!district || !rDistrict || district === rDistrict) &&
+      (!state || !rState || state === rState);
+  });
+
+  if (!matches.length) return null;
+
+  matches.sort((a, b) =>
+    String(b.arrival_date || "").localeCompare(String(a.arrival_date || ""))
+  );
+
+  const latest = matches[0];
+  const modal = Number(latest.modal_price);
+  const min = Number(latest.min_price);
+  const max = Number(latest.max_price);
+  if (!Number.isFinite(modal) || modal <= 0) return null;
+
+  return {
+    rate: modal,
+    minPrice: Number.isFinite(min) ? min : undefined,
+    maxPrice: Number.isFinite(max) ? max : undefined,
+    arrivalDate: latest.arrival_date || "",
+  };
 }
 
 async function findNearbyIndianMandis(
@@ -935,6 +1004,7 @@ out center tags;`;
           name,
           district: tags["addr:district"] || tags["is_in:district"] || tags.district || "",
           state: tags["addr:state"] || tags.state || "",
+          phone: tags.phone || tags["contact:phone"] || tags["contact:mobile"] || undefined,
           address: [
             tags["addr:housenumber"], tags["addr:street"], tags["addr:suburb"],
             tags["addr:city"], tags["addr:district"], tags["addr:state"], tags["addr:postcode"],
@@ -1044,9 +1114,31 @@ out center tags;`;
     }
   }
 
-  return Array.from(merged.values())
-    .filter((mandi) => isMarketRelevantForCrop(cropName, mandi.name, mandi.address || ""))
-    .sort((a, b) => {
+  // Rates come from the Government of India Agmarknet dataset via /api/mandi-prices.
+  // This is what makes the result crop-specific instead of a generic "sabzi mandi" list.
+  const govtRecords = await fetchGovernmentMandiPrices(
+    cropName,
+    location.state,
+    location.district
+  );
+
+  // If district has no records, the API route also falls back to the state.
+  const priced = Array.from(merged.values())
+    .map((mandi) => {
+      const price = governmentRateForMarket(mandi, govtRecords);
+      if (!price) return null;
+      return {
+        ...mandi,
+        rate: price.rate,
+        minPrice: price.minPrice,
+        maxPrice: price.maxPrice,
+        arrivalDate: price.arrivalDate,
+      } as MandiBase;
+    })
+    .filter((mandi): mandi is MandiBase => mandi !== null)
+    .filter((mandi) => isMarketRelevantForCrop(cropName, mandi.name, mandi.address || ""));
+
+  return priced.sort((a, b) => {
       const da = haversineDistance(lat, lng, a.lat!, a.lng!);
       const db = haversineDistance(lat, lng, b.lat!, b.lng!);
       return da - db;
@@ -1058,6 +1150,7 @@ function getIndicativeRateForMandi(
   cropName: string,
   market: { price: string }
 ) {
+  if (Number.isFinite(mandi.rate) && mandi.rate > 0) return mandi.rate;
   const known = MANDI_DATABASE.find((item) => {
     const sameName =
       normalize(item.name) === normalize(mandi.name);
@@ -1195,6 +1288,8 @@ export default function MarketPage() {
 
   const [mandis, setMandis] =
     useState<Mandi[]>([]);
+
+  const [liveMarketRate, setLiveMarketRate] = useState<number | null>(null);
 
   /*
     IMPORTANT:
@@ -1453,6 +1548,7 @@ export default function MarketPage() {
 
       if (!searchLocation) {
         setMandis([]);
+        setLiveMarketRate(null);
         setSearched(true);
         return;
       }
@@ -1509,11 +1605,10 @@ export default function MarketPage() {
                   profileLocation.state
               );
 
-          const rate = getIndicativeRateForMandi(
-            mandi,
-            crop.crop,
-            market || { price: "" }
-          );
+          // Every result reaching this point already has a real
+          // Government mandi modal price for the selected crop.
+          const rate = Number(mandi.rate);
+          if (!Number.isFinite(rate) || rate <= 0) return null;
 
           const transportPerQuintal =
             estimateTransport(distanceKm);
@@ -1568,11 +1663,13 @@ export default function MarketPage() {
       });
 
       setMandis(finalMandis.slice(0, 12));
+      setLiveMarketRate(finalMandis[0]?.rate ?? null);
       setSearched(true);
       setLastUpdated(new Date().toLocaleString("en-IN"));
     } catch (error) {
       console.error("Nearby mandi search failed:", error);
       setMandis([]);
+      setLiveMarketRate(null);
       setSearched(true);
     } finally {
       setSearching(false);
@@ -1862,7 +1959,7 @@ export default function MarketPage() {
               </p>
 
               <p className="text-xl font-bold text-green-800 mt-1">
-                {market.price}
+                {liveMarketRate !== null ? `₹${liveMarketRate.toLocaleString("en-IN")}` : market.price}
               </p>
 
               <p className="text-sm text-gray-900 mt-1">
@@ -2431,6 +2528,12 @@ export default function MarketPage() {
                                   }
                                 </p>
 
+                                {(mandi.minPrice !== undefined || mandi.maxPrice !== undefined) && (
+                                  <p className="text-xs text-gray-600 mt-1">
+                                    Min ₹{mandi.minPrice?.toLocaleString("en-IN") ?? "—"} · Max ₹{mandi.maxPrice?.toLocaleString("en-IN") ?? "—"}
+                                  </p>
+                                )}
+
                               </div>
 
                               <div className="text-5xl">
@@ -2734,18 +2837,33 @@ export default function MarketPage() {
 
                             </div>
 
-                            <button
-                              onClick={() =>
-                                openDirections(
-                                  mandi
-                                )
-                              }
-                              className="mt-4 w-full px-4 py-3 rounded-xl border-2 border-green-700 text-green-700 font-bold hover:bg-green-50"
-                            >
-                              {
-                                t.directions
-                              }
-                            </button>
+                            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                              <button
+                                onClick={() => openDirections(mandi)}
+                                className="w-full px-4 py-3 rounded-xl border-2 border-green-700 text-green-700 font-bold hover:bg-green-50"
+                              >
+                                {t.directions}
+                              </button>
+
+                              {mandi.phone ? (
+                                <a
+                                  href={`tel:${mandi.phone}`}
+                                  className="w-full px-4 py-3 rounded-xl bg-green-700 text-white font-bold text-center hover:bg-green-800"
+                                >
+                                  {t.contact}
+                                </a>
+                              ) : (
+                                <div className="w-full px-4 py-3 rounded-xl bg-gray-100 text-gray-600 font-semibold text-center">
+                                  {t.contact}: —
+                                </div>
+                              )}
+                            </div>
+
+                            {mandi.arrivalDate && (
+                              <p className="mt-3 text-xs text-gray-600">
+                                {t.priceDate}: {mandi.arrivalDate}
+                              </p>
+                            )}
 
                           </div>
 
