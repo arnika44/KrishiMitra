@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import { useLanguage } from "../../lib/LanguageProvider";
+
 import type { LanguageCode } from "../../lib/language";
 
 type Message = {
@@ -230,14 +231,23 @@ export default function AIPage() {
     ]);
   }, [language, ui.welcome]);
 
-  // Only cleans the text used by Text-to-Speech.
-  // The original AI response shown on screen remains unchanged.
+  // This function ONLY cleans the text before Text-to-Speech.
+  // The original AI response shown on screen is not changed.
   const cleanSpeechText = (value: string) => {
     let cleaned = value;
 
-    // Convert numeric ranges before removing symbols.
-    // English: 5-6 -> 5 to 6
-    // Hindi: 5-6 -> 5 से 6
+    /*
+     * STEP 1
+     * Convert numeric ranges BEFORE removing hyphens.
+     *
+     * English:
+     * 5-6       -> 5 to 6
+     * 30 - 40   -> 30 to 40
+     *
+     * Hindi:
+     * 5-6       -> 5 से 6
+     * 30 - 40   -> 30 से 40
+     */
     if (language === "hi") {
       cleaned = cleaned.replace(
         /(\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)/g,
@@ -250,45 +260,105 @@ export default function AIPage() {
       );
     }
 
-    // Remove markdown headings.
+    /*
+     * STEP 2
+     * Remove ALL unwanted symbols explicitly.
+     *
+     * # is removed first and replaced with a space.
+     * This ensures SpeechSynthesis never receives #.
+     */
+    cleaned = cleaned.replace(/#/g, " ");
+
+    /*
+     * Remove symbols that have no useful meaning in speech.
+     */
+    cleaned = cleaned.replace(/[@$%^&*_+=|~<>]/g, " ");
+
+    /*
+     * STEP 3
+     * Remove Markdown headings.
+     */
     cleaned = cleaned.replace(/^#{1,6}\s*/gm, "");
 
-    // Remove markdown bold / italic markers but keep the words.
+    /*
+     * STEP 4
+     * Remove Markdown bold and italic formatting.
+     */
     cleaned = cleaned.replace(/\*\*(.*?)\*\*/g, "$1");
     cleaned = cleaned.replace(/__(.*?)__/g, "$1");
     cleaned = cleaned.replace(/\*(.*?)\*/g, "$1");
     cleaned = cleaned.replace(/_(.*?)_/g, "$1");
 
-    // Remove markdown bullet symbols.
+    /*
+     * STEP 5
+     * Remove bullet formatting.
+     */
     cleaned = cleaned.replace(/^\s*[-•]\s+/gm, "");
 
-    // Remove numbered-list formatting.
+    /*
+     * STEP 6
+     * Remove numbered-list formatting.
+     */
     cleaned = cleaned.replace(/^\s*\d+\.\s+/gm, "");
 
-    // Remove markdown links but keep visible text.
-    cleaned = cleaned.replace(/\[([^\]]+)\]\([^)]+\)/g, "$1");
+    /*
+     * STEP 7
+     * Remove Markdown links but keep visible text.
+     */
+    cleaned = cleaned.replace(
+      /\[([^\]]+)\]\([^)]+\)/g,
+      "$1"
+    );
 
-    // Remove backticks.
+    /*
+     * STEP 8
+     * Remove backticks.
+     */
     cleaned = cleaned.replace(/`/g, "");
 
-    // Remove unnecessary special symbols.
-    // Keep normal punctuation such as . , ? ! :
-    // Keep hyphen only when it is part of a normal word.
-    cleaned = cleaned.replace(/[@#$%^&*_=+|~<>]/g, "");
-
-    // Remove decorative slash/backslash when they are isolated.
+    /*
+     * STEP 9
+     * Remove slash/backslash when they are being used
+     * only as separators.
+     */
     cleaned = cleaned.replace(/\s*[\\/]\s*/g, " ");
 
-    // Remove repeated punctuation.
+    /*
+     * STEP 10
+     * Remove brackets and other decorative symbols.
+     */
+    cleaned = cleaned.replace(/[{}[\]<>\\]/g, " ");
+
+    /*
+     * IMPORTANT:
+     * Normal punctuation is intentionally kept:
+     *
+     * . , ? ! : ;
+     *
+     * Hyphen is also kept for normal words.
+     *
+     * Numeric ranges were already converted above.
+     */
+
+    /*
+     * STEP 11
+     * Clean repeated punctuation.
+     */
     cleaned = cleaned.replace(/\.{2,}/g, ".");
     cleaned = cleaned.replace(/,{2,}/g, ",");
     cleaned = cleaned.replace(/!{2,}/g, "!");
     cleaned = cleaned.replace(/\?{2,}/g, "?");
 
-    // Clean extra spaces.
+    /*
+     * STEP 12
+     * Clean extra spaces.
+     */
     cleaned = cleaned.replace(/[ \t]+/g, " ");
 
-    // Clean excessive blank lines.
+    /*
+     * STEP 13
+     * Clean excessive blank lines.
+     */
     cleaned = cleaned.replace(/\n{2,}/g, "\n");
 
     return cleaned.trim();
@@ -296,6 +366,7 @@ export default function AIPage() {
 
   const speak = (answer: string) => {
     if (typeof window === "undefined") return;
+
     if (!window.speechSynthesis) return;
 
     const cleanText = cleanSpeechText(answer);
@@ -359,6 +430,7 @@ export default function AIPage() {
         },
       ]);
 
+      // Automatically speak AI response.
       speak(answer);
     } catch (error) {
       console.error("AI error:", error);
@@ -422,6 +494,7 @@ export default function AIPage() {
 
       setInput(spokenText);
 
+      // Automatically send voice question to AI.
       askAI(spokenText);
     };
 
