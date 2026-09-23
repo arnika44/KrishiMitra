@@ -230,14 +230,46 @@ export default function AIPage() {
     ]);
   }, [language, ui.welcome]);
 
+  // Cleans AI markdown formatting before sending text to speech.
+  // The chat UI still shows the original AI response.
+  const cleanSpeechText = (text: string) => {
+    return text
+      // Remove headings: ### Heading, ## Heading, # Heading
+      .replace(/^#{1,6}\s*/gm, "")
+      // Remove bold and italic markdown
+      .replace(/\*\*(.*?)\*\*/g, "$1")
+      .replace(/__(.*?)__/g, "$1")
+      .replace(/\*(.*?)\*/g, "$1")
+      .replace(/_(.*?)_/g, "$1")
+      // Remove bullet points
+      .replace(/^\s*[-•]\s+/gm, "")
+      // Remove numbered list formatting
+      .replace(/^\s*\d+\.\s+/gm, "")
+      // Remove markdown links but keep visible text
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+      // Remove backticks
+      .replace(/`/g, "")
+      // Remove remaining markdown symbols commonly spoken by TTS
+      .replace(/[*#_~]/g, "")
+      // Clean extra spaces
+      .replace(/[ \t]+/g, " ")
+      // Clean excessive blank lines
+      .replace(/\n{2,}/g, "\n")
+      .trim();
+  };
+
   const speak = (answer: string) => {
     if (typeof window === "undefined") return;
 
     if (!window.speechSynthesis) return;
 
+    const cleanText = cleanSpeechText(answer);
+
+    if (!cleanText) return;
+
     window.speechSynthesis.cancel();
 
-    const speech = new SpeechSynthesisUtterance(answer);
+    const speech = new SpeechSynthesisUtterance(cleanText);
 
     speech.lang = speechLanguages[language] || "en-IN";
     speech.rate = 0.9;
