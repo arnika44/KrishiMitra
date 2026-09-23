@@ -229,29 +229,10 @@ export default function AIPage() {
     ]);
   }, [language, ui.welcome]);
 
-  /*
-   * ONLY used before Text-to-Speech.
-   *
-   * The original AI response shown on screen
-   * remains completely unchanged.
-   *
-   * This function aggressively removes symbols so
-   * SpeechSynthesis does not read them aloud.
-   */
   const cleanSpeechText = (value: string) => {
     let cleaned = value;
 
-    /*
-     * 1. Convert numeric ranges FIRST.
-     *
-     * English:
-     * 5-6     -> 5 to 6
-     * 30 - 40 -> 30 to 40
-     *
-     * Hindi:
-     * 5-6     -> 5 से 6
-     * 30 - 40 -> 30 से 40
-     */
+    // Number ranges: 30-40 -> 30 to 40 / 30 से 40
     if (language === "hi") {
       cleaned = cleaned.replace(
         /(\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)/g,
@@ -264,120 +245,105 @@ export default function AIPage() {
       );
     }
 
-    /*
-     * 2. Remove Markdown headings.
-     *
-     * ### Heading
-     * ## Heading
-     * # Heading
-     */
-    cleaned = cleaned.replace(/^\s*#{1,6}\s*/gm, "");
+    // Remove Markdown headings
+    cleaned = cleaned.replace(/^#{1,6}[ \t]*/g, "");
 
-    /*
-     * 3. Remove Markdown bold / italic markers.
-     */
-    cleaned = cleaned.replace(/\*\*(.*?)\*\*/gs, "$1");
-    cleaned = cleaned.replace(/__(.*?)__/gs, "$1");
-    cleaned = cleaned.replace(/\*(.*?)\*/gs, "$1");
-    cleaned = cleaned.replace(/_(.*?)_/gs, "$1");
+    // Remove Markdown bold / italic symbols
+    cleaned = cleaned.replace(/\*\*/g, "");
+    cleaned = cleaned.replace(/__/g, "");
+    cleaned = cleaned.replace(/\*/g, "");
+    cleaned = cleaned.replace(/_/g, "");
 
-    /*
-     * 4. Remove bullet symbols at the beginning of lines.
-     */
-    cleaned = cleaned.replace(/^\s*[-•▪◾●◆◇★☆✓✔]\s+/gm, "");
+    // Remove bullet symbols
+    cleaned = cleaned.replace(
+      /^[ \t]*[-•▪◾●◆◇★☆✓✔][ \t]+/g,
+      ""
+    );
 
-    /*
-     * 5. Remove numbered-list markers.
-     *
-     * 1. Water
-     * 2. Fertilizer
-     */
-    cleaned = cleaned.replace(/^\s*\d+\.\s+/gm, "");
+    // Remove numbered list markers
+    cleaned = cleaned.replace(
+      /^[ \t]*\d+\.[ \t]+/g,
+      ""
+    );
 
-    /*
-     * 6. Markdown links:
-     * [Google](https://...)
-     *
-     * Keep only visible text.
-     */
-    cleaned = cleaned.replace(/\[([^\]]+)\]\([^)]+\)/g, "$1");
+    // Markdown links -> visible text
+    cleaned = cleaned.replace(
+      /\[([^\]]+)\]\([^)]+\)/g,
+      "$1"
+    );
 
-    /*
-     * 7. Remove backticks.
-     */
+    // Backticks
     cleaned = cleaned.replace(/`/g, "");
 
-    /*
-     * 8. HARD REMOVE unwanted symbols.
-     *
-     * These symbols will NEVER be sent to SpeechSynthesis:
-     *
-     * # @ $ % ^ & * _ = + | ~ < >
-     * { } [ ] \ /
-     */
-    cleaned = cleaned.replace(/[#@$%^&*_+=|~<>]/g, " ");
-    cleaned = cleaned.replace(/[{}[\]\\\/]/g, " ");
+    // Unwanted symbols
+    cleaned = cleaned.replace(
+      /[#@$%^&*_+=|~<>]/g,
+      " "
+    );
 
-    /*
-     * 9. Remove decorative Unicode symbols.
-     */
+    // Brackets
+    cleaned = cleaned.replace(/[{}]/g, " ");
+    cleaned = cleaned.replace(/\[/g, " ");
+    cleaned = cleaned.replace(/\]/g, " ");
+
+    // Slash characters
+    cleaned = cleaned.replace(/[\\/]/g, " ");
+
+    // Decorative symbols
     cleaned = cleaned.replace(
       /[•▪◾●◆◇★☆✓✔→←⇒]/g,
       " "
     );
 
-    /*
-     * 10. Remove standalone hyphens.
-     *
-     * Numeric ranges were already converted above.
-     *
-     * Normal words such as:
-     * well-known
-     *
-     * are preserved.
-     */
+    // Standalone hyphen
     cleaned = cleaned.replace(
-      /(^|\s)-(\s|$)/g,
-      " "
+      /(^|[ \t])-[ \t]+/g,
+      "$1"
     );
 
     /*
-     * 11. Remove standalone sentence dots.
-     *
-     * This prevents TTS from saying "point"
-     * for a normal sentence dot.
-     *
-     * Decimal numbers such as 2.5 are preserved.
+     * Remove sentence periods from speech.
+     * Decimal numbers like 2.5 are preserved.
      */
-    cleaned = cleaned.replace(
-      /(?<!\d)\.(?!\d)/g,
-      " "
-    );
+    const chars = cleaned.split("");
+    const output: string[] = [];
 
-    /*
-     * 12. Keep useful normal punctuation.
-     *
-     * Comma, question mark, exclamation mark,
-     * colon and semicolon are retained.
-     */
+    for (let i = 0; i < chars.length; i++) {
+      const current = chars[i];
 
-    /*
-     * 13. Clean repeated punctuation.
-     */
+      if (current === ".") {
+        const previous = chars[i - 1] || "";
+        const next = chars[i + 1] || "";
+
+        const previousIsNumber =
+          previous >= "0" && previous <= "9";
+
+        const nextIsNumber =
+          next >= "0" && next <= "9";
+
+        if (!previousIsNumber || !nextIsNumber) {
+          output.push(" ");
+          continue;
+        }
+      }
+
+      output.push(current);
+    }
+
+    cleaned = output.join("");
+
+    // Clean repeated punctuation
     cleaned = cleaned.replace(/,{2,}/g, ",");
     cleaned = cleaned.replace(/!{2,}/g, "!");
     cleaned = cleaned.replace(/\?{2,}/g, "?");
-    cleaned = cleaned.replace(/:{2,}/g, ":");
-    cleaned = cleaned.replace(/;{2,}/g, ";");
 
-    /*
-     * 14. Remove any remaining control characters.
-     */
-    cleaned = cleaned.replace(/[\u0000-\u001F\u007F]/g, " ");
+    // Remove control characters
+    cleaned = cleaned.replace(
+      /[\u0000-\u001F\u007F]/g,
+      " "
+    );
 
-    /*
-     * 15. Clean spaces.
-     */
+    // Extra spaces
     cleaned = cleaned.replace(/[ \t]+/g, " ");
     cleaned = cleaned.replace(/\n{2,}/g, "\n");
 
@@ -386,6 +352,7 @@ export default function AIPage() {
 
   const speak = (answer: string) => {
     if (typeof window === "undefined") return;
+
     if (!window.speechSynthesis) return;
 
     const cleanText = cleanSpeechText(answer);
@@ -394,9 +361,12 @@ export default function AIPage() {
 
     window.speechSynthesis.cancel();
 
-    const speech = new SpeechSynthesisUtterance(cleanText);
+    const speech =
+      new SpeechSynthesisUtterance(cleanText);
 
-    speech.lang = speechLanguages[language] || "en-IN";
+    speech.lang =
+      speechLanguages[language] || "en-IN";
+
     speech.rate = 0.9;
     speech.pitch = 1;
 
@@ -411,7 +381,10 @@ export default function AIPage() {
       content: question,
     };
 
-    const newMessages = [...messages, userMessage];
+    const newMessages = [
+      ...messages,
+      userMessage,
+    ];
 
     setMessages(newMessages);
     setInput("");
@@ -434,12 +407,15 @@ export default function AIPage() {
 
       if (!response.ok) {
         throw new Error(
-          data.details || data.error || "AI request failed"
+          data.details ||
+            data.error ||
+            "AI request failed"
         );
       }
 
       const answer =
-        data.answer || "Sorry, I could not answer that.";
+        data.answer ||
+        "Sorry, I could not answer that.";
 
       setMessages((current) => [
         ...current,
@@ -489,13 +465,13 @@ export default function AIPage() {
       return;
     }
 
-    if (loading) {
-      return;
-    }
+    if (loading) return;
 
     const recognition = new SpeechRecognition();
 
-    recognition.lang = speechLanguages[language] || "en-IN";
+    recognition.lang =
+      speechLanguages[language] || "en-IN";
+
     recognition.continuous = false;
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
@@ -568,7 +544,7 @@ export default function AIPage() {
       dir={language === "ur" ? "rtl" : "ltr"}
     >
       <div className="mx-auto max-w-5xl">
-        {/* Header */}
+
         <div className="mb-6 flex items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-[#063b2a]">
@@ -588,11 +564,11 @@ export default function AIPage() {
           </button>
         </div>
 
-        {/* Main AI area */}
         <div className="overflow-hidden rounded-3xl border border-green-100 bg-white shadow-lg">
-          {/* Chat */}
+
           <div className="h-[55vh] overflow-y-auto p-5 md:p-7">
             <div className="space-y-5">
+
               {messages.map((message, index) => (
                 <div
                   key={index}
@@ -619,7 +595,6 @@ export default function AIPage() {
                           speak(message.content)
                         }
                         className="mt-3 rounded-lg bg-white px-3 py-1.5 text-sm font-medium text-[#008c3a] shadow-sm"
-                        title="Listen"
                       >
                         🔊 Listen
                       </button>
@@ -635,12 +610,13 @@ export default function AIPage() {
                   </div>
                 </div>
               )}
+
             </div>
           </div>
 
-          {/* Voice section */}
           <div className="border-t bg-[#f8fffa] px-5 py-6">
             <div className="flex flex-col items-center">
+
               <button
                 onClick={startVoice}
                 disabled={loading}
@@ -654,11 +630,13 @@ export default function AIPage() {
               </button>
 
               <p className="mt-4 text-center font-semibold text-[#063b2a]">
-                {listening ? ui.listening : ui.speak}
+                {listening
+                  ? ui.listening
+                  : ui.speak}
               </p>
 
-              {/* Typed input - optional */}
               <div className="mt-6 flex w-full max-w-3xl gap-2">
+
                 <input
                   value={input}
                   onChange={(e) =>
@@ -680,9 +658,11 @@ export default function AIPage() {
                 >
                   ➤
                 </button>
+
               </div>
             </div>
           </div>
+
         </div>
       </div>
     </main>
