@@ -1,666 +1,421 @@
-
-// MarketPage.tsx
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 
-/* =========================================================
-   TYPES
-========================================================= */
-
 type Crop = {
-  id: number;
-  season: string;
-  crop: string;
-  land: string;
-  landUnit?: string;
+  id?: string | number;
+  crop?: string;
+  name?: string;
+  season?: string;
+  land?: string;
 };
 
 type Profile = {
-  village?: string;
-  city?: string;
+  name?: string;
+  farmerName?: string;
   district?: string;
   state?: string;
-  pincode?: string;
-
-  // Optional address fields used for accurate farmer-location lookup.
   address?: string;
-  addressLine1?: string;
-  addressLine2?: string;
-  postOffice?: string;
-  tehsil?: string;
-  block?: string;
-
-  villageName?: string;
-  cityName?: string;
-  districtName?: string;
-  stateName?: string;
-  pinCode?: string;
+  village?: string;
+  city?: string;
+  lat?: number;
+  lng?: number;
+  latitude?: number;
+  longitude?: number;
 };
 
-type QuantityUnit =
-  | "gram"
-  | "kg"
-  | "quintal"
-  | "ton"
-  | "bag";
+type QuantityUnit = "kg" | "quintal" | "ton" | "bag";
 
 type MandiBase = {
+  id: string;
   name: string;
   district: string;
   state: string;
-  address?: string;
-  phone?: string;
-  arrivalDate?: string;
-  minPrice?: number;
-  maxPrice?: number;
-
-  /*
-    IMPORTANT:
-    rate is stored as ₹/quintal.
-    This keeps all mandi rates comparable.
-  */
-  rate: number;
-
-  marketType: string;
-
-  lat?: number;
-  lng?: number;
-
-  /*
-    Bag weight is optional.
-    Example:
-    bagWeightKg: 50 means 1 bag = 50 kg.
-  */
-  bagWeightKg?: number;
-
-  /*
-    Crops supported by this mandi.
-    If omitted, mandi is considered generic.
-  */
-  crops?: string[];
+  address: string;
+  phone: string;
+  lat: number;
+  lng: number;
+  ratePerKg: number;
+  crops: string[];
 };
 
 type Mandi = MandiBase & {
-  id: string;
-
   distanceKm: number;
-
-  /*
-    Transport is calculated for the user's actual quantity.
-  */
-  transportPerQuintal: number;
-  totalTransport: number;
-
-  effectiveRatePerQuintal: number;
-  effectiveRatePerKg: number;
-
-  grossAmount: number;
-  estimatedEarning: number;
-
-  isSameDistrict: boolean;
-  isSameState: boolean;
+  totalKg: number;
+  estimatedAmount: number;
 };
 
-type T = {
-  backTo: string;
-  season: string;
-  market: string;
-  landArea: string;
-
-  loadingTitle: string;
-  loadingText: string;
-
-  cropNotFound: string;
-  backToCrops: string;
-
-  currentMarket: string;
-  marketDescription: string;
-
-  cropLabel: string;
-  indicativePrice: string;
-  marketTrend: string;
-  sellingAdvice: string;
-
-  nearbyMarket: string;
-  nearbyMarketDescription: string;
-
-  profileLocation: string;
-  usingProfileLocation: string;
-
-  village: string;
-  district: string;
-  state: string;
-  pincode: string;
-
-  findMandi: string;
-  refreshRates: string;
-  refreshing: string;
-
-  lastUpdated: string;
-  searchingMandi: string;
-  tryAgain: string;
-
-  mandiFound: string;
-  mandiRate: string;
-  distance: string;
-
-  transportation: string;
-  effectiveRate: string;
-  perQuintal: string;
-  perKg: string;
-
-  marketType: string;
-  apmc: string;
-  localMarket: string;
-
-  noMandi: string;
-  apiFailed: string;
-
-  indicativeNotice: string;
-
-  importantBeforeSelling: string;
-  tip1: string;
-  tip2: string;
-  tip3: string;
-  tip4: string;
-
-  bestMandi: string;
-  bestOption: string;
-
-  quantityCalculator: string;
-  quantity: string;
-
-  selectUnit: string;
-  gram: string;
-  kg: string;
-  quintal: string;
-  ton: string;
-  bag: string;
-
-  quantityEquivalent: string;
-  totalKg: string;
-
-  grossAmount: string;
-  totalTransport: string;
-  estimatedEarning: string;
-
-  save: string;
-  saved: string;
-
-  directions: string;
-  contact: string;
-  priceDate: string;
-
-  availableCrop: string;
-
-  netPerQuintal: string;
-  netPerKg: string;
-
-  sameDistrict: string;
-  nearbyDistrict: string;
-  otherDistrict: string;
-
-  locationSource: string;
-  browserLocation: string;
-  profileLocationSource: string;
-
-  rankingNote: string;
-
-  distanceLimit: string;
-
-  invalidQuantity: string;
-
-  rateUnitNote: string;
-
-  seasonNames: {
-    Kharif: string;
-    Rabi: string;
-    Zaid: string;
-    Other: string;
-  };
-
-  trendStable: string;
-  trendModerate: string;
-  trendVariable: string;
-  trendCheck: string;
-
-  unknownPrice: string;
-};
-
-/* =========================================================
-   ENGLISH
-========================================================= */
-
-const en: T = {
-  backTo: "Back to",
-  season: "Season",
-  market: "Market",
-  landArea: "Land Area",
-
-  loadingTitle: "Loading Market...",
-  loadingText: "Please wait while we prepare market information.",
-
-  cropNotFound: "Crop not found",
-  backToCrops: "Back to Crops",
-
-  currentMarket: "📊 Current Market Information",
-  marketDescription:
-    "Indicative information for your crop. Verify the latest local mandi rate before selling.",
-
-  cropLabel: "Crop",
-  indicativePrice: "Indicative Price",
-  marketTrend: "Market Trend",
-  sellingAdvice: "💡 Selling Advice",
-
-  nearbyMarket: "📍 Nearby Mandi & Markets",
-  nearbyMarketDescription:
-    "Mandis are found around the farmer's saved profile address using its map coordinates. Nearby mandis from surrounding districts can also appear.",
-
-  profileLocation: "Profile Location",
-  usingProfileLocation: "Using location saved in your profile",
-
-  village: "Village",
-  district: "District",
-  state: "State",
-  pincode: "Pincode",
-
-  findMandi: "📍 Find Nearby Mandi",
-  refreshRates: "🔄 Refresh Latest Rates",
-  refreshing: "🔄 Refreshing...",
-
-  lastUpdated: "Last updated",
-  searchingMandi: "🔎 Searching mandis...",
-  tryAgain: "Try Again",
-
-  mandiFound: "mandis found",
-  mandiRate: "Mandi Rate",
-  distance: "Distance",
-
-  transportation: "Estimated Transport",
-  effectiveRate: "Effective Rate",
-  perQuintal: "per quintal",
-  perKg: "per kg",
-
-  marketType: "Market Type",
-  apmc: "APMC Mandi",
-  localMarket: "Local Market",
-
-  noMandi:
-    "No suitable nearby mandi was found for this location.",
-  apiFailed:
-    "Live mandi search is unavailable right now. Showing available market information.",
-
-  indicativeNotice:
-    "Mandi rates are indicative. Final rate must be verified at the mandi. Transport cost is estimated and may vary.",
-
-  importantBeforeSelling: "⚠️ Important Before Selling",
-
-  tip1:
-    "Compare prices from more than one nearby mandi whenever possible.",
-
-  tip2:
-    "Crop quality, moisture and grading can affect the final selling price.",
-
-  tip3:
-    "Consider transportation cost before choosing a mandi with a slightly higher price.",
-
-  tip4:
-    "Verify the latest mandi rate before making a final selling decision.",
-
-  bestMandi: "⭐ Best Mandi Recommendation",
-  bestOption: "Best option",
-
-  quantityCalculator: "💰 Quantity-wise Earning Calculator",
-  quantity: "Amount to Sell",
-
-  selectUnit: "Unit",
-
-  gram: "Gram",
-  kg: "Kilogram",
-  quintal: "Quintal",
-  ton: "Ton",
-  bag: "Bag",
-
-  quantityEquivalent: "Equivalent quantity",
-  totalKg: "Total kg",
-
-  grossAmount: "Gross Sale Amount",
-  totalTransport: "Total Transport Cost",
-  estimatedEarning: "Estimated Earning",
-
-  save: "Save Mandi",
-  saved: "Saved Mandi",
-
-  directions: "📍 Directions",
-  contact: "📞 Contact Mandi",
-  priceDate: "Price date",
-
-  availableCrop: "Available Crop",
-
-  netPerQuintal: "Net per quintal",
-  netPerKg: "Net per kg",
-
-  sameDistrict: "Same District",
-  nearbyDistrict: "Nearby District",
-  otherDistrict: "Other District",
-
-  locationSource: "Location Source",
-  browserLocation: "Browser Location",
-  profileLocationSource: "Profile Location",
-
-  rankingNote:
-    "Ranking considers distance, district priority, transport cost and estimated earning.",
-
-  distanceLimit: "Nearby distance limit",
-
-  invalidQuantity:
-    "Please enter a quantity greater than 0.",
-
-  rateUnitNote:
-    "Mandi rates are normalized to ₹/quintal for comparison.",
-
-  seasonNames: {
-    Kharif: "Kharif",
-    Rabi: "Rabi",
-    Zaid: "Zaid",
-    Other: "Other",
+const MAX_DISTANCE_KM = 60;
+
+const MANDI_DATABASE: MandiBase[] = [
+  // ================= BIHAR =================
+  {
+    id: "bihar-gulabbagh",
+    name: "Gulabbagh Mandi",
+    district: "Purnia",
+    state: "Bihar",
+    address: "Gulabbagh, Purnia, Bihar",
+    phone: "06454-242100",
+    lat: 25.7771,
+    lng: 87.4753,
+    ratePerKg: 24,
+    crops: ["Wheat", "Rice", "Maize", "Corn"],
+  },
+  {
+    id: "bihar-saharsa",
+    name: "Saharsa Mandi",
+    district: "Saharsa",
+    state: "Bihar",
+    address: "Saharsa, Bihar",
+    phone: "06478-222100",
+    lat: 25.883,
+    lng: 86.599,
+    ratePerKg: 23,
+    crops: ["Wheat", "Rice", "Maize"],
+  },
+  {
+    id: "bihar-supaul",
+    name: "Supaul Mandi",
+    district: "Supaul",
+    state: "Bihar",
+    address: "Supaul, Bihar",
+    phone: "06473-222100",
+    lat: 26.126,
+    lng: 86.605,
+    ratePerKg: 22,
+    crops: ["Wheat", "Rice", "Maize"],
+  },
+  {
+    id: "bihar-darbhanga",
+    name: "Darbhanga Mandi",
+    district: "Darbhanga",
+    state: "Bihar",
+    address: "Darbhanga, Bihar",
+    phone: "06272-222100",
+    lat: 26.1542,
+    lng: 85.8918,
+    ratePerKg: 24,
+    crops: ["Wheat", "Rice", "Mustard"],
+  },
+  {
+    id: "bihar-muzaffarpur",
+    name: "Muzaffarpur Mandi",
+    district: "Muzaffarpur",
+    state: "Bihar",
+    address: "Muzaffarpur, Bihar",
+    phone: "0621-222100",
+    lat: 26.1197,
+    lng: 85.391,
+    ratePerKg: 25,
+    crops: ["Wheat", "Rice", "Maize", "Potato"],
+  },
+  {
+    id: "bihar-samastipur",
+    name: "Samastipur Mandi",
+    district: "Samastipur",
+    state: "Bihar",
+    address: "Samastipur, Bihar",
+    phone: "06274-222100",
+    lat: 25.8629,
+    lng: 85.781,
+    ratePerKg: 23,
+    crops: ["Wheat", "Rice", "Maize"],
+  },
+  {
+    id: "bihar-begusarai",
+    name: "Begusarai Mandi",
+    district: "Begusarai",
+    state: "Bihar",
+    address: "Begusarai, Bihar",
+    phone: "06243-222100",
+    lat: 25.4182,
+    lng: 86.1272,
+    ratePerKg: 24,
+    crops: ["Wheat", "Rice", "Maize"],
+  },
+  {
+    id: "bihar-patna",
+    name: "Patna Mandi",
+    district: "Patna",
+    state: "Bihar",
+    address: "Patna, Bihar",
+    phone: "0612-222100",
+    lat: 25.5941,
+    lng: 85.1376,
+    ratePerKg: 26,
+    crops: ["Wheat", "Rice", "Potato", "Onion"],
+  },
+  {
+    id: "bihar-gaya",
+    name: "Gaya Mandi",
+    district: "Gaya",
+    state: "Bihar",
+    address: "Gaya, Bihar",
+    phone: "0631-222100",
+    lat: 24.7914,
+    lng: 84.9994,
+    ratePerKg: 25,
+    crops: ["Wheat", "Rice", "Mustard"],
+  },
+  {
+    id: "bihar-bhagalpur",
+    name: "Bhagalpur Mandi",
+    district: "Bhagalpur",
+    state: "Bihar",
+    address: "Bhagalpur, Bihar",
+    phone: "0641-222100",
+    lat: 25.2425,
+    lng: 86.9842,
+    ratePerKg: 24,
+    crops: ["Wheat", "Rice", "Maize"],
   },
 
-  trendStable: "Stable",
-  trendModerate: "Moderate",
-  trendVariable: "Variable",
-  trendCheck: "Check local mandi",
+  // ================= DELHI =================
+  {
+    id: "delhi-azadpur",
+    name: "Azadpur Mandi",
+    district: "North Delhi",
+    state: "Delhi",
+    address: "Azadpur, Delhi",
+    phone: "011-27673521",
+    lat: 28.7041,
+    lng: 77.1819,
+    ratePerKg: 28,
+    crops: ["Potato", "Onion", "Rice", "Wheat"],
+  },
+  {
+    id: "delhi-ghazipur",
+    name: "Ghazipur Mandi",
+    district: "East Delhi",
+    state: "Delhi",
+    address: "Ghazipur, Delhi",
+    phone: "011-22151500",
+    lat: 28.625,
+    lng: 77.318,
+    ratePerKg: 27,
+    crops: ["Potato", "Onion", "Rice"],
+  },
+  {
+    id: "delhi-keshopur",
+    name: "Keshopur Mandi",
+    district: "West Delhi",
+    state: "Delhi",
+    address: "Keshopur, Delhi",
+    phone: "011-25173600",
+    lat: 28.647,
+    lng: 77.083,
+    ratePerKg: 26,
+    crops: ["Potato", "Onion", "Wheat"],
+  },
+  {
+    id: "delhi-okhla",
+    name: "Okhla Mandi",
+    district: "South Delhi",
+    state: "Delhi",
+    address: "Okhla, Delhi",
+    phone: "011-26834100",
+    lat: 28.5355,
+    lng: 77.264,
+    ratePerKg: 27,
+    crops: ["Rice", "Wheat", "Onion"],
+  },
 
-  unknownPrice: "Market rate unavailable",
+  // ================= HARYANA =================
+  {
+    id: "haryana-gurugram",
+    name: "Gurugram Mandi",
+    district: "Gurugram",
+    state: "Haryana",
+    address: "Gurugram, Haryana",
+    phone: "0124-2321000",
+    lat: 28.4595,
+    lng: 77.0266,
+    ratePerKg: 25,
+    crops: ["Wheat", "Mustard", "Potato"],
+  },
+  {
+    id: "haryana-faridabad",
+    name: "Faridabad Mandi",
+    district: "Faridabad",
+    state: "Haryana",
+    address: "Faridabad, Haryana",
+    phone: "0129-2411000",
+    lat: 28.4089,
+    lng: 77.3178,
+    ratePerKg: 26,
+    crops: ["Wheat", "Rice", "Potato"],
+  },
+  {
+    id: "haryana-sonipat",
+    name: "Sonipat Mandi",
+    district: "Sonipat",
+    state: "Haryana",
+    address: "Sonipat, Haryana",
+    phone: "0130-2201000",
+    lat: 28.9931,
+    lng: 77.0151,
+    ratePerKg: 24,
+    crops: ["Wheat", "Mustard", "Rice"],
+  },
+  {
+    id: "haryana-panipat",
+    name: "Panipat Mandi",
+    district: "Panipat",
+    state: "Haryana",
+    address: "Panipat, Haryana",
+    phone: "0180-2631000",
+    lat: 29.3909,
+    lng: 76.9635,
+    ratePerKg: 24,
+    crops: ["Wheat", "Rice", "Mustard"],
+  },
+  {
+    id: "haryana-rohtak",
+    name: "Rohtak Mandi",
+    district: "Rohtak",
+    state: "Haryana",
+    address: "Rohtak, Haryana",
+    phone: "01262-251000",
+    lat: 28.8955,
+    lng: 76.6066,
+    ratePerKg: 23,
+    crops: ["Wheat", "Mustard", "Rice"],
+  },
+  {
+    id: "haryana-hisar",
+    name: "Hisar Mandi",
+    district: "Hisar",
+    state: "Haryana",
+    address: "Hisar, Haryana",
+    phone: "01662-233000",
+    lat: 29.1492,
+    lng: 75.7217,
+    ratePerKg: 24,
+    crops: ["Wheat", "Mustard", "Maize"],
+  },
+
+  // ================= UTTAR PRADESH =================
+  {
+    id: "up-ghaziabad",
+    name: "Ghaziabad Mandi",
+    district: "Ghaziabad",
+    state: "Uttar Pradesh",
+    address: "Ghaziabad, Uttar Pradesh",
+    phone: "0120-2821000",
+    lat: 28.6692,
+    lng: 77.4538,
+    ratePerKg: 25,
+    crops: ["Wheat", "Rice", "Potato"],
+  },
+  {
+    id: "up-noida",
+    name: "Noida Mandi",
+    district: "Gautam Buddha Nagar",
+    state: "Uttar Pradesh",
+    address: "Noida, Uttar Pradesh",
+    phone: "0120-2511000",
+    lat: 28.5355,
+    lng: 77.391,
+    ratePerKg: 27,
+    crops: ["Wheat", "Rice", "Potato", "Onion"],
+  },
+  {
+    id: "up-meerut",
+    name: "Meerut Mandi",
+    district: "Meerut",
+    state: "Uttar Pradesh",
+    address: "Meerut, Uttar Pradesh",
+    phone: "0121-2661000",
+    lat: 28.9845,
+    lng: 77.7064,
+    ratePerKg: 24,
+    crops: ["Wheat", "Rice", "Mustard"],
+  },
+  {
+    id: "up-lucknow",
+    name: "Lucknow Mandi",
+    district: "Lucknow",
+    state: "Uttar Pradesh",
+    address: "Lucknow, Uttar Pradesh",
+    phone: "0522-2221000",
+    lat: 26.8467,
+    lng: 80.9462,
+    ratePerKg: 26,
+    crops: ["Wheat", "Rice", "Potato", "Onion"],
+  },
+
+  // ================= JHARKHAND =================
+  {
+    id: "jharkhand-ranchi",
+    name: "Ranchi Mandi",
+    district: "Ranchi",
+    state: "Jharkhand",
+    address: "Ranchi, Jharkhand",
+    phone: "0651-2221000",
+    lat: 23.3441,
+    lng: 85.3096,
+    ratePerKg: 24,
+    crops: ["Wheat", "Rice", "Maize"],
+  },
+  {
+    id: "jharkhand-dhanbad",
+    name: "Dhanbad Mandi",
+    district: "Dhanbad",
+    state: "Jharkhand",
+    address: "Dhanbad, Jharkhand",
+    phone: "0326-2221000",
+    lat: 23.7957,
+    lng: 86.4304,
+    ratePerKg: 23,
+    crops: ["Wheat", "Rice", "Maize"],
+  },
+];
+
+const CROP_RATE_FACTOR: Record<string, number> = {
+  rice: 1,
+  paddy: 1,
+  wheat: 1,
+  maize: 0.95,
+  corn: 0.95,
+  mustard: 1.08,
+  potato: 0.8,
+  onion: 0.9,
 };
 
-/* =========================================================
-   TRANSLATIONS
-========================================================= */
+function normalizeCropName(value: string) {
+  return value.trim().toLowerCase();
+}
 
-const translations: Record<string, Partial<T>> = {
-  hi: {
-    backTo: "वापस जाएँ",
-    season: "मौसम",
-    market: "बाज़ार",
-    landArea: "जमीन का क्षेत्रफल",
-
-    loadingTitle: "बाज़ार की जानकारी लोड हो रही है...",
-    loadingText: "कृपया प्रतीक्षा करें।",
-
-    cropNotFound: "फसल नहीं मिली",
-    backToCrops: "फसलों पर वापस जाएँ",
-
-    currentMarket: "📊 वर्तमान बाज़ार जानकारी",
-    marketDescription:
-      "आपकी फसल के लिए अनुमानित जानकारी। बेचने से पहले स्थानीय मंडी का नवीनतम भाव जाँचें।",
-
-    cropLabel: "फसल",
-    indicativePrice: "अनुमानित कीमत",
-    marketTrend: "बाज़ार का रुझान",
-    sellingAdvice: "💡 बिक्री की सलाह",
-
-    nearbyMarket: "📍 नज़दीकी मंडी और बाज़ार",
-    nearbyMarketDescription:
-      "आपके सेव किए गए पते के आसपास की मंडियाँ वास्तविक दूरी के आधार पर दिखाई जाएँगी। पास के दूसरे जिलों की मंडियाँ भी दिखाई जा सकती हैं।",
-
-    profileLocation: "प्रोफाइल लोकेशन",
-    usingProfileLocation:
-      "प्रोफाइल में सेव की गई लोकेशन का उपयोग हो रहा है",
-
-    village: "गाँव",
-    district: "जिला",
-    state: "राज्य",
-    pincode: "पिनकोड",
-
-    findMandi: "📍 नज़दीकी मंडी खोजें",
-    refreshRates: "🔄 नवीनतम भाव रिफ्रेश करें",
-    refreshing: "🔄 रिफ्रेश हो रहा है...",
-
-    lastUpdated: "अंतिम अपडेट",
-    searchingMandi: "🔎 मंडियाँ खोजी जा रही हैं...",
-    tryAgain: "फिर से कोशिश करें",
-
-    mandiFound: "मंडियाँ मिलीं",
-    mandiRate: "मंडी भाव",
-    distance: "दूरी",
-
-    transportation: "अनुमानित परिवहन",
-    effectiveRate: "प्रभावी भाव",
-    perQuintal: "प्रति क्विंटल",
-    perKg: "प्रति किलो",
-
-    marketType: "बाज़ार का प्रकार",
-    apmc: "APMC मंडी",
-    localMarket: "स्थानीय बाज़ार",
-
-    noMandi: "इस लोकेशन के आसपास उपयुक्त मंडी नहीं मिली।",
-
-    indicativeNotice:
-      "मंडी भाव अनुमानित हैं। अंतिम भाव मंडी में जरूर जाँचें। परिवहन खर्च अनुमानित है और बदल सकता है।",
-
-    importantBeforeSelling: "⚠️ बेचने से पहले जरूरी बातें",
-
-    tip1:
-      "जहाँ संभव हो, एक से अधिक नज़दीकी मंडियों के भाव की तुलना करें।",
-
-    tip2:
-      "फसल की गुणवत्ता, नमी और ग्रेडिंग से अंतिम कीमत प्रभावित हो सकती है।",
-
-    tip3:
-      "थोड़ा अधिक भाव वाली मंडी चुनने से पहले परिवहन खर्च भी ध्यान में रखें।",
-
-    tip4:
-      "अंतिम बिक्री निर्णय से पहले नवीनतम मंडी भाव जरूर जाँचें।",
-
-    bestMandi: "⭐ सबसे अच्छी मंडी की सलाह",
-    bestOption: "सबसे अच्छा विकल्प",
-
-    quantityCalculator: "💰 मात्रा के हिसाब से कमाई कैलकुलेटर",
-    quantity: "बेचने की मात्रा",
-
-    selectUnit: "इकाई",
-
-    gram: "ग्राम",
-    kg: "किलो",
-    quintal: "क्विंटल",
-    ton: "टन",
-    bag: "बोरी",
-
-    quantityEquivalent: "कुल मात्रा",
-    totalKg: "कुल किलो",
-
-    grossAmount: "कुल बिक्री रकम",
-    totalTransport: "कुल परिवहन खर्च",
-    estimatedEarning: "अनुमानित कमाई",
-
-    save: "मंडी सेव करें",
-    saved: "मंडी सेव है",
-
-    directions: "📍 रास्ता देखें",
-
-    availableCrop: "उपलब्ध फसल",
-
-    netPerQuintal: "प्रति क्विंटल शुद्ध भाव",
-    netPerKg: "प्रति किलो शुद्ध भाव",
-
-    sameDistrict: "इसी जिले की मंडी",
-    nearbyDistrict: "नज़दीकी जिले की मंडी",
-    otherDistrict: "अन्य जिले की मंडी",
-
-    locationSource: "लोकेशन स्रोत",
-    browserLocation: "मोबाइल लोकेशन",
-    profileLocationSource: "प्रोफाइल लोकेशन",
-
-    rankingNote:
-      "रैंकिंग में दूरी, जिला प्राथमिकता, परिवहन खर्च और अनुमानित कमाई को ध्यान में रखा गया है।",
-
-    distanceLimit: "नज़दीकी दूरी सीमा",
-
-    invalidQuantity:
-      "कृपया 0 से अधिक मात्रा दर्ज करें।",
-
-    rateUnitNote:
-      "तुलना के लिए सभी मंडी भाव ₹/क्विंटल में normalize किए गए हैं।",
-
-    seasonNames: {
-      Kharif: "खरीफ",
-      Rabi: "रबी",
-      Zaid: "जायद",
-      Other: "अन्य",
-    },
-
-    trendStable: "स्थिर",
-    trendModerate: "मध्यम",
-    trendVariable: "बदलता हुआ",
-    trendCheck: "स्थानीय मंडी का भाव देखें",
-
-    unknownPrice: "बाज़ार भाव उपलब्ध नहीं है",
-  }
-};
-
-/* =========================================================
-   MANDI DATABASE
-
-   NOTE:
-   All rates are ₹/quintal.
-
-   Later, this array can be replaced by:
-   /api/mandis
-   /api/mandis/nearby
-   data.gov.in
-   Agmarknet
-   etc.
-
-   Coordinates allow real distance calculation when
-   browser GPS is available.
-========================================================= */
-
-const MANDI_DATABASE: MandiBase[] = [];
-
-/* =========================================================
-   HELPERS
-========================================================= */
-
-const normalize = (value: unknown) =>
-  String(value ?? "")
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, " ");
-
-/*
-  Crop name matching.
-*/
-function isCropMatch(
-  cropName: string,
-  mandi: MandiBase
-): boolean {
-  // Farmer can add ANY crop name.
-  // A mandi without an explicit crop list is generic.
-  if (!mandi.crops || mandi.crops.length === 0) {
-    return true;
-  }
-
-  const crop = normalize(cropName);
-  return mandi.crops.some(
-    (mCrop) => normalize(mCrop) === crop
+function getCropFactor(cropName: string) {
+  return (
+    CROP_RATE_FACTOR[
+      normalizeCropName(cropName)
+    ] ?? 1
   );
 }
 
-/*
-  Convert entered quantity into kg into kg.
-
-  1 gram = 0.001 kg
-  1 kg = 1 kg
-  1 quintal = 100 kg
-  1 ton = 1000 kg
-  1 bag = 50 kg
-
-  Bag default is 50 kg.
-*/
-function quantityToKg(
-  quantity: number,
-  unit: QuantityUnit
-) {
-  if (!Number.isFinite(quantity) || quantity <= 0) {
-    return 0;
-  }
-
-  switch (unit) {
-    case "gram":
-      return quantity / 1000;
-
-    case "kg":
-      return quantity;
-
-    case "quintal":
-      return quantity * 100;
-
-    case "ton":
-      return quantity * 1000;
-
-    case "bag":
-      return quantity * 50;
-
-    default:
-      return 0;
-  }
-}
-
-/*
-  Convert kg to entered unit.
-*/
-function kgToEnteredUnit(
-  kg: number,
-  unit: QuantityUnit
-) {
-  switch (unit) {
-    case "gram":
-      return kg * 1000;
-
-    case "kg":
-      return kg;
-
-    case "quintal":
-      return kg / 100;
-
-    case "ton":
-      return kg / 1000;
-
-    case "bag":
-      return kg / 50;
-
-    default:
-      return kg;
-  }
-}
-
-/*
-  Haversine distance.
-*/
-function haversineDistance(
+function getDistanceKm(
   lat1: number,
-  lon1: number,
+  lng1: number,
   lat2: number,
-  lon2: number
+  lng2: number
 ) {
-  const R = 6371;
+  const earthRadius = 6371;
 
   const dLat =
     ((lat2 - lat1) * Math.PI) / 180;
 
-  const dLon =
-    ((lon2 - lon1) * Math.PI) / 180;
+  const dLng =
+    ((lng2 - lng1) * Math.PI) / 180;
 
   const a =
     Math.sin(dLat / 2) *
       Math.sin(dLat / 2) +
     Math.cos((lat1 * Math.PI) / 180) *
       Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
+      Math.sin(dLng / 2) *
+      Math.sin(dLng / 2);
 
   const c =
     2 *
@@ -669,1115 +424,703 @@ function haversineDistance(
       Math.sqrt(1 - a)
     );
 
-  return R * c;
+  return earthRadius * c;
 }
 
-/*
-  Build the farmer's most specific saved address.
-  The saved profile address is intentionally preferred over browser GPS.
-*/
-function buildProfileAddress(profileLocation: {
-  village: string;
-  city: string;
-  district: string;
-  state: string;
-  pincode: string;
-  address?: string;
-  addressLine1?: string;
-  addressLine2?: string;
-  postOffice?: string;
-  tehsil?: string;
-  block?: string;
-}) {
-  return [
-    profileLocation.address,
-    profileLocation.addressLine1,
-    profileLocation.addressLine2,
-    profileLocation.village,
-    profileLocation.postOffice,
-    profileLocation.tehsil,
-    profileLocation.block,
-    profileLocation.city,
-    profileLocation.district,
-    profileLocation.state,
-    profileLocation.pincode,
-    "India",
-  ]
-    .filter(Boolean)
-    .join(", ");
+function getTotalKg(
+  quantity: number,
+  unit: QuantityUnit
+) {
+  if (unit === "kg") return quantity;
+
+  if (unit === "quintal") {
+    return quantity * 100;
+  }
+
+  if (unit === "ton") {
+    return quantity * 1000;
+  }
+
+  if (unit === "bag") {
+    return quantity * 50;
+  }
+
+  return quantity;
 }
 
-type GeocodedLocation = {
-  lat: number;
-  lng: number;
-  displayName: string;
-  village?: string;
-  city?: string;
-  district?: string;
-  state?: string;
-  pincode?: string;
+function getProfileLocation(
+  profile: Profile | null
+) {
+  if (!profile) return null;
+
+  const lat =
+    typeof profile.lat === "number"
+      ? profile.lat
+      : typeof profile.latitude === "number"
+      ? profile.latitude
+      : null;
+
+  const lng =
+    typeof profile.lng === "number"
+      ? profile.lng
+      : typeof profile.longitude === "number"
+      ? profile.longitude
+      : null;
+
+  if (lat !== null && lng !== null) {
+    return {
+      lat,
+      lng,
+      source: "profile",
+    };
+  }
+
+  return null;
+}
+
+const DISTRICT_COORDINATES: Record<
+  string,
+  { lat: number; lng: number }
+> = {
+  purnia: {
+    lat: 25.7771,
+    lng: 87.4753,
+  },
+
+  saharsa: {
+    lat: 25.883,
+    lng: 86.599,
+  },
+
+  supaul: {
+    lat: 26.126,
+    lng: 86.605,
+  },
+
+  darbhanga: {
+    lat: 26.1542,
+    lng: 85.8918,
+  },
+
+  muzaffarpur: {
+    lat: 26.1197,
+    lng: 85.391,
+  },
+
+  samastipur: {
+    lat: 25.8629,
+    lng: 85.781,
+  },
+
+  begusarai: {
+    lat: 25.4182,
+    lng: 86.1272,
+  },
+
+  patna: {
+    lat: 25.5941,
+    lng: 85.1376,
+  },
+
+  gaya: {
+    lat: 24.7914,
+    lng: 84.9994,
+  },
+
+  bhagalpur: {
+    lat: 25.2425,
+    lng: 86.9842,
+  },
+
+  "north delhi": {
+    lat: 28.7041,
+    lng: 77.1819,
+  },
+
+  "east delhi": {
+    lat: 28.625,
+    lng: 77.318,
+  },
+
+  "west delhi": {
+    lat: 28.647,
+    lng: 77.083,
+  },
+
+  "south delhi": {
+    lat: 28.5355,
+    lng: 77.264,
+  },
+
+  gurugram: {
+    lat: 28.4595,
+    lng: 77.0266,
+  },
+
+  faridabad: {
+    lat: 28.4089,
+    lng: 77.3178,
+  },
+
+  sonipat: {
+    lat: 28.9931,
+    lng: 77.0151,
+  },
+
+  panipat: {
+    lat: 29.3909,
+    lng: 76.9635,
+  },
+
+  rohtak: {
+    lat: 28.8955,
+    lng: 76.6066,
+  },
+
+  hisar: {
+    lat: 29.1492,
+    lng: 75.7217,
+  },
+
+  ghaziabad: {
+    lat: 28.6692,
+    lng: 77.4538,
+  },
+
+  "gautam buddha nagar": {
+    lat: 28.5355,
+    lng: 77.391,
+  },
+
+  meerut: {
+    lat: 28.9845,
+    lng: 77.7064,
+  },
+
+  lucknow: {
+    lat: 26.8467,
+    lng: 80.9462,
+  },
+
+  ranchi: {
+    lat: 23.3441,
+    lng: 85.3096,
+  },
+
+  dhanbad: {
+    lat: 23.7957,
+    lng: 86.4304,
+  },
 };
-
-async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}, timeoutMs = 9000) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    return await fetch(input, { ...init, signal: controller.signal });
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
-async function geocodeFarmerAddress(
-  address: string
-): Promise<GeocodedLocation | null> {
-  if (!address.trim()) return null;
-
-  const cleaned = address.replace(/\\s+/g, " ").trim();
-  const parts = cleaned.split(",").map((p) => p.trim()).filter(Boolean);
-
-  // Keep the farmer's saved address as the source. Try a few progressively
-  // simpler forms because post-office/village names are often indexed differently.
-  const queries = Array.from(new Set([
-    cleaned,
-    parts.slice(-5).join(", "),
-    parts.slice(-4).join(", "),
-    parts.slice(-3).join(", "),
-  ].filter(Boolean)));
-
-  // Try address variants in parallel so a slow geocoder cannot make the page wait minutes.
-  const attempts = queries.map(async (query) => {
-    try {
-      const url = "https://nominatim.openstreetmap.org/search?" +
-        new URLSearchParams({
-          format: "jsonv2",
-          addressdetails: "1",
-          limit: "1",
-          q: query,
-        }).toString();
-
-      const response = await fetchWithTimeout(url, {
-        headers: {
-          Accept: "application/json",
-          "Accept-Language": "en",
-        },
-      }, 6000);
-
-      if (!response.ok) return null;
-
-      const data = await response.json() as Array<{
-        lat?: string;
-        lon?: string;
-        display_name?: string;
-        address?: Record<string, string | undefined>;
-      }>;
-
-      const item = data?.[0];
-      if (!item?.lat || !item?.lon) return null;
-
-      const lat = Number(item.lat);
-      const lng = Number(item.lon);
-      if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
-
-      const a = item.address || {};
-      return {
-        lat,
-        lng,
-        displayName: item.display_name || address,
-        village: a.village || a.hamlet || a.suburb || a.neighbourhood,
-        city: a.city || a.town || a.municipality || a.city_district,
-        district: a.state_district || a.district || a.county,
-        state: a.state,
-        pincode: a.postcode,
-      } as GeocodedLocation;
-    } catch {
-      return null;
-    }
-  });
-
-  const results = await Promise.all(attempts);
-  return results.find(Boolean) || null;
-}
-
-function cropSearchProfile(cropName: string) {
-  // No fixed crop list. The selected crop is always the source of truth.
-  const crop = normalize(cropName);
-  return { crop, terms: crop ? [crop] : [] };
-}
-
-function isMarketRelevantForCrop(
-  cropName: string,
-  name: string,
-  extraText = "",
-  tags?: Record<string, string | undefined>
-) {
-  const haystack = normalize(`${name} ${extraText}`);
-
-  // Non-agricultural markets are never valid.
-  const reject = [
-    "fish market", "fish mandi", "fish", "meat market", "meat",
-    "slaughter", "seafood", "grocery market", "shopping mall",
-    "supermarket", "restaurant", "hotel", "मछली बाजार"
-  ];
-  if (reject.some((term) => haystack.includes(term))) return false;
-
-  // Crop relevance is determined by the Government commodity record, not by
-  // hard-coded crop lists. If OSM explicitly declares a different commodity,
-  // reject it immediately. Otherwise let the government price matching decide.
-  const explicitCommodity = normalize(
-    tags?.commodity || tags?.produce || tags?.crop || ""
-  );
-  if (explicitCommodity) {
-    const crop = normalize(cropName);
-    if (crop && !explicitCommodity.includes(crop) && !crop.includes(explicitCommodity)) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-type GovtPriceRecord = {
-  state?: string;
-  district?: string;
-  market?: string;
-  commodity?: string;
-  variety?: string;
-  grade?: string;
-  arrival_date?: string;
-  min_price?: string | number;
-  max_price?: string | number;
-  modal_price?: string | number;
-};
-
-async function fetchGovernmentMandiPrices(
-  cropName: string,
-  state?: string,
-  district?: string
-): Promise<GovtPriceRecord[]> {
-  const params = new URLSearchParams();
-  params.set("commodity", cropName.trim());
-  if (state?.trim()) params.set("state", state.trim());
-  if (district?.trim()) params.set("district", district.trim());
-
-  try {
-    const response = await fetchWithTimeout(
-      `/api/mandi-prices?${params.toString()}`,
-      { cache: "no-store" },
-      12000
-    );
-    if (!response.ok) return [];
-    const json = await response.json() as { records?: GovtPriceRecord[] };
-    return Array.isArray(json.records) ? json.records : [];
-  } catch {
-    return [];
-  }
-}
-
-function normalizedMarketKey(value: unknown) {
-  return normalize(value)
-    .replace(/\b(apmc|mandi|market|agricultural|agri|krishi)\b/g, "")
-    .replace(/[^a-z0-9\u0900-\u097f]+/g, " ")
-    .trim();
-}
-
-function governmentRateForMarket(
-  mandi: MandiBase,
-  records: GovtPriceRecord[]
-) {
-  const target = normalizedMarketKey(mandi.name);
-  const district = normalize(mandi.district);
-  const state = normalize(mandi.state);
-
-  const matches = records.filter((r) => {
-    const market = normalizedMarketKey(r.market);
-    const rDistrict = normalize(r.district);
-    const rState = normalize(r.state);
-    const nameMatch = !!target && !!market && (
-      target === market || target.includes(market) || market.includes(target)
-    );
-    return nameMatch &&
-      (!district || !rDistrict || district === rDistrict) &&
-      (!state || !rState || state === rState);
-  });
-
-  if (!matches.length) return null;
-
-  matches.sort((a, b) =>
-    String(b.arrival_date || "").localeCompare(String(a.arrival_date || ""))
-  );
-
-  const latest = matches[0];
-  const modal = Number(latest.modal_price);
-  const min = Number(latest.min_price);
-  const max = Number(latest.max_price);
-  if (!Number.isFinite(modal) || modal <= 0) return null;
-
-  return {
-    rate: modal,
-    minPrice: Number.isFinite(min) ? min : undefined,
-    maxPrice: Number.isFinite(max) ? max : undefined,
-    arrivalDate: latest.arrival_date || "",
-  };
-}
-
-async function findNearbyIndianMandis(
-  location: GeocodedLocation,
-  radiusKm: number,
-  cropName: string
-): Promise<MandiBase[]> {
-  const { lat, lng } = location;
-  const radiusMeters = Math.round(radiusKm * 1000);
-
-  // Do NOT require the crop name to appear in the mandi's OSM name.
-  // Most APMCs do not put commodity names in their map name. We search
-  // genuine agricultural markets broadly and use crop tags only when present.
-  const overpassQuery = `
-[out:json][timeout:20];
-(
-  nwr["amenity"="marketplace"](around:${radiusMeters},${lat},${lng});
-  nwr["marketplace"](around:${radiusMeters},${lat},${lng});
-  nwr["name"~"mandi|apmc|agricultural market|agriculture market|wholesale market|krishi|kisan|कृषि मंडी|कृषि बाजार|मंडी|कृषि|थोक बाजार",i](around:${radiusMeters},${lat},${lng});
-  nwr["operator"~"apmc|agricultural marketing|mandi",i](around:${radiusMeters},${lat},${lng});
-  nwr["commodity"](around:${radiusMeters},${lat},${lng});
-  nwr["produce"](around:${radiusMeters},${lat},${lng});
-  nwr["crop"](around:${radiusMeters},${lat},${lng});
-);
-out center tags;`;
-
-  const endpoints = [
-    "https://overpass-api.de/api/interpreter",
-    "https://overpass.kumi.systems/api/interpreter",
-    "https://overpass.private.coffee/api/interpreter",
-  ];
-
-  const parseOverpass = async (endpoint: string): Promise<MandiBase[]> => {
-    try {
-      const response = await fetchWithTimeout(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "text/plain;charset=UTF-8",
-          Accept: "application/json",
-        },
-        body: overpassQuery,
-      }, 9000);
-
-      if (!response.ok) return [];
-
-      const raw = await response.json() as {
-        elements?: Array<{
-          lat?: number;
-          lon?: number;
-          center?: { lat?: number; lon?: number };
-          tags?: Record<string, string | undefined>;
-        }>;
-      };
-
-      return (raw.elements || []).flatMap((element) => {
-        const tags = element.tags || {};
-        const elementLat = typeof element.lat === "number" ? element.lat : element.center?.lat;
-        const elementLng = typeof element.lon === "number" ? element.lon : element.center?.lon;
-        if (typeof elementLat !== "number" || typeof elementLng !== "number") return [];
-
-        const name = tags.name || tags["name:en"] || tags["name:hi"] || "Agricultural Market";
-        const distance = haversineDistance(lat, lng, elementLat, elementLng);
-        if (distance > radiusKm) return [];
-
-        const extra = [
-          tags.operator, tags.marketplace, tags.commodity, tags.produce,
-          tags.crop, tags.description, tags["addr:city"], tags["addr:district"],
-          tags["addr:state"], tags["official_name"]
-        ].filter(Boolean).join(" ");
-
-        const haystack = normalize(`${name} ${extra}`);
-        const looksLikeAgriculturalMarket = [
-          "mandi", "apmc", "agricultural", "wholesale", "krishi", "kisan",
-          "कृषि", "मंडी", "थोक"
-        ].some((term) => haystack.includes(term));
-        const isMarketplace = tags.amenity === "marketplace" || !!tags.marketplace;
-        const hasCommodityTag = !!(tags.commodity || tags.produce || tags.crop);
-
-        if (!looksLikeAgriculturalMarket && !hasCommodityTag && !isMarketplace) return [];
-        if (!isMarketRelevantForCrop(cropName, name, extra, tags)) return [];
-
-        return [{
-          name,
-          district: tags["addr:district"] || tags["is_in:district"] || tags.district || "",
-          state: tags["addr:state"] || tags.state || "",
-          phone: tags.phone || tags["contact:phone"] || tags["contact:mobile"] || undefined,
-          address: [
-            tags["addr:housenumber"], tags["addr:street"], tags["addr:suburb"],
-            tags["addr:city"], tags["addr:district"], tags["addr:state"], tags["addr:postcode"],
-          ].filter(Boolean).join(", ") || tags["addr:full"] || undefined,
-          rate: 0,
-          marketType: /apmc|mandi/i.test(haystack) ? "APMC" : "Agricultural Market",
-          lat: elementLat,
-          lng: elementLng,
-          crops: hasCommodityTag ? [cropName] : undefined,
-        } as MandiBase];
-      });
-    } catch {
-      return [];
-    }
-  };
-
-  // Nominatim is used only as a quick supplementary source. Broad market
-  // searches are more reliable than asking it for "wheat mandi", because
-  // most mapped mandis are not named after a commodity.
-  const delta = radiusKm / 111;
-  const viewbox = `${lng - delta},${lat + delta},${lng + delta},${lat - delta}`;
-  const nominatimQueries = [
-    "mandi", "APMC", "agricultural market", "wholesale market", "krishi mandi"
-  ];
-
-  const parseNominatim = async (q: string): Promise<MandiBase[]> => {
-    try {
-      const params = new URLSearchParams({
-        q,
-        format: "jsonv2",
-        limit: "40",
-        addressdetails: "1",
-        bounded: "1",
-        viewbox,
-        countrycodes: "in",
-        "accept-language": "en",
-      });
-
-      const response = await fetchWithTimeout(
-        `https://nominatim.openstreetmap.org/search?${params.toString()}`,
-        {
-          headers: {
-            Accept: "application/json",
-            "User-Agent": "KrishiMitra/1.0 (agricultural market finder)",
-          },
-        },
-        6000
-      );
-      if (!response.ok) return [];
-
-      const raw = await response.json() as Array<{
-        lat?: string;
-        lon?: string;
-        display_name?: string;
-        name?: string;
-        type?: string;
-        category?: string;
-        address?: Record<string, string | undefined>;
-      }>;
-
-      return raw.flatMap((item) => {
-        const itemLat = Number(item.lat);
-        const itemLng = Number(item.lon);
-        if (!Number.isFinite(itemLat) || !Number.isFinite(itemLng)) return [];
-
-        const distance = haversineDistance(lat, lng, itemLat, itemLng);
-        if (distance > radiusKm) return [];
-
-        const address = item.address || {};
-        const name = item.name || item.display_name?.split(",")[0] || "Agricultural Market";
-        const extra = `${item.display_name || ""} ${item.type || ""} ${item.category || ""}`;
-        const haystack = normalize(`${name} ${extra}`);
-        const looksLikeAgriculturalMarket = [
-          "mandi", "apmc", "agricultural", "wholesale", "market", "krishi", "कृषि", "मंडी"
-        ].some((term) => haystack.includes(term));
-        if (!looksLikeAgriculturalMarket) return [];
-        if (!isMarketRelevantForCrop(cropName, name, extra)) return [];
-
-        return [{
-          name,
-          district: address.state_district || address.district || address.county || "",
-          state: address.state || "",
-          address: item.display_name,
-          rate: 0,
-          marketType: /apmc|mandi/i.test(haystack) ? "APMC" : "Agricultural Market",
-          lat: itemLat,
-          lng: itemLng,
-        } as MandiBase];
-      });
-    } catch {
-      return [];
-    }
-  };
-
-  // One parallel pass. No sequential 100 -> 180 -> 300 -> 500 km waits.
-  const results = await Promise.all([
-    ...endpoints.map(parseOverpass),
-    ...nominatimQueries.map(parseNominatim),
-  ]);
-
-  const merged = new Map<string, MandiBase>();
-  for (const list of results) {
-    for (const mandi of list) {
-      if (typeof mandi.lat !== "number" || typeof mandi.lng !== "number") continue;
-      const key = `${normalize(mandi.name)}|${normalize(mandi.district)}|${normalize(mandi.state)}`;
-      if (!merged.has(key)) merged.set(key, mandi);
-    }
-  }
-
-  // Rates come from the Government of India Agmarknet dataset via /api/mandi-prices.
-  // This is what makes the result crop-specific instead of a generic "sabzi mandi" list.
-  const govtRecords = await fetchGovernmentMandiPrices(
-    cropName,
-    location.state,
-    location.district
-  );
-
-  // If district has no records, the API route also falls back to the state.
-  const priced = Array.from(merged.values())
-    .map((mandi) => {
-      const price = governmentRateForMarket(mandi, govtRecords);
-      if (!price) return null;
-      return {
-        ...mandi,
-        rate: price.rate,
-        minPrice: price.minPrice,
-        maxPrice: price.maxPrice,
-        arrivalDate: price.arrivalDate,
-      } as MandiBase;
-    })
-    .filter((mandi): mandi is MandiBase => mandi !== null)
-    .filter((mandi) => isMarketRelevantForCrop(cropName, mandi.name, mandi.address || ""));
-
-  return priced.sort((a, b) => {
-      const da = haversineDistance(lat, lng, a.lat!, a.lng!);
-      const db = haversineDistance(lat, lng, b.lat!, b.lng!);
-      return da - db;
-    });
-}
-
-function getIndicativeRateForMandi(
-  mandi: MandiBase,
-  cropName: string,
-  market: { price: string }
-) {
-  if (Number.isFinite(mandi.rate) && mandi.rate > 0) return mandi.rate;
-  const known = MANDI_DATABASE.find((item) => {
-    const sameName =
-      normalize(item.name) === normalize(mandi.name);
-    const sameArea =
-      normalize(item.district) !== "" &&
-      normalize(item.district) === normalize(mandi.district) &&
-      normalize(item.state) === normalize(mandi.state);
-    return sameName || sameArea;
-  });
-
-  if (known) return known.rate;
-
-  const numbers = market.price.match(/[0-9][0-9,]*/g);
-  if (numbers?.length) {
-    const values = numbers
-      .map((value) => Number(value.replace(/,/g, "")))
-      .filter((value) => Number.isFinite(value));
-
-    if (values.length) {
-      return Math.round(
-        values.reduce((sum, value) => sum + value, 0) /
-          values.length
-      );
-    }
-  }
-
-  // No fixed crop names or fixed crop rates.
-  // Any farmer-entered crop is accepted.
-  return 0;
-}
-
-/*
-  Transport estimate per quintal.
-*/
-function estimateTransport(
-  distanceKm: number
-) {
-  if (distanceKm <= 10) return 120;
-  if (distanceKm <= 25) return 220;
-  if (distanceKm <= 50) return 350;
-  if (distanceKm <= 75) return 500;
-  if (distanceKm <= 100) return 650;
-  if (distanceKm <= 150) return 850;
-  if (distanceKm <= 200) return 1050;
-
-  return 1300;
-}
-
-/*
-  Location from localStorage.
-*/
-function getProfileFromStorage(): Profile {
-  if (typeof window === "undefined") {
-    return {};
-  }
-
-  const keys = [
-    "farmerProfile",
-    "profile",
-    "userProfile",
-    "farmer",
-    "user",
-    "profileData",
-  ];
-
-  for (const key of keys) {
-    const raw = localStorage.getItem(key);
-
-    if (!raw) continue;
-
-    try {
-      const data = JSON.parse(raw);
-
-      if (
-        data &&
-        typeof data === "object"
-      ) {
-        return data as Profile;
-      }
-    } catch {
-      // ignore
-    }
-  }
-
-  return {};
-}
-
-/* =========================================================
-   MARKET INFO
-========================================================= */
-
-function getMarketInfo(
-  cropName: string,
-  language: string,
-  t: T
-) {
-  // Do not restrict the farmer to a fixed crop list.
-  // The crop name comes directly from the farmer's saved crop.
-  // Market information is therefore generic unless a live/known rate is available.
-  return {
-    price: t.unknownPrice,
-    trend: t.trendCheck,
-    advice:
-      language === "hi"
-        ? "इस फसल का नवीनतम भाव जानने के लिए अपनी नज़दीकी मंडी से संपर्क करें।"
-        : "Check your nearest mandi for the latest price before selling.",
-  };
-}
-
-/* =========================================================
-   COMPONENT
-========================================================= */
 
 export default function MarketPage() {
   const params = useParams();
   const router = useRouter();
 
-  const [language, setLanguage] =
-    useState("en");
-
   const [crop, setCrop] =
     useState<Crop | null>(null);
 
   const [profile, setProfile] =
-    useState<Profile>({});
+    useState<Profile | null>(null);
 
-  const [loading, setLoading] =
-    useState(true);
+  // Quantity starts EMPTY
+  const [quantity, setQuantity] =
+    useState<number | "">("");
 
-  const [searching, setSearching] =
-    useState(false);
-
-  const [searched, setSearched] =
-    useState(false);
+  const [unit, setUnit] =
+    useState<QuantityUnit>("quintal");
 
   const [mandis, setMandis] =
     useState<Mandi[]>([]);
 
-  const [liveMarketRate, setLiveMarketRate] = useState<number | null>(null);
+  const [selectedMandi, setSelectedMandi] =
+    useState<Mandi | null>(null);
 
-  /*
-    IMPORTANT:
-    Quantity is controlled by user.
-  */
-  const [quantity, setQuantity] =
-    useState("20");
+  const [loading, setLoading] =
+    useState(false);
 
-  const [quantityUnit, setQuantityUnit] =
-    useState<QuantityUnit>("quintal");
+  const [locationLoading, setLocationLoading] =
+    useState(false);
 
-  const [lastUpdated, setLastUpdated] =
-    useState("");
+  const [language, setLanguage] =
+    useState<"en" | "hi">("en");
 
-  const [favorites, setFavorites] =
-    useState<string[]>([]);
-
-  /*
-    Browser GPS.
-  */
-  const [browserCoords, setBrowserCoords] =
+  const [profileLocation, setProfileLocation] =
     useState<{
       lat: number;
       lng: number;
+      source: string;
     } | null>(null);
 
-  const [locationSource, setLocationSource] =
-    useState<
-      "browser" | "profile"
-    >("profile");
-
-  /* =======================================================
-     INITIAL LOAD
-  ======================================================= */
+  const cropId = Array.isArray(params?.id)
+    ? params.id[0]
+    : params?.id;
 
   useEffect(() => {
-    const savedLanguage =
-      localStorage.getItem(
-        "selectedLanguage"
-      );
-
-    if (savedLanguage) {
-      setLanguage(savedLanguage);
-    }
-
-    const savedCrops =
-      localStorage.getItem(
-        "farmerCrops"
-      );
-
-    if (savedCrops) {
-      try {
-        const crops: Crop[] =
-          JSON.parse(savedCrops);
-
-        const selected = crops.find(
-          (item) =>
-            item.id ===
-            Number(params.id)
-        );
-
-        if (selected) {
-          setCrop(selected);
-        }
-      } catch {
-        // ignore
-      }
-    }
-
-    setProfile(
-      getProfileFromStorage()
-    );
-
     try {
-      const savedFavs =
-        JSON.parse(
-          localStorage.getItem(
-            "favoriteMandis"
-          ) || "[]"
+      const possibleProfileKeys = [
+        "farmerProfile",
+        "profile",
+        "userProfile",
+        "farmer",
+        "user",
+        "profileData",
+      ];
+
+      let foundProfile: Profile | null =
+        null;
+
+      for (const key of possibleProfileKeys) {
+        const stored =
+          localStorage.getItem(key);
+
+        if (stored) {
+          try {
+            const parsed =
+              JSON.parse(stored);
+
+            if (
+              parsed &&
+              typeof parsed === "object"
+            ) {
+              foundProfile = parsed;
+              break;
+            }
+          } catch {
+            // Ignore invalid profile
+          }
+        }
+      }
+
+      if (foundProfile) {
+        setProfile(foundProfile);
+
+        const exactLocation =
+          getProfileLocation(
+            foundProfile
+          );
+
+        if (exactLocation) {
+          setProfileLocation(
+            exactLocation
+          );
+        } else {
+          const district = (
+            foundProfile.district ||
+            foundProfile.city ||
+            ""
+          )
+            .trim()
+            .toLowerCase();
+
+          const fallback =
+            DISTRICT_COORDINATES[
+              district
+            ];
+
+          if (fallback) {
+            setProfileLocation({
+              ...fallback,
+              source: "district",
+            });
+          }
+        }
+      }
+
+      const cropData =
+        localStorage.getItem(
+          "farmerCrops"
         );
 
-      if (Array.isArray(savedFavs)) {
-        setFavorites(savedFavs);
+      if (cropData) {
+        try {
+          const parsedCrops =
+            JSON.parse(cropData);
+
+          if (Array.isArray(parsedCrops)) {
+            const foundCrop =
+              parsedCrops.find(
+                (item: Crop) =>
+                  String(item.id) ===
+                  String(cropId)
+              );
+
+            if (foundCrop) {
+              setCrop(foundCrop);
+            } else if (
+              parsedCrops.length > 0
+            ) {
+              setCrop(
+                parsedCrops[0]
+              );
+            }
+          }
+        } catch {
+          // Ignore invalid crop data
+        }
       }
     } catch {
-      // ignore
+      // Ignore localStorage errors
+    }
+  }, [cropId]);
+
+  const cropName = useMemo(() => {
+    return (
+      crop?.crop ||
+      crop?.name ||
+      "Wheat"
+    );
+  }, [crop]);
+
+  const totalKg = useMemo(() => {
+    if (quantity === "") {
+      return 0;
     }
 
-    // Do NOT request browser/live GPS here.
-    // Mandi search must always use the farmer's saved profile location.
-    setLocationSource("profile");
-
-    setLoading(false);
-  }, [params.id]);
-
-  /* =======================================================
-     TRANSLATION
-  ======================================================= */
-
-  const t: T = {
-    ...en,
-    ...(translations[language] ||
-      {}),
-  };
-
-  const isRTL = false;
-
-  /* =======================================================
-     PROFILE LOCATION
-  ======================================================= */
-
-  const profileLocation =
-    useMemo(
-      () => ({
-        village: String(
-          profile.village ||
-            profile.villageName ||
-            ""
-        ),
-
-        city: String(
-          profile.city ||
-            profile.cityName ||
-            ""
-        ),
-
-        district: String(
-          profile.district ||
-            profile.districtName ||
-            ""
-        ),
-
-        state: String(
-          profile.state ||
-            profile.stateName ||
-            ""
-        ),
-
-        pincode: String(
-          profile.pincode ||
-            profile.pinCode ||
-            ""
-        ),
-
-        address: String(profile.address || ""),
-        addressLine1: String(profile.addressLine1 || ""),
-        addressLine2: String(profile.addressLine2 || ""),
-        postOffice: String(profile.postOffice || ""),
-        tehsil: String(profile.tehsil || ""),
-        block: String(profile.block || ""),
-      }),
-      [profile]
+    return getTotalKg(
+      Number(quantity),
+      unit
     );
+  }, [quantity, unit]);
 
-  /* =======================================================
-     SEASON
-  ======================================================= */
+  const cropFactor = useMemo(() => {
+    return getCropFactor(cropName);
+  }, [cropName]);
 
-  const getSeasonName = (
-    season: string
+  const getMandiRate = (
+    baseRate: number
   ) => {
-    if (season === "Kharif") {
-      return t.seasonNames.Kharif;
-    }
-
-    if (season === "Rabi") {
-      return t.seasonNames.Rabi;
-    }
-
-    if (season === "Zaid") {
-      return t.seasonNames.Zaid;
-    }
-
-    if (season === "Other") {
-      return t.seasonNames.Other;
-    }
-
-    return season;
+    return Number(
+      (baseRate * cropFactor).toFixed(2)
+    );
   };
 
-  /* =======================================================
-     USER QUANTITY
-  ======================================================= */
+  // ==============================
+  // INDICATIVE PRICE PER KG
+  // ==============================
+  const indicativePricePerKg =
+    useMemo(() => {
+      const cropLower =
+        normalizeCropName(
+          cropName
+        );
 
-  const parsedQuantity =
-    Number(quantity);
+      const matchingMandis =
+        MANDI_DATABASE.filter(
+          (mandi) => {
+            return mandi.crops.some(
+              (item) => {
+                const itemLower =
+                  normalizeCropName(
+                    item
+                  );
 
-  const safeQuantity =
-    Number.isFinite(
-      parsedQuantity
-    ) &&
-    parsedQuantity > 0
-      ? parsedQuantity
-      : 0;
+                return (
+                  itemLower ===
+                    cropLower ||
+                  (cropLower ===
+                    "paddy" &&
+                    itemLower ===
+                      "rice") ||
+                  (cropLower ===
+                    "corn" &&
+                    itemLower ===
+                      "maize")
+                );
+              }
+            );
+          }
+        );
 
-  const totalKg =
-    quantityToKg(
-      safeQuantity,
-      quantityUnit
-    );
+      if (
+        matchingMandis.length === 0
+      ) {
+        return 0;
+      }
 
-  const enteredQuantityLabel =
-    `${safeQuantity || 0} ${
-      quantityUnit === "gram"
-        ? t.gram
-        : quantityUnit === "kg"
-        ? t.kg
-        : quantityUnit === "quintal"
-        ? t.quintal
-        : quantityUnit === "ton"
-        ? t.ton
-        : t.bag
-    }`;
+      const total =
+        matchingMandis.reduce(
+          (sum, mandi) =>
+            sum +
+            getMandiRate(
+              mandi.ratePerKg
+            ),
+          0
+        );
 
-  /* =======================================================
-     MARKET
-  ======================================================= */
+      return Number(
+        (
+          total /
+          matchingMandis.length
+        ).toFixed(2)
+      );
+    }, [cropName, cropFactor]);
 
-  const market = crop
-    ? getMarketInfo(
-        crop.crop,
-        language,
-        t
-      )
-    : null;
+  // ==============================
+  // INDICATIVE TOTAL VALUE
+  // ==============================
+  const indicativeEstimatedValue =
+    useMemo(() => {
+      if (
+        !indicativePricePerKg ||
+        !totalKg
+      ) {
+        return 0;
+      }
 
-  /* =======================================================
-     SEARCH MANDIS
-  ======================================================= */
+      return (
+        indicativePricePerKg *
+        totalKg
+      );
+    }, [
+      indicativePricePerKg,
+      totalKg,
+    ]);
 
-  const searchMandis = async () => {
-    if (!crop) return;
+  // ==============================
+  // SEARCH MANDIS
+  // ==============================
+  const searchMandis = () => {
+    if (
+      quantity === "" ||
+      Number(quantity) <= 0
+    ) {
+      alert(
+        language === "hi"
+          ? "Please quantity enter karein."
+          : "Please enter a quantity."
+      );
 
-    if (totalKg <= 0) {
-      setSearched(true);
-      setMandis([]);
       return;
     }
 
-    setSearching(true);
-    setSearched(false);
+    if (!profileLocation) {
+      alert(
+        language === "hi"
+          ? "Farmer profile location nahi mili. Please profile me district/location save karein."
+          : "Farmer profile location was not found. Please save district/location in the profile."
+      );
 
-    try {
-      /* IMPORTANT: Mandi search ALWAYS uses the farmer's saved profile address.
-         Browser/live GPS is deliberately NOT used for mandi search. */
-      const savedAddress = buildProfileAddress(profileLocation);
-      let searchLocation: GeocodedLocation | null = null;
-
-      if (savedAddress) {
-        searchLocation = await geocodeFarmerAddress(savedAddress);
-      }
-
-      if (searchLocation) {
-        setLocationSource("profile");
-      }
-
-      if (!searchLocation) {
-        setMandis([]);
-        setLiveMarketRate(null);
-        setSearched(true);
-        return;
-      }
-
-      /*
-        75 km catches border-area cases (for example Panchgachia/Supaul)
-        where mandis from both Supaul and Saharsa can genuinely be nearby.
-      */
-      // One bounded search keeps the UI fast while still allowing a nearby
-      // mandi from a neighbouring district. There is no fixed mandi list.
-      const nearby = await findNearbyIndianMandis(searchLocation, 220, crop.crop);
-
-      const quantityQuintal = totalKg / 100;
-
-      const finalMandis: Mandi[] = nearby
-        .map((mandi, index) => {
-          if (
-            typeof mandi.lat !== "number" ||
-            typeof mandi.lng !== "number"
-          ) return null;
-
-          const distanceKm = haversineDistance(
-            searchLocation!.lat,
-            searchLocation!.lng,
-            mandi.lat,
-            mandi.lng
-          );
-
-          if (distanceKm > 220) return null;
-
-          const resolvedDistrict =
-            mandi.district ||
-            searchLocation!.district ||
-            profileLocation.district;
-
-          const resolvedState =
-            mandi.state ||
-            searchLocation!.state ||
-            profileLocation.state;
-
-          const isSameDistrict =
-            normalize(resolvedDistrict) !== "" &&
-            normalize(resolvedDistrict) ===
-              normalize(
-                searchLocation!.district ||
-                  profileLocation.district
-              );
-
-          const isSameState =
-            normalize(resolvedState) !== "" &&
-            normalize(resolvedState) ===
-              normalize(
-                searchLocation!.state ||
-                  profileLocation.state
-              );
-
-          // Every result reaching this point already has a real
-          // Government mandi modal price for the selected crop.
-          const rate = Number(mandi.rate);
-          if (!Number.isFinite(rate) || rate <= 0) return null;
-
-          const transportPerQuintal =
-            estimateTransport(distanceKm);
-          const grossAmount =
-            rate * quantityQuintal;
-          const totalTransport =
-            transportPerQuintal * quantityQuintal;
-          const estimatedEarning = Math.max(
-            0,
-            grossAmount - totalTransport
-          );
-          const effectiveRatePerQuintal = Math.max(
-            0,
-            rate - transportPerQuintal
-          );
-
-          return {
-            ...mandi,
-            district: resolvedDistrict,
-            state: resolvedState,
-            rate,
-            id: `osm-${index}-${mandi.name}-${mandi.district}-${mandi.state}`,
-            distanceKm:
-              Math.round(distanceKm * 10) / 10,
-            transportPerQuintal,
-            totalTransport,
-            effectiveRatePerQuintal,
-            effectiveRatePerKg:
-              effectiveRatePerQuintal / 100,
-            grossAmount,
-            estimatedEarning,
-            isSameDistrict,
-            isSameState,
-          };
-        })
-        .filter(
-          (item): item is Mandi => item !== null
-        );
-
-      /* Real distance is the primary ranking factor. */
-      finalMandis.sort((a, b) => {
-        if (Math.abs(a.distanceKm - b.distanceKm) > 2) {
-          return a.distanceKm - b.distanceKm;
-        }
-        if (a.isSameDistrict !== b.isSameDistrict) {
-          return a.isSameDistrict ? -1 : 1;
-        }
-        if (a.isSameState !== b.isSameState) {
-          return a.isSameState ? -1 : 1;
-        }
-        return b.estimatedEarning - a.estimatedEarning;
-      });
-
-      setMandis(finalMandis.slice(0, 12));
-      setLiveMarketRate(finalMandis[0]?.rate ?? null);
-      setSearched(true);
-      setLastUpdated(new Date().toLocaleString("en-IN"));
-    } catch (error) {
-      console.error("Nearby mandi search failed:", error);
-      setMandis([]);
-      setLiveMarketRate(null);
-      setSearched(true);
-    } finally {
-      setSearching(false);
+      return;
     }
-  };
 
-  /* =======================================================
-     LIVE RECALCULATION
+    setLoading(true);
 
-     If user changes quantity/unit after searching,
-     all mandi calculations are recalculated immediately.
-  ======================================================= */
+    const cropLower =
+      normalizeCropName(cropName);
 
-  const recalculatedMandis =
-    useMemo(() => {
-      if (!mandis.length) {
-        return [];
-      }
+    const results: Mandi[] =
+      MANDI_DATABASE
+        .filter((mandi) => {
+          if (
+            !mandi.crops ||
+            mandi.crops.length === 0
+          ) {
+            return true;
+          }
 
-      const quantityQuintal =
-        totalKg / 100;
+          return mandi.crops.some(
+            (item) => {
+              const itemLower =
+                normalizeCropName(
+                  item
+                );
 
-      return mandis.map(
-        (mandi) => {
-          const grossAmount =
-            mandi.rate *
-            quantityQuintal;
+              return (
+                itemLower ===
+                  cropLower ||
+                (cropLower ===
+                  "paddy" &&
+                  itemLower ===
+                    "rice") ||
+                (cropLower ===
+                  "corn" &&
+                  itemLower ===
+                    "maize")
+              );
+            }
+          );
+        })
+        .map((mandi) => {
+          const distanceKm =
+            getDistanceKm(
+              profileLocation.lat,
+              profileLocation.lng,
+              mandi.lat,
+              mandi.lng
+            );
 
-          const totalTransport =
-            mandi.transportPerQuintal *
-            quantityQuintal;
-
-          const estimatedEarning =
-            Math.max(
-              0,
-              grossAmount -
-                totalTransport
+          const ratePerKg =
+            getMandiRate(
+              mandi.ratePerKg
             );
 
           return {
             ...mandi,
-            grossAmount,
-            totalTransport,
-            estimatedEarning,
+            ratePerKg,
+            distanceKm,
+            totalKg,
+            estimatedAmount:
+              ratePerKg *
+              totalKg,
           };
-        }
+        })
+        .filter(
+          (mandi) =>
+            mandi.distanceKm <=
+            MAX_DISTANCE_KM
+        )
+        .sort((a, b) => {
+          if (
+            a.distanceKm !==
+            b.distanceKm
+          ) {
+            return (
+              a.distanceKm -
+              b.distanceKm
+            );
+          }
+
+          return (
+            b.ratePerKg -
+            a.ratePerKg
+          );
+        });
+
+    setMandis(results);
+    setSelectedMandi(null);
+    setLoading(false);
+  };
+
+  // ==============================
+  // CURRENT LOCATION
+  // ==============================
+  const useCurrentLocation = () => {
+    if (
+      !navigator.geolocation
+    ) {
+      alert(
+        language === "hi"
+          ? "Aapke browser me location support nahi hai."
+          : "Geolocation is not supported by your browser."
       );
-    }, [mandis, totalKg]);
 
-  const bestMandi =
-    recalculatedMandis[0] ||
-    null;
+      return;
+    }
 
-  /* =======================================================
-     FAVORITE
-  ======================================================= */
+    setLocationLoading(true);
 
-  const toggleFavorite = (
-    mandi: Mandi
-  ) => {
-    const next =
-      favorites.includes(
-        mandi.id
-      )
-        ? favorites.filter(
-            (id) =>
-              id !== mandi.id
-          )
-        : [
-            ...favorites,
-            mandi.id,
-          ];
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const location = {
+          lat:
+            position.coords.latitude,
+          lng:
+            position.coords.longitude,
+          source: "gps",
+        };
 
-    setFavorites(next);
+        setProfileLocation(
+          location
+        );
 
-    localStorage.setItem(
-      "favoriteMandis",
-      JSON.stringify(next)
+        setLocationLoading(false);
+
+        alert(
+          language === "hi"
+            ? "Current location set ho gayi."
+            : "Current location has been set."
+        );
+      },
+      () => {
+        setLocationLoading(false);
+
+        alert(
+          language === "hi"
+            ? "Current location nahi mil payi. Location permission check karein."
+            : "Could not get current location. Please check location permission."
+        );
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
     );
   };
 
-  /* =======================================================
-     DIRECTIONS
-  ======================================================= */
+  // ==============================
+  // SELECT MANDI
+  // ==============================
+  const selectMandi = (
+    mandi: Mandi
+  ) => {
+    setSelectedMandi(mandi);
 
+    const dataToSave = {
+      id: mandi.id,
+      name: mandi.name,
+      district:
+        mandi.district,
+      state: mandi.state,
+      address: mandi.address,
+      phone: mandi.phone,
+      lat: mandi.lat,
+      lng: mandi.lng,
+      ratePerKg:
+        mandi.ratePerKg,
+      crop: cropName,
+      quantity:
+        Number(quantity),
+      unit,
+      totalKg,
+      estimatedAmount:
+        mandi.estimatedAmount,
+    };
+
+    localStorage.setItem(
+      "selectedMandi",
+      JSON.stringify(
+        dataToSave
+      )
+    );
+
+    alert(
+      language === "hi"
+        ? `${mandi.name} select ho gayi.`
+        : `${mandi.name} has been selected.`
+    );
+  };
+
+  // ==============================
+  // DIRECTIONS
+  // ==============================
   const openDirections = (
     mandi: Mandi
   ) => {
-    const origin =
-      buildProfileAddress(profileLocation) ||
-      (browserCoords
-        ? `${browserCoords.lat},${browserCoords.lng}`
-        : "India");
+    let origin = "";
 
-    const destination = [
-      mandi.name,
-      mandi.address,
-      mandi.district,
-      mandi.state,
-      "India",
-    ]
-      .filter(Boolean)
-      .join(", ");
+    if (profileLocation) {
+      origin = `${profileLocation.lat},${profileLocation.lng}`;
+    } else if (
+      profile?.address
+    ) {
+      origin = profile.address;
+    } else {
+      origin =
+        `${profile?.district || ""}, ` +
+        `${profile?.state || ""}`;
+    }
+
+    const destination =
+      `${mandi.lat},${mandi.lng}`;
 
     const url =
-      `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(
+      `https://www.google.com/maps/dir/?api=1` +
+      `&origin=${encodeURIComponent(
         origin
-      )}&destination=${encodeURIComponent(
+      )}` +
+      `&destination=${encodeURIComponent(
         destination
       )}`;
 
@@ -1788,579 +1131,242 @@ export default function MarketPage() {
     );
   };
 
-  /* =======================================================
-     LOADING
-  ======================================================= */
+  // ==============================
+  // CALL MANDI
+  // ==============================
+  const callMandi = (
+    phone: string
+  ) => {
+    window.location.href =
+      `tel:${phone}`;
+  };
 
-  if (loading) {
-    return (
-      <main
-        className="min-h-screen bg-green-50 flex items-center justify-center px-5"
-        dir={
-          isRTL
-            ? "rtl"
-            : "ltr"
-        }
-      >
-        <div className="bg-white rounded-3xl shadow-lg p-8 text-center">
-          <div className="text-6xl mb-4">
-            🏪
+  // ==============================
+  // CLEAR RESULTS
+  // ==============================
+  const clearResults = () => {
+    setMandis([]);
+    setSelectedMandi(null);
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 px-4 py-6">
+      <div className="mx-auto max-w-6xl">
+
+        {/* HEADER */}
+        <div className="mb-6 flex flex-col gap-4 rounded-2xl bg-white p-5 shadow-sm md:flex-row md:items-center md:justify-between">
+
+          <div>
+            <h1 className="text-2xl font-bold text-green-700">
+              🌾 Mandi & Market
+            </h1>
+
+            <p className="mt-1 text-sm text-gray-600">
+              Find mandis within 60 KM
+              of the farmer profile
+              location.
+            </p>
           </div>
-
-          <h1 className="text-2xl font-bold text-green-800">
-            {t.loadingTitle}
-          </h1>
-
-          <p className="text-gray-900 mt-2">
-            {t.loadingText}
-          </p>
-        </div>
-      </main>
-    );
-  }
-
-  /* =======================================================
-     CROP NOT FOUND
-  ======================================================= */
-
-  if (!crop || !market) {
-    return (
-      <main
-        className="min-h-screen bg-green-50 flex items-center justify-center px-5"
-        dir={
-          isRTL
-            ? "rtl"
-            : "ltr"
-        }
-      >
-        <div className="bg-white rounded-3xl shadow-lg p-8 text-center">
-          <div className="text-5xl mb-4">
-            🌱
-          </div>
-
-          <h1 className="text-2xl font-bold text-gray-900">
-            {t.cropNotFound}
-          </h1>
 
           <button
             onClick={() =>
-              router.push(
-                "/crops"
+              setLanguage(
+                language === "en"
+                  ? "hi"
+                  : "en"
               )
             }
-            className="mt-6 px-6 py-3 rounded-xl bg-green-700 text-white font-bold hover:bg-green-800"
+            className="rounded-lg border border-green-600 px-4 py-2 text-sm font-semibold text-green-700 hover:bg-green-50"
           >
-            ← {t.backToCrops}
+            {language === "en"
+              ? "हिंदी"
+              : "English"}
           </button>
         </div>
-      </main>
-    );
-  }
 
-  /* =======================================================
-     UI
-  ======================================================= */
+        {/* CROP + PROFILE */}
+        <div className="mb-6 grid gap-5 md:grid-cols-2">
 
-  return (
-    <main
-      className="min-h-screen bg-green-50 px-5 py-10"
-      dir={
-        isRTL
-          ? "rtl"
-          : "ltr"
-      }
-    >
-      <div className="max-w-6xl mx-auto">
+          {/* CROP */}
+          <div className="rounded-2xl bg-white p-5 shadow-sm">
 
-        {/* BACK */}
-        <button
-          onClick={() =>
-            router.push(
-              `/crops/${crop.id}`
-            )
-          }
-          className="text-green-700 font-semibold mb-6 hover:text-green-900"
-        >
-          ← {t.backTo}{" "}
-          {crop.crop}
-        </button>
+            <h2 className="mb-4 text-lg font-bold text-gray-800">
+              🌱 Crop Details
+            </h2>
 
-        {/* =================================================
-            CROP HEADER
-        ================================================= */}
+            <div className="rounded-xl bg-green-50 p-4">
 
-        <div className="bg-white rounded-3xl shadow-lg p-7 mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-5">
-            <div className="w-20 h-20 bg-green-100 rounded-3xl flex items-center justify-center text-5xl">
-              🌾
-            </div>
-
-            <div>
-              <p className="text-sm text-green-600 font-semibold">
-                {getSeasonName(
-                  crop.season
-                )}{" "}
-                {t.season}
+              <p className="text-sm text-gray-500">
+                Selected Crop
               </p>
 
-              <h1 className="text-3xl font-bold text-green-800 mt-1">
-                {crop.crop}{" "}
-                {t.market}
-              </h1>
-
-              <p className="text-gray-900 mt-2">
-                {t.landArea}:{" "}
-                <span className="font-semibold">
-                  {crop.land}{" "}
-                  {crop.landUnit ||
-                    "acres"}
-                </span>
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* =================================================
-            CURRENT MARKET
-        ================================================= */}
-
-        <div className="bg-white rounded-3xl shadow-lg p-7 mb-8">
-          <h2 className="text-2xl font-bold text-green-800">
-            {t.currentMarket}
-          </h2>
-
-          <p className="text-gray-900 mt-2">
-            {t.marketDescription}
-          </p>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-6">
-
-            <div className="bg-green-50 rounded-2xl p-5">
-              <div className="text-3xl mb-3">
-                🌾
-              </div>
-
-              <p className="text-sm text-gray-900">
-                {t.cropLabel}
+              <p className="mt-1 text-xl font-bold capitalize text-green-700">
+                {cropName}
               </p>
 
-              <p className="text-xl font-bold text-green-800 mt-1">
-                {crop.crop}
-              </p>
-            </div>
-
-            <div className="bg-green-50 rounded-2xl p-5">
-              <div className="text-3xl mb-3">
-                💰
-              </div>
-
-              <p className="text-sm text-gray-900">
-                {t.indicativePrice}
-              </p>
-
-              <p className="text-xl font-bold text-green-800 mt-1">
-                {liveMarketRate !== null ? `₹${liveMarketRate.toLocaleString("en-IN")}` : market.price}
-              </p>
-
-              <p className="text-sm text-gray-900 mt-1">
-                {t.perQuintal}
-              </p>
-            </div>
-
-            <div className="bg-green-50 rounded-2xl p-5">
-              <div className="text-3xl mb-3">
-                📈
-              </div>
-
-              <p className="text-sm text-gray-900">
-                {t.marketTrend}
-              </p>
-
-              <p className="text-xl font-bold text-green-800 mt-1">
-                {market.trend}
-              </p>
-            </div>
-
-          </div>
-
-          <div className="mt-5 bg-blue-50 border border-blue-200 rounded-2xl p-4">
-            <p className="text-sm text-blue-900">
-              ℹ️ {t.rateUnitNote}
-            </p>
-          </div>
-        </div>
-
-        {/* =================================================
-            SELLING ADVICE
-        ================================================= */}
-
-        <div className="bg-white rounded-3xl shadow-lg p-7 mb-8">
-          <h2 className="text-2xl font-bold text-green-800">
-            {t.sellingAdvice}
-          </h2>
-
-          <div className="bg-green-50 rounded-2xl p-6 mt-5">
-            <p className="text-gray-900 leading-relaxed">
-              {market.advice}
-            </p>
-          </div>
-        </div>
-
-        {/* =================================================
-            NEARBY MANDI
-        ================================================= */}
-
-        <div className="bg-white rounded-3xl shadow-lg p-7 mb-8">
-
-          <h2 className="text-2xl font-bold text-green-800">
-            {t.nearbyMarket}
-          </h2>
-
-          <p className="text-gray-900 mt-2">
-            {t.nearbyMarketDescription}
-          </p>
-
-          {/* LOCATION CARD */}
-
-          <div className="mt-6 bg-blue-50 border border-blue-200 rounded-2xl p-5">
-
-            <div className="flex items-center gap-3 mb-4">
-
-              <div className="text-3xl">
-                📍
-              </div>
-
-              <div>
-
-                <p className="text-sm text-blue-600 font-semibold">
-                  {t.profileLocation}
+              {crop?.season && (
+                <p className="mt-1 text-sm text-gray-600">
+                  Season:{" "}
+                  {crop.season}
                 </p>
-
-                <p className="font-bold text-blue-900">
-                  {buildProfileAddress(profileLocation) ||
-                    (browserCoords
-                      ? `${browserCoords.lat.toFixed(5)}, ${browserCoords.lng.toFixed(5)}`
-                      : "—")}
-                </p>
-
-                <p className="text-sm text-blue-700 mt-1">
-                  ✓{" "}
-                  {locationSource === "browser"
-                    ? t.browserLocation
-                    : t.usingProfileLocation}
-                </p>
-
-              </div>
-
-            </div>
-
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-
-              {[
-                [
-                  t.village,
-                  profileLocation.village,
-                ],
-
-                [
-                  t.district,
-                  profileLocation.district,
-                ],
-
-                [
-                  t.state,
-                  profileLocation.state,
-                ],
-
-                [
-                  t.pincode,
-                  profileLocation.pincode,
-                ],
-              ].map(
-                ([label, value]) => (
-                  <div
-                    key={label}
-                    className="bg-white rounded-xl p-3"
-                  >
-                    <p className="text-xs text-gray-900">
-                      {label}
-                    </p>
-
-                    <p className="font-bold text-gray-800 mt-1">
-                      {value ||
-                        "—"}
-                    </p>
-                  </div>
-                )
               )}
 
             </div>
-
-            <div className="mt-4 flex flex-wrap gap-2">
-
-              <span className="px-3 py-1 rounded-full bg-white border text-xs font-semibold text-gray-900">
-                {t.locationSource}:{" "}
-                {locationSource ===
-                "browser"
-                  ? `📱 ${t.browserLocation}`
-                  : `👤 ${t.profileLocationSource}`}
-              </span>
-
-              <span className="px-3 py-1 rounded-full bg-white border text-xs font-semibold text-gray-900">
-                {t.distanceLimit}:{" "}
-                {"220 km"}
-              </span>
-
-            </div>
-
           </div>
 
-          {/* =================================================
-              QUANTITY INPUT
-          ================================================= */}
+          {/* FARMER LOCATION */}
+          <div className="rounded-2xl bg-white p-5 shadow-sm">
 
-          <div className="mt-7 bg-green-50 border border-green-200 rounded-3xl p-6">
+            <h2 className="mb-4 text-lg font-bold text-gray-800">
+              📍 Farmer Location
+            </h2>
 
-            <h3 className="text-xl font-bold text-green-900">
-              {t.quantityCalculator}
-            </h3>
+            <div className="rounded-xl bg-blue-50 p-4">
 
-            <p className="text-sm text-green-800 mt-1">
-              {t.quantity}:{" "}
-              <strong>
-                {enteredQuantityLabel}
-              </strong>
-            </p>
+              <p className="font-semibold uppercase text-gray-800">
+                {profile?.district ||
+                  profile?.city ||
+                  "Location not available"}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-5">
+                {profile?.state
+                  ? `, ${profile.state}`
+                  : ""}
+              </p>
 
-              {/* QUANTITY */}
-
-              <div>
-
-                <label className="text-sm font-semibold text-gray-900">
-                  {t.quantity}
-                </label>
-
-                <input
-                  type="number"
-                  min="0"
-                  step="0.001"
-                  value={quantity}
-                  onChange={(e) =>
-                    setQuantity(
-                      e.target.value
-                    )
-                  }
-                  className="mt-2 w-full rounded-xl border border-green-200 bg-white px-4 py-3 font-bold outline-none focus:ring-2 focus:ring-green-400"
-                  placeholder="20"
-                />
-
-              </div>
-
-              {/* UNIT */}
-
-              <div>
-
-                <label className="text-sm font-semibold text-gray-900">
-                  {t.selectUnit}
-                </label>
-
-                <select
-                  value={
-                    quantityUnit
-                  }
-                  onChange={(e) =>
-                    setQuantityUnit(
-                      e.target
-                        .value as QuantityUnit
-                    )
-                  }
-                  className="mt-2 w-full rounded-xl border border-green-200 bg-white px-4 py-3 font-bold outline-none focus:ring-2 focus:ring-green-400"
-                >
-
-                  <option value="gram">
-                    {t.gram}
-                  </option>
-
-                  <option value="kg">
-                    {t.kg}
-                  </option>
-
-                  <option value="quintal">
-                    {t.quintal}
-                  </option>
-
-                  <option value="ton">
-                    {t.ton}
-                  </option>
-
-                  <option value="bag">
-                    {t.bag} — 50 kg
-                  </option>
-
-                </select>
-
-              </div>
-
-            </div>
-
-            {/* QUANTITY CONVERSION */}
-
-            <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
-
-              <div className="bg-white rounded-2xl p-4 border border-green-100">
-
-                <p className="text-xs text-gray-900">
-                  {t.quantityEquivalent}
+              {profile?.address && (
+                <p className="mt-1 text-sm text-gray-600">
+                  {profile.address}
                 </p>
+              )}
 
-                <p className="text-xl font-extrabold text-green-800 mt-1">
-                  {totalKg.toLocaleString(
-                    "en-IN",
-                    {
-                      maximumFractionDigits: 3,
-                    }
-                  )}{" "}
-                  {t.kg}
+              {profileLocation && (
+                <p className="mt-2 text-xs text-gray-500">
+                  Location source:{" "}
+                  {profileLocation.source ===
+                  "gps"
+                    ? "Current GPS"
+                    : profileLocation.source ===
+                      "profile"
+                    ? "Profile coordinates"
+                    : "District"}
                 </p>
+              )}
 
-              </div>
-
-              <div className="bg-white rounded-2xl p-4 border border-green-100">
-
-                <p className="text-xs text-gray-900">
-                  {t.quantity}
-                </p>
-
-                <p className="text-xl font-extrabold text-green-800 mt-1">
-                  {enteredQuantityLabel}
-                </p>
-
-              </div>
-
-            </div>
-
-            {safeQuantity <=
-              0 && (
-              <div className="mt-4 bg-red-50 border border-red-200 rounded-xl p-3">
-                <p className="text-sm text-red-700 font-semibold">
-                  {t.invalidQuantity}
-                </p>
-              </div>
-            )}
-
-          </div>
-
-          {/* =================================================
-              BUTTONS
-          ================================================= */}
-
-          <div className="flex flex-wrap gap-3 mt-6">
-
-            <button
-              onClick={
-                searchMandis
-              }
-              disabled={
-                searching ||
-                totalKg <= 0
-              }
-              className="px-7 py-3 rounded-xl bg-green-700 text-white font-bold hover:bg-green-800 disabled:opacity-60 transition"
-            >
-              {searching
-                ? t.searchingMandi
-                : t.findMandi}
-            </button>
-
-            {searched && (
               <button
                 onClick={
-                  searchMandis
+                  useCurrentLocation
                 }
                 disabled={
-                  searching ||
-                  totalKg <= 0
+                  locationLoading
                 }
-                className="px-7 py-3 rounded-xl bg-white border-2 border-green-700 text-green-700 font-bold hover:bg-green-50 disabled:opacity-60 transition"
+                className="mt-3 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
               >
-                {searching
-                  ? t.refreshing
-                  : t.refreshRates}
+                {locationLoading
+                  ? "Getting location..."
+                  : "📍 Use Current Location"}
               </button>
-            )}
 
+            </div>
+          </div>
+        </div>
+
+        {/* PRICE SECTION */}
+        <div className="mb-6 grid gap-5 md:grid-cols-2">
+
+          {/* INDICATIVE PRICE */}
+          <div className="rounded-2xl bg-white p-5 shadow-sm">
+
+            <h2 className="mb-4 text-lg font-bold text-gray-800">
+              💰 Indicative Price
+            </h2>
+
+            <div className="rounded-xl bg-green-50 p-5">
+
+              <p className="text-sm font-medium text-gray-600">
+                Current indicative
+                market rate
+              </p>
+
+              <div className="mt-2 flex items-end gap-2">
+
+                <p className="text-3xl font-bold text-green-700">
+                  ₹
+                  {indicativePricePerKg >
+                  0
+                    ? indicativePricePerKg
+                    : "--"}
+                </p>
+
+                <p className="mb-1 text-base font-semibold text-gray-700">
+                  per KG
+                </p>
+
+              </div>
+
+              <p className="mt-2 text-xs text-gray-500">
+                Indicative demo price
+                based on the selected
+                crop.
+              </p>
+
+            </div>
           </div>
 
-          {lastUpdated && (
-            <p className="text-sm text-gray-900 mt-3">
-              🕒{" "}
-              {t.lastUpdated}:{" "}
-              {lastUpdated}
-            </p>
-          )}
+          {/* PRICE BASIS */}
+          <div className="rounded-2xl bg-white p-5 shadow-sm">
 
-          {/* =================================================
-              RANKING INFO
-          ================================================= */}
+            <h2 className="mb-4 text-lg font-bold text-gray-800">
+              📌 Price Basis
+            </h2>
 
-          {searched && (
-            <div className="mt-5 bg-gray-50 rounded-2xl p-4">
-              <p className="text-sm text-gray-900">
-                ℹ️{" "}
-                {t.rankingNote}
-              </p>
-            </div>
-          )}
+            <div className="rounded-xl bg-blue-50 p-5">
 
-          {/* =================================================
-              BEST MANDI
-          ================================================= */}
+              {/* PRICE */}
+              <div className="flex items-center justify-between">
 
-          {searched &&
-            bestMandi && (
-              <div className="mt-7 bg-green-700 text-white rounded-3xl p-6 shadow-md">
+                <span className="text-sm font-medium text-gray-600">
+                  Indicative Price
+                </span>
 
-                <p className="font-bold text-lg">
-                  {t.bestMandi}
+                <span className="text-xl font-bold text-blue-700">
+                  ₹
+                  {indicativePricePerKg >
+                  0
+                    ? indicativePricePerKg
+                    : "--"}
+
+                  <span className="ml-1 text-sm font-medium text-gray-600">
+                    / KG
+                  </span>
+                </span>
+
+              </div>
+
+              {/* QUANTITY */}
+              <div className="mt-3 flex items-center justify-between border-t border-blue-200 pt-3">
+
+                <span className="text-sm font-medium text-gray-600">
+                  Your Quantity
+                </span>
+
+                <span className="font-bold text-gray-800">
+                  {totalKg.toLocaleString()}{" "}
+                  KG
+                </span>
+
+              </div>
+
+              {/* ESTIMATED VALUE */}
+              <div className="mt-3 rounded-lg bg-white p-3">
+
+                <p className="text-sm text-gray-600">
+                  Indicative Estimated
+                  Value
                 </p>
 
-                <h3 className="text-2xl font-extrabold mt-2">
-                  ⭐{" "}
-                  {t.bestOption}:{" "}
-                  {bestMandi.name}
-                </h3>
-
-                <p className="mt-2">
-                  {t.estimatedEarning}:{" "}
-                  <strong>
-                    ₹
-                    {bestMandi.estimatedEarning.toLocaleString(
-                      "en-IN",
-                      {
-                        maximumFractionDigits: 0,
-                      }
-                    )}
-                  </strong>
-                </p>
-
-                <p className="text-sm text-green-100 mt-2">
-                  {t.mandiRate}: ₹
-                  {bestMandi.rate.toLocaleString(
-                    "en-IN"
-                  )}{" "}
-                  {t.perQuintal}
-                </p>
-
-                <p className="text-sm text-green-100 mt-1">
-                  {t.distance}:{" "}
-                  {bestMandi.distanceKm}{" "}
-                  km
-                </p>
-
-                <p className="text-sm text-green-100 mt-1">
-                  {t.totalTransport}: ₹
-                  {bestMandi.totalTransport.toLocaleString(
+                <p className="mt-1 text-2xl font-bold text-green-700">
+                  ₹
+                  {indicativeEstimatedValue.toLocaleString(
                     "en-IN",
                     {
                       maximumFractionDigits: 0,
@@ -2368,606 +1374,499 @@ export default function MarketPage() {
                   )}
                 </p>
 
-              </div>
-            )}
-
-          {/* =================================================
-              MANDI LIST
-          ================================================= */}
-
-          {searched &&
-            recalculatedMandis.length >
-              0 && (
-              <div className="mt-8">
-
-                <h3 className="text-2xl font-bold text-green-800">
-                  {
-                    recalculatedMandis.length
-                  }{" "}
-                  {t.mandiFound}
-                </h3>
-
-                <p className="text-gray-900 text-sm mt-1">
-                  {profileLocation.district ||
-                    profileLocation.state ||
-                    "Nearby"}
+                <p className="mt-2 text-xs text-gray-500">
+                  Calculation: ₹
+                  {indicativePricePerKg ||
+                    0}{" "}
+                  ×{" "}
+                  {totalKg.toLocaleString()}{" "}
+                  KG
                 </p>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mt-5">
-
-                  {recalculatedMandis.map(
-                    (
-                      mandi,
-                      index
-                    ) => {
-
-                      const isFavorite =
-                        favorites.includes(
-                          mandi.id
-                        );
-
-                      const areaLabel =
-                        mandi.isSameDistrict
-                          ? t.sameDistrict
-                          : mandi.isSameState
-                          ? t.nearbyDistrict
-                          : t.otherDistrict;
-
-                      return (
-                        <div
-                          key={
-                            mandi.id
-                          }
-                          className={`border rounded-3xl p-6 bg-green-50 hover:shadow-md transition ${
-                            index === 0
-                              ? "border-green-400 ring-2 ring-green-100"
-                              : "border-green-100"
-                          }`}
-                        >
-
-                          {/* HEADER */}
-
-                          <div className="flex items-start justify-between gap-4">
-
-                            <div className="flex gap-4">
-
-                              <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-3xl shadow-sm">
-                                🏪
-                              </div>
-
-                              <div>
-
-                                <h4 className="text-xl font-bold text-green-900">
-                                  {index ===
-                                    0 &&
-                                    "⭐ "}
-                                  {
-                                    mandi.name
-                                  }
-                                </h4>
-
-                                <p className="text-sm text-gray-900 mt-1">
-                                  {mandi.district || ""}
-                                  {mandi.district && mandi.state ? ", " : ""}
-                                  {mandi.state || ""}
-                                </p>
-
-                                {mandi.address && (
-                                  <p className="text-sm text-gray-900 mt-1 leading-relaxed">
-                                    📍 {mandi.address}
-                                  </p>
-                                )}
-
-                                <div className="flex flex-wrap gap-2 mt-2">
-
-                                  <span className="text-xs px-2 py-1 rounded-full bg-white border font-semibold text-gray-900">
-                                    {
-                                      mandi.marketType ===
-                                      "APMC"
-                                        ? t.apmc
-                                        : t.localMarket
-                                    }
-                                  </span>
-
-                                  <span className="text-xs px-2 py-1 rounded-full bg-white border font-semibold text-green-700">
-                                    {
-                                      areaLabel
-                                    }
-                                  </span>
-
-                                </div>
-
-                              </div>
-
-                            </div>
-
-                            <button
-                              onClick={() =>
-                                toggleFavorite(
-                                  mandi
-                                )
-                              }
-                              className="shrink-0 px-3 py-2 rounded-xl bg-white border text-sm font-bold hover:bg-yellow-50"
-                              title={
-                                isFavorite
-                                  ? t.saved
-                                  : t.save
-                              }
-                            >
-                              {isFavorite
-                                ? "❤️"
-                                : "🤍"}
-                            </button>
-
-                          </div>
-
-                          {/* RATE */}
-
-                          <div className="mt-6 bg-white rounded-2xl p-5">
-
-                            <div className="flex items-center justify-between">
-
-                              <div>
-
-                                <p className="text-sm text-gray-900">
-                                  {
-                                    t.mandiRate
-                                  }
-                                </p>
-
-                                <p className="text-3xl font-extrabold text-green-700 mt-1">
-                                  ₹
-                                  {mandi.rate.toLocaleString(
-                                    "en-IN"
-                                  )}
-                                </p>
-
-                                <p className="text-sm text-gray-900">
-                                  {
-                                    t.perQuintal
-                                  }
-                                </p>
-
-                                {(mandi.minPrice !== undefined || mandi.maxPrice !== undefined) && (
-                                  <p className="text-xs text-gray-600 mt-1">
-                                    Min ₹{mandi.minPrice?.toLocaleString("en-IN") ?? "—"} · Max ₹{mandi.maxPrice?.toLocaleString("en-IN") ?? "—"}
-                                  </p>
-                                )}
-
-                              </div>
-
-                              <div className="text-5xl">
-                                💰
-                              </div>
-
-                            </div>
-
-                            <div className="mt-4 grid grid-cols-2 gap-3">
-
-                              <div className="bg-green-50 rounded-xl p-3">
-                                <p className="text-xs text-gray-900">
-                                  {
-                                    t.perKg
-                                  }
-                                </p>
-
-                                <p className="font-bold text-green-700 mt-1">
-                                  ₹
-                                  {(
-                                    mandi.rate /
-                                    100
-                                  ).toLocaleString(
-                                    "en-IN",
-                                    {
-                                      maximumFractionDigits: 2,
-                                    }
-                                  )}
-                                </p>
-                              </div>
-
-                              <div className="bg-green-50 rounded-xl p-3">
-                                <p className="text-xs text-gray-900">
-                                  {
-                                    t.netPerKg
-                                  }
-                                </p>
-
-                                <p className="font-bold text-green-700 mt-1">
-                                  ₹
-                                  {mandi.effectiveRatePerKg.toLocaleString(
-                                    "en-IN",
-                                    {
-                                      maximumFractionDigits: 2,
-                                    }
-                                  )}
-                                </p>
-                              </div>
-
-                            </div>
-
-                          </div>
-
-                          {/* DISTANCE / TRANSPORT / EFFECTIVE RATE */}
-
-                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
-
-                            <div className="bg-white rounded-xl p-4">
-
-                              <p className="text-xs text-gray-900">
-                                📏{" "}
-                                {
-                                  t.distance
-                                }
-                              </p>
-
-                              <p className="font-bold text-gray-800 mt-1">
-                                {
-                                  mandi.distanceKm
-                                }{" "}
-                                km
-                              </p>
-
-                            </div>
-
-                            <div className="bg-white rounded-xl p-4">
-
-                              <p className="text-xs text-gray-900">
-                                🚚{" "}
-                                {
-                                  t.transportation
-                                }
-                              </p>
-
-                              <p className="font-bold text-orange-700 mt-1">
-                                ₹
-                                {mandi.transportPerQuintal.toLocaleString(
-                                  "en-IN"
-                                )}
-                              </p>
-
-                              <p className="text-xs text-gray-900">
-                                {
-                                  t.perQuintal
-                                }
-                              </p>
-
-                            </div>
-
-                            <div className="bg-white rounded-xl p-4">
-
-                              <p className="text-xs text-gray-900">
-                                💵{" "}
-                                {
-                                  t.effectiveRate
-                                }
-                              </p>
-
-                              <p className="font-bold text-green-700 mt-1">
-                                ₹
-                                {mandi.effectiveRatePerQuintal.toLocaleString(
-                                  "en-IN"
-                                )}
-                              </p>
-
-                              <p className="text-xs text-gray-900">
-                                {
-                                  t.perQuintal
-                                }
-                              </p>
-
-                            </div>
-
-                          </div>
-
-                          {/* =================================================
-                              EXACT QUANTITY CALCULATION
-                          ================================================= */}
-
-                          <div className="mt-4 bg-green-100 rounded-2xl p-5">
-
-                            <p className="font-bold text-green-900">
-                              {
-                                t.quantityCalculator
-                              }
-                            </p>
-
-                            <p className="text-sm text-green-800 mt-1">
-                              {t.quantity}:{" "}
-                              <strong>
-                                {
-                                  enteredQuantityLabel
-                                }
-                              </strong>
-                            </p>
-
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
-
-                              <div className="bg-white rounded-xl p-4">
-
-                                <p className="text-xs text-gray-900">
-                                  {
-                                    t.grossAmount
-                                  }
-                                </p>
-
-                                <p className="font-bold text-blue-700 mt-1">
-                                  ₹
-                                  {mandi.grossAmount.toLocaleString(
-                                    "en-IN",
-                                    {
-                                      maximumFractionDigits: 0,
-                                    }
-                                  )}
-                                </p>
-
-                                <p className="text-xs text-gray-900 mt-1">
-                                  {enteredQuantityLabel}
-                                </p>
-
-                              </div>
-
-                              <div className="bg-white rounded-xl p-4">
-
-                                <p className="text-xs text-gray-900">
-                                  {
-                                    t.totalTransport
-                                  }
-                                </p>
-
-                                <p className="font-bold text-orange-700 mt-1">
-                                  ₹
-                                  {mandi.totalTransport.toLocaleString(
-                                    "en-IN",
-                                    {
-                                      maximumFractionDigits: 0,
-                                    }
-                                  )}
-                                </p>
-
-                                <p className="text-xs text-gray-900 mt-1">
-                                  {enteredQuantityLabel}
-                                </p>
-
-                              </div>
-
-                              <div className="bg-white rounded-xl p-4">
-
-                                <p className="text-xs text-gray-900">
-                                  {
-                                    t.estimatedEarning
-                                  }
-                                </p>
-
-                                <p className="font-extrabold text-green-700 mt-1">
-                                  ₹
-                                  {mandi.estimatedEarning.toLocaleString(
-                                    "en-IN",
-                                    {
-                                      maximumFractionDigits: 0,
-                                    }
-                                  )}
-                                </p>
-
-                                <p className="text-xs text-gray-900 mt-1">
-                                  {enteredQuantityLabel}
-                                </p>
-
-                              </div>
-
-                            </div>
-
-                            {/* FORMULA */}
-
-                            <div className="mt-4 bg-white rounded-xl p-4">
-
-                              <p className="text-xs text-gray-900">
-                                Calculation
-                              </p>
-
-                              <p className="text-sm text-gray-900 mt-1">
-
-                                {totalKg.toLocaleString(
-                                  "en-IN",
-                                  {
-                                    maximumFractionDigits: 3,
-                                  }
-                                )}{" "}
-                                kg × ₹
-                                {(
-                                  mandi.rate /
-                                  100
-                                ).toLocaleString(
-                                  "en-IN",
-                                  {
-                                    maximumFractionDigits: 2,
-                                  }
-                                )}
-                                /kg = ₹
-                                {mandi.grossAmount.toLocaleString(
-                                  "en-IN",
-                                  {
-                                    maximumFractionDigits: 0,
-                                  }
-                                )}
-
-                              </p>
-
-                            </div>
-
-                          </div>
-
-                          {/* AVAILABLE CROP */}
-
-                          <div className="mt-4 bg-white rounded-2xl p-5">
-
-                            <div className="grid grid-cols-2 gap-3">
-
-                              <div>
-
-                                <p className="text-xs text-gray-900">
-                                  {
-                                    t.availableCrop
-                                  }
-                                </p>
-
-                                <p className="font-bold mt-1">
-                                  {
-                                    crop.crop
-                                  }
-                                </p>
-
-                              </div>
-
-                              <div>
-
-                                <p className="text-xs text-gray-900">
-                                  {
-                                    t.netPerQuintal
-                                  }
-                                </p>
-
-                                <p className="font-bold text-green-700 mt-1">
-                                  ₹
-                                  {mandi.effectiveRatePerQuintal.toLocaleString(
-                                    "en-IN"
-                                  )}
-                                </p>
-
-                              </div>
-
-                            </div>
-
-                            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                              <button
-                                onClick={() => openDirections(mandi)}
-                                className="w-full px-4 py-3 rounded-xl border-2 border-green-700 text-green-700 font-bold hover:bg-green-50"
-                              >
-                                {t.directions}
-                              </button>
-
-                              {mandi.phone ? (
-                                <a
-                                  href={`tel:${mandi.phone}`}
-                                  className="w-full px-4 py-3 rounded-xl bg-green-700 text-white font-bold text-center hover:bg-green-800"
-                                >
-                                  {t.contact}
-                                </a>
-                              ) : (
-                                <div className="w-full px-4 py-3 rounded-xl bg-gray-100 text-gray-600 font-semibold text-center">
-                                  {t.contact}: —
-                                </div>
-                              )}
-                            </div>
-
-                            {mandi.arrivalDate && (
-                              <p className="mt-3 text-xs text-gray-600">
-                                {t.priceDate}: {mandi.arrivalDate}
-                              </p>
-                            )}
-
-                          </div>
-
-                        </div>
-                      );
-                    }
-                  )}
-
-                </div>
-
-                {/* NOTICE */}
-
-                <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-2xl p-5">
-
-                  <p className="text-sm text-yellow-900 leading-relaxed">
-                    ⚠️{" "}
-                    {
-                      t.indicativeNotice
-                    }
-                  </p>
-
-                </div>
-
               </div>
-            )}
 
-          {/* NO MANDI */}
+              <p className="mt-3 text-xs text-gray-500">
+                This amount is an
+                indicative value based
+                on the selected crop
+                price. Use it to compare
+                different mandi offers.
+              </p>
 
-          {searched &&
-            recalculatedMandis.length ===
-              0 && (
-              <div className="mt-7 bg-yellow-50 border border-yellow-200 rounded-2xl p-6">
-
-                <p className="text-yellow-900">
-                  {t.noMandi}
-                </p>
-
-                <button
-                  onClick={
-                    searchMandis
-                  }
-                  className="mt-4 px-5 py-2 rounded-xl bg-green-700 text-white font-bold hover:bg-green-800"
-                >
-                  {t.tryAgain}
-                </button>
-
-              </div>
-            )}
+            </div>
+          </div>
 
         </div>
 
-        {/* =================================================
-            IMPORTANT BEFORE SELLING
-        ================================================= */}
+        {/* QUANTITY */}
+        <div className="mb-6 rounded-2xl bg-white p-5 shadow-sm">
 
-        <div className="bg-yellow-50 border border-yellow-200 rounded-3xl p-7">
-
-          <h2 className="text-2xl font-bold text-yellow-800">
-            {
-              t.importantBeforeSelling
-            }
+          <h2 className="mb-4 text-lg font-bold text-gray-800">
+            📦 Quantity
           </h2>
 
-          <div className="space-y-4 mt-5">
+          <div className="grid gap-4 md:grid-cols-3">
 
-            {[
-              [
-                "📊",
-                t.tip1,
-              ],
-              [
-                "🌾",
-                t.tip2,
-              ],
-              [
-                "🚚",
-                t.tip3,
-              ],
-              [
-                "💰",
-                t.tip4,
-              ],
-            ].map(
-              ([icon, text]) => (
-                <div
-                  className="flex gap-4"
-                  key={text}
+            {/* QUANTITY INPUT */}
+            <div>
+
+              <label className="mb-1 block text-sm font-medium text-gray-700">
+                Quantity
+              </label>
+
+              <input
+                type="number"
+                min="0"
+                placeholder="Enter quantity"
+                value={quantity}
+                onChange={(e) => {
+                  const value =
+                    e.target.value;
+
+                  if (value === "") {
+                    setQuantity("");
+                  } else {
+                    setQuantity(
+                      Number(value)
+                    );
+                  }
+                }}
+                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder:text-gray-500 outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600"
+              />
+
+            </div>
+
+            {/* UNIT */}
+            <div>
+
+              <label className="mb-1 block text-sm font-medium text-gray-700">
+                Unit
+              </label>
+
+              <select
+                value={unit}
+                onChange={(e) =>
+                  setUnit(
+                    e.target.value as QuantityUnit
+                  )
+                }
+                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600"
+              >
+
+                <option value="kg">
+                  Kilogram (KG)
+                </option>
+
+                <option value="quintal">
+                  Quintal
+                </option>
+
+                <option value="ton">
+                  Ton
+                </option>
+
+                <option value="bag">
+                  Bag (50 KG)
+                </option>
+
+              </select>
+
+            </div>
+
+            {/* TOTAL WEIGHT */}
+            <div className="rounded-lg bg-yellow-50 p-3">
+
+              <p className="text-sm text-gray-600">
+                Total Weight
+              </p>
+
+              <p className="text-xl font-bold text-yellow-700">
+                {totalKg.toLocaleString()}{" "}
+                KG
+              </p>
+
+            </div>
+
+          </div>
+
+          <div className="mt-4 rounded-lg bg-gray-50 p-3 text-sm text-gray-600">
+            <strong>Note:</strong>{" "}
+            1 Quintal = 100 KG, 1 Ton =
+            1000 KG, 1 Bag = 50 KG
+          </div>
+
+        </div>
+
+        {/* SEARCH */}
+        <div className="mb-6 rounded-2xl bg-white p-5 shadow-sm">
+
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+
+            <div>
+
+              <h2 className="text-lg font-bold text-gray-800">
+                🔎 Nearby Mandi Search
+              </h2>
+
+              <p className="mt-1 text-sm text-gray-500">
+                Only mandis within{" "}
+                <strong>
+                  60 KM
+                </strong>{" "}
+                will be shown.
+              </p>
+
+            </div>
+
+            <div className="flex gap-2">
+
+              <button
+                onClick={
+                  searchMandis
+                }
+                disabled={loading}
+                className="rounded-lg bg-green-600 px-5 py-2.5 font-semibold text-white hover:bg-green-700 disabled:opacity-50"
+              >
+                {loading
+                  ? "Searching..."
+                  : "🔎 Find Nearby Mandis"}
+              </button>
+
+              {mandis.length > 0 && (
+                <button
+                  onClick={
+                    clearResults
+                  }
+                  className="rounded-lg border border-gray-300 px-4 py-2.5 font-semibold text-gray-700 hover:bg-gray-50"
                 >
-                  <div className="text-2xl">
-                    {icon}
-                  </div>
+                  Clear
+                </button>
+              )}
 
-                  <p className="text-yellow-900">
-                    {text}
-                  </p>
-                </div>
-              )
-            )}
+            </div>
 
           </div>
 
         </div>
 
+        {/* RESULTS */}
+        {mandis.length > 0 && (
+          <div className="mb-6">
+
+            <div className="mb-4 flex items-center justify-between">
+
+              <h2 className="text-xl font-bold text-gray-800">
+                🏪 Nearby Mandis
+              </h2>
+
+              <span className="rounded-full bg-green-100 px-3 py-1 text-sm font-semibold text-green-700">
+                {mandis.length}{" "}
+                found
+              </span>
+
+            </div>
+
+            <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+
+              {mandis.map(
+                (mandi) => (
+                  <div
+                    key={mandi.id}
+                    className={`rounded-2xl bg-white p-5 shadow-sm transition ${
+                      selectedMandi?.id ===
+                      mandi.id
+                        ? "ring-2 ring-green-600"
+                        : ""
+                    }`}
+                  >
+
+                    {/* MANDI NAME */}
+                    <div className="mb-3 flex items-start justify-between gap-2">
+
+                      <div>
+
+                        <h3 className="text-lg font-bold text-gray-800">
+                          {mandi.name}
+                        </h3>
+
+                        <p className="text-sm text-gray-500">
+                          {
+                            mandi.district
+                          }
+                          ,{" "}
+                          {
+                            mandi.state
+                          }
+                        </p>
+
+                      </div>
+
+                      <span className="whitespace-nowrap rounded-full bg-blue-100 px-2.5 py-1 text-xs font-bold text-blue-700">
+                        {mandi.distanceKm.toFixed(
+                          1
+                        )}{" "}
+                        KM
+                      </span>
+
+                    </div>
+
+                    {/* PRICE */}
+                    <div className="mb-4 rounded-xl bg-green-50 p-4">
+
+                      <div className="flex items-center justify-between">
+
+                        <span className="text-sm text-gray-600">
+                          Price / KG
+                        </span>
+
+                        <span className="text-xl font-bold text-green-700">
+                          ₹
+                          {
+                            mandi.ratePerKg
+                          }
+                        </span>
+
+                      </div>
+
+                      <div className="mt-2 flex items-center justify-between">
+
+                        <span className="text-sm text-gray-600">
+                          Total Quantity
+                        </span>
+
+                        <span className="font-semibold text-gray-800">
+                          {mandi.totalKg.toLocaleString()}{" "}
+                          KG
+                        </span>
+
+                      </div>
+
+                      <div className="mt-2 flex items-center justify-between border-t border-green-200 pt-2">
+
+                        <span className="text-sm font-medium text-gray-700">
+                          Estimated Amount
+                        </span>
+
+                        <span className="text-lg font-bold text-green-800">
+                          ₹
+                          {mandi.estimatedAmount.toLocaleString(
+                            "en-IN",
+                            {
+                              maximumFractionDigits: 0,
+                            }
+                          )}
+                        </span>
+
+                      </div>
+
+                    </div>
+
+                    {/* ADDRESS */}
+                    <div className="mb-4 space-y-2 text-sm text-gray-600">
+
+                      <p>
+                        📍{" "}
+                        {
+                          mandi.address
+                        }
+                      </p>
+
+                      <p>
+                        📞{" "}
+                        {
+                          mandi.phone
+                        }
+                      </p>
+
+                    </div>
+
+                    {/* BUTTONS */}
+                    <div className="grid grid-cols-2 gap-2">
+
+                      <button
+                        onClick={() =>
+                          selectMandi(
+                            mandi
+                          )
+                        }
+                        className={`rounded-lg px-3 py-2 text-sm font-semibold ${
+                          selectedMandi?.id ===
+                          mandi.id
+                            ? "bg-green-700 text-white"
+                            : "bg-green-600 text-white hover:bg-green-700"
+                        }`}
+                      >
+                        {selectedMandi?.id ===
+                        mandi.id
+                          ? "✓ Selected"
+                          : "Select Mandi"}
+                      </button>
+
+                      <button
+                        onClick={() =>
+                          openDirections(
+                            mandi
+                          )
+                        }
+                        className="rounded-lg border border-blue-600 px-3 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-50"
+                      >
+                        🗺️ Directions
+                      </button>
+
+                      <button
+                        onClick={() =>
+                          callMandi(
+                            mandi.phone
+                          )
+                        }
+                        className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                      >
+                        📞 Call
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          navigator.clipboard?.writeText(
+                            `${mandi.name}, ${mandi.address}`
+                          );
+
+                          alert(
+                            "Mandi address copied."
+                          );
+                        }}
+                        className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                      >
+                        📋 Copy
+                      </button>
+
+                    </div>
+
+                  </div>
+                )
+              )}
+
+            </div>
+          </div>
+        )}
+
+        {/* NO RESULTS */}
+        {!loading &&
+          mandis.length === 0 && (
+            <div className="rounded-2xl bg-white p-8 text-center shadow-sm">
+
+              <div className="text-5xl">
+                🏪
+              </div>
+
+              <h3 className="mt-3 text-lg font-bold text-gray-800">
+                {language === "hi"
+                  ? "Nearby mandi search karein"
+                  : "Search for nearby mandis"}
+              </h3>
+
+              <p className="mt-2 text-sm text-gray-500">
+                {language === "hi"
+                  ? "Farmer location ke basis par 60 KM ke andar mandi results yahan dikhenge."
+                  : "Mandi results within 60 KM of the farmer location will appear here."}
+              </p>
+
+            </div>
+          )}
+
+        {/* SELECTED MANDI */}
+        {selectedMandi && (
+          <div className="mt-6 rounded-2xl border-2 border-green-500 bg-green-50 p-5">
+
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+
+              <div>
+
+                <p className="text-sm font-semibold text-green-700">
+                  ✓ Selected Mandi
+                </p>
+
+                <h2 className="mt-1 text-xl font-bold text-gray-800">
+                  {
+                    selectedMandi.name
+                  }
+                </h2>
+
+                <p className="text-sm text-gray-600">
+                  {
+                    selectedMandi.address
+                  }
+                </p>
+
+                <p className="mt-1 text-sm text-gray-600">
+                  Crop:{" "}
+                  <strong>
+                    {cropName}
+                  </strong>{" "}
+                  | Quantity:{" "}
+                  <strong>
+                    {totalKg.toLocaleString()}{" "}
+                    KG
+                  </strong>
+                </p>
+
+              </div>
+
+              <button
+                onClick={() => {
+                  localStorage.setItem(
+                    "selectedMandi",
+                    JSON.stringify({
+                      id: selectedMandi.id,
+                      name: selectedMandi.name,
+                      district:
+                        selectedMandi.district,
+                      state:
+                        selectedMandi.state,
+                      address:
+                        selectedMandi.address,
+                      phone:
+                        selectedMandi.phone,
+                      lat: selectedMandi.lat,
+                      lng: selectedMandi.lng,
+                      ratePerKg:
+                        selectedMandi.ratePerKg,
+                      crop: cropName,
+                      quantity:
+                        Number(quantity),
+                      unit,
+                      totalKg,
+                      estimatedAmount:
+                        selectedMandi.estimatedAmount,
+                    })
+                  );
+
+                  router.push(
+                    "/logistics"
+                  );
+                }}
+                className="rounded-lg bg-green-700 px-5 py-3 font-bold text-white hover:bg-green-800"
+              >
+                Continue to Logistics →
+              </button>
+
+            </div>
+          </div>
+        )}
+
+        {/* DEMO NOTE */}
+        <div className="mt-6 rounded-xl border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-800">
+          <strong>
+            Demo Note:
+          </strong>{" "}
+          The mandi list, prices and
+          contact numbers in this
+          prototype are
+          static/indicative demo data.
+          They are not live government
+          market rates.
+        </div>
+
       </div>
-    </main>
+    </div>
   );
 }
