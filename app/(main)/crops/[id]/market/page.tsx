@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useLanguage } from "../../../../lib/LanguageProvider";
 import type { LanguageCode } from "../../../../lib/language";
+import NewLogisticsPage from "./newpage";
 
 type Crop = {
   id?: string | number;
@@ -1445,6 +1446,8 @@ export default function MarketPage() {
   const [selectedMandi, setSelectedMandi] =
     useState<Mandi | null>(null);
 
+  const [showLogistics, setShowLogistics] = useState(false);
+
   const [loading, setLoading] =
     useState(false);
 
@@ -1859,6 +1862,9 @@ export default function MarketPage() {
     setMandis([]);
     setSelectedMandi(null);
   };
+  if (showLogistics) {
+    return <NewLogisticsPage />;
+  }
 
   return (
     <div
@@ -2464,7 +2470,7 @@ export default function MarketPage() {
                     })
                   );
 
-                  router.push("/logistics");
+                  setShowLogistics(true);
                 }}
                 className="rounded-lg bg-green-700 px-5 py-3 font-bold text-white hover:bg-green-800"
               >

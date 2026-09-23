@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getSavedLanguage, type LanguageCode } from "../../lib/language";
 import { useLanguage } from "../../lib/LanguageProvider";
@@ -96,7 +96,8 @@ const translations: Record<
 
   ta: {
     title: "உங்கள் பங்கைத் தேர்ந்தெடுக்கவும்",
-    subtitle: "KrishiMitra-வை எவ்வாறு பயன்படுத்த விரும்புகிறீர்கள் என்பதைத் தேர்ந்தெடுக்கவும்",
+    subtitle:
+      "KrishiMitra-வை எவ்வாறு பயன்படுத்த விரும்புகிறீர்கள் என்பதைத் தேர்ந்தெடுக்கவும்",
     farmer: "விவசாயி",
     farmerDesc:
       "உங்கள் விளைபொருள், தரம், சந்தை மற்றும் விவசாய முடிவுகளை நிர்வகிக்கவும்.",
@@ -114,7 +115,8 @@ const translations: Record<
 
   te: {
     title: "మీ పాత్రను ఎంచుకోండి",
-    subtitle: "మీరు KrishiMitra ను ఎలా ఉపయోగించాలనుకుంటున్నారో ఎంచుకోండి",
+    subtitle:
+      "మీరు KrishiMitra ను ఎలా ఉపయోగించాలనుకుంటున్నారో ఎంచుకోండి",
     farmer: "రైతు",
     farmerDesc:
       "మీ ఉత్పత్తి, నాణ్యత, మార్కెట్ మరియు వ్యవసాయ నిర్ణయాలను నిర్వహించండి.",
@@ -132,7 +134,8 @@ const translations: Record<
 
   gu: {
     title: "તમારી ભૂમિકા પસંદ કરો",
-    subtitle: "તમે KrishiMitra નો ઉપયોગ કેવી રીતે કરવા માંગો છો તે પસંદ કરો",
+    subtitle:
+      "તમે KrishiMitra નો ઉપયોગ કેવી રીતે કરવા માંગો છો તે પસંદ કરો",
     farmer: "ખેડૂત",
     farmerDesc:
       "તમારા ઉત્પાદન, ગુણવત્તા, બજાર અને ખેતી સંબંધિત નિર્ણયો મેનેજ કરો.",
@@ -150,7 +153,8 @@ const translations: Record<
 
   kn: {
     title: "ನಿಮ್ಮ ಪಾತ್ರವನ್ನು ಆಯ್ಕೆಮಾಡಿ",
-    subtitle: "ನೀವು KrishiMitra ಅನ್ನು ಹೇಗೆ ಬಳಸಲು ಬಯಸುತ್ತೀರಿ ಎಂಬುದನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+    subtitle:
+      "ನೀವು KrishiMitra ಅನ್ನು ಹೇಗೆ ಬಳಸಲು ಬಯಸುತ್ತೀರಿ ಎಂಬುದನ್ನು ಆಯ್ಕೆಮಾಡಿ",
     farmer: "ರೈತ",
     farmerDesc:
       "ನಿಮ್ಮ ಉತ್ಪನ್ನ, ಗುಣಮಟ್ಟ, ಮಾರುಕಟ್ಟೆ ಮತ್ತು ಕೃಷಿ ನಿರ್ಧಾರಗಳನ್ನು ನಿರ್ವಹಿಸಿ.",
@@ -186,7 +190,8 @@ const translations: Record<
 
   pa: {
     title: "ਆਪਣੀ ਭੂਮਿਕਾ ਚੁਣੋ",
-    subtitle: "ਚੁਣੋ ਕਿ ਤੁਸੀਂ KrishiMitra ਨੂੰ ਕਿਵੇਂ ਵਰਤਣਾ ਚਾਹੁੰਦੇ ਹੋ",
+    subtitle:
+      "ਚੁਣੋ ਕਿ ਤੁਸੀਂ KrishiMitra ਨੂੰ ਕਿਵੇਂ ਵਰਤਣਾ ਚਾਹੁੰਦੇ ਹੋ",
     farmer: "ਕਿਸਾਨ",
     farmerDesc:
       "ਆਪਣੀ ਉਪਜ, ਗੁਣਵੱਤਾ, ਮਾਰਕੀਟ ਅਤੇ ਖੇਤੀਬਾੜੀ ਦੇ ਫੈਸਲੇ ਸੰਭਾਲੋ।",
@@ -204,7 +209,8 @@ const translations: Record<
 
   or: {
     title: "ଆପଣଙ୍କ ଭୂମିକା ବାଛନ୍ତୁ",
-    subtitle: "ଆପଣ KrishiMitra କୁ କିପରି ବ୍ୟବହାର କରିବେ ତାହା ବାଛନ୍ତୁ",
+    subtitle:
+      "ଆପଣ KrishiMitra କୁ କିପରି ବ୍ୟବହାର କରିବେ ତାହା ବାଛନ୍ତୁ",
     farmer: "ଚାଷୀ",
     farmerDesc:
       "ଆପଣଙ୍କ ଉତ୍ପାଦ, ଗୁଣବତ୍ତା, ବଜାର ଏବଂ କୃଷି ନିଷ୍ପତ୍ତି ପରିଚାଳନା କରନ୍ତୁ।",
@@ -222,7 +228,8 @@ const translations: Record<
 
   as: {
     title: "আপোনাৰ ভূমিকা বাছনি কৰক",
-    subtitle: "আপুনি KrishiMitra কেনেদৰে ব্যৱহাৰ কৰিব বিচাৰে বাছনি কৰক",
+    subtitle:
+      "আপুনি KrishiMitra কেনেদৰে ব্যৱহাৰ কৰিব বিচাৰে বাছনি কৰক",
     farmer: "কৃষক",
     farmerDesc:
       "আপোনাৰ উৎপাদন, গুণগত মান, বজাৰ আৰু কৃষি সিদ্ধান্ত পৰিচালনা কৰক।",
@@ -240,7 +247,8 @@ const translations: Record<
 
   ur: {
     title: "اپنا کردار منتخب کریں",
-    subtitle: "منتخب کریں کہ آپ KrishiMitra کو کیسے استعمال کرنا چاہتے ہیں",
+    subtitle:
+      "منتخب کریں کہ آپ KrishiMitra کو کیسے استعمال کرنا چاہتے ہیں",
     farmer: "کسان",
     farmerDesc:
       "اپنی پیداوار، معیار، مارکیٹ اور زرعی فیصلوں کا انتظام کریں۔",
@@ -282,21 +290,21 @@ export default function RolePage() {
       icon: "🏭",
       title: currentTranslations.processor,
       description: currentTranslations.processorDesc,
-      route: "/dashboard/processor",
+      route: "/profile",
     },
     {
       key: "buyer",
       icon: "🛒",
       title: currentTranslations.buyer,
       description: currentTranslations.buyerDesc,
-      route: "/dashboard/buyer",
+      route: "/profile",
     },
     {
       key: "logistics",
       icon: "🚚",
       title: currentTranslations.logistics,
       description: currentTranslations.logisticsDesc,
-      route: "/dashboard/logistics",
+      route: "/profile",
     },
   ];
 
@@ -304,16 +312,11 @@ export default function RolePage() {
     roleKey: string,
     route: string
   ) => {
-    localStorage.setItem(
-      "userRole",
-      roleKey
-    );
+    localStorage.setItem("userRole", roleKey);
 
     if (roleKey === "farmer") {
       const savedProfile =
-        localStorage.getItem(
-          "farmerProfile"
-        );
+        localStorage.getItem("farmerProfile");
 
       if (savedProfile) {
         router.push("/crops");

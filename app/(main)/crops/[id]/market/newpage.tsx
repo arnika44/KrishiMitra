@@ -1,2108 +1,963 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter, useParams } from "next/navigation";
+import { useLanguage } from "../../../../lib/LanguageProvider";
+import type { LanguageCode } from "../../../../lib/language";
 
-/* =========================================================
-   TYPES
-========================================================= */
+type LogisticsProvider = {
+  id: string;
+  name: string;
+  vehicle: string;
+  charge: number;
+  phone: string;
+  rating: number;
+  capacity: string;
+  estimatedTime: string;
+};
 
-type Language =
-  | "en"
-  | "hi"
-  | "mr"
-  | "bn"
-  | "ta"
-  | "te"
-  | "gu"
-  | "kn"
-  | "ml"
-  | "pa";
-
-type Crop = {
-  id?: number;
+type SelectedMandi = {
+  id?: string;
   name?: string;
-  cropName?: string;
-  season?: string;
-  area?: number;
-  landArea?: number;
-  quantity?: number;
-};
-
-type Profile = {
-  village?: string;
-  villageName?: string;
-  city?: string;
-  cityName?: string;
   district?: string;
-  districtName?: string;
   state?: string;
-  stateName?: string;
-  pincode?: string;
-  pinCode?: string;
+  address?: string;
+  phone?: string;
+  lat?: number;
+  lng?: number;
+  crop?: string;
+  quantity?: number;
+  unit?: string;
+  totalKg?: number;
+  estimatedAmount?: number;
 };
 
-/* =========================================================
-   TRANSLATIONS
-========================================================= */
+type FarmerProfile = {
+  name?: string;
+  fullName?: string;
+  phone?: string;
+  address?: string;
+  village?: string;
+  district?: string;
+  state?: string;
+  pin?: string;
+};
 
-const translations: Record<
-  Language,
+const logisticsProviders: LogisticsProvider[] = [
+  {
+    id: "log-1",
+    name: "Sharma Transport",
+    vehicle: "Mini Truck",
+    charge: 2200,
+    phone: "9876543210",
+    rating: 4.7,
+    capacity: "2–3 Ton",
+    estimatedTime: "2–3 Hours",
+  },
+  {
+    id: "log-2",
+    name: "Kisan Logistics",
+    vehicle: "Tractor",
+    charge: 2500,
+    phone: "9876543211",
+    rating: 4.6,
+    capacity: "3–4 Ton",
+    estimatedTime: "2–4 Hours",
+  },
+  {
+    id: "log-3",
+    name: "Green Transport",
+    vehicle: "Truck",
+    charge: 2800,
+    phone: "9876543212",
+    rating: 4.8,
+    capacity: "5–7 Ton",
+    estimatedTime: "2–3 Hours",
+  },
+  {
+    id: "log-4",
+    name: "Bharat Logistics",
+    vehicle: "Pickup",
+    charge: 2400,
+    phone: "9876543213",
+    rating: 4.5,
+    capacity: "1–2 Ton",
+    estimatedTime: "2–4 Hours",
+  },
+  {
+    id: "log-5",
+    name: "FarmMove Transport",
+    vehicle: "Heavy Pickup",
+    charge: 2600,
+    phone: "9876543214",
+    rating: 4.6,
+    capacity: "2–3 Ton",
+    estimatedTime: "3–4 Hours",
+  },
+  {
+    id: "log-6",
+    name: "Agro Express",
+    vehicle: "Truck",
+    charge: 3000,
+    phone: "9876543215",
+    rating: 4.7,
+    capacity: "5–8 Ton",
+    estimatedTime: "2–3 Hours",
+  },
+  {
+    id: "log-7",
+    name: "Kisan Vahan Services",
+    vehicle: "Pickup",
+    charge: 2100,
+    phone: "9876543216",
+    rating: 4.4,
+    capacity: "1–2 Ton",
+    estimatedTime: "3–4 Hours",
+  },
+  {
+    id: "log-8",
+    name: "GreenField Movers",
+    vehicle: "Mini Truck",
+    charge: 2300,
+    phone: "9876543217",
+    rating: 4.5,
+    capacity: "2–3 Ton",
+    estimatedTime: "2–4 Hours",
+  },
+  {
+    id: "log-9",
+    name: "Agri Haulers",
+    vehicle: "Truck",
+    charge: 3200,
+    phone: "9876543218",
+    rating: 4.8,
+    capacity: "6–8 Ton",
+    estimatedTime: "2–3 Hours",
+  },
+  {
+    id: "log-10",
+    name: "Rural Transport Hub",
+    vehicle: "Tractor",
+    charge: 2000,
+    phone: "9876543219",
+    rating: 4.3,
+    capacity: "2–3 Ton",
+    estimatedTime: "3–5 Hours",
+  },
+  {
+    id: "log-11",
+    name: "FarmLink Logistics",
+    vehicle: "Pickup",
+    charge: 2350,
+    phone: "9876543220",
+    rating: 4.6,
+    capacity: "1–2 Ton",
+    estimatedTime: "2–4 Hours",
+  },
+  {
+    id: "log-12",
+    name: "Harvest Movers",
+    vehicle: "Heavy Truck",
+    charge: 3500,
+    phone: "9876543221",
+    rating: 4.7,
+    capacity: "7–10 Ton",
+    estimatedTime: "2–3 Hours",
+  },
+];
+
+const text: Record<
+  LanguageCode,
   {
     title: string;
     subtitle: string;
-    marketSnapshot: string;
-    todayRate: string;
-    weeklyChange: string;
-    demand: string;
-    supply: string;
-    strong: string;
-    normal: string;
-    limited: string;
-    priceHistory: string;
-    last7Days: string;
-    forecast: string;
-    nextDays: string;
-    forecastText: string;
-    sellDecision: string;
-    sellNow: string;
-    wait: string;
-    reason: string;
-    mandiCompare: string;
-    market: string;
-    rate: string;
-    transport: string;
-    netValue: string;
-    better: string;
-    sellStore: string;
-    sellToday: string;
-    store: string;
-    storageCost: string;
-    futureValue: string;
-    estimatedGain: string;
-    buyers: string;
-    trader: string;
-    processor: string;
-    wholesaler: string;
-    buyerRequirements: string;
-    grade: string;
-    moisture: string;
-    quantity: string;
-    alert: string;
-    targetPrice: string;
-    setAlert: string;
-    alertSet: string;
-    checklist: string;
-    quality: string;
-    weighing: string;
-    receipt: string;
-    payment: string;
-    complete: string;
+    selectedMandi: string;
+    pickup: string;
+    delivery: string;
     crop: string;
-    location: string;
+    quantity: string;
+    estimatedValue: string;
+    available: string;
+    choose: string;
+    selected: string;
+    sendRequest: string;
+    requestSent: string;
+    charge: string;
+    vehicle: string;
+    capacity: string;
+    rating: string;
+    time: string;
+    phone: string;
+    noMandi: string;
     back: string;
-    dashboard: string;
-    disclaimer: string;
+    demo: string;
   }
 > = {
   en: {
-    title: "Market Intelligence",
-    subtitle: "Smart market insights for your crop",
-    marketSnapshot: "Market Snapshot",
-    todayRate: "Today's Rate",
-    weeklyChange: "7-Day Change",
-    demand: "Demand",
-    supply: "Supply",
-    strong: "Strong",
-    normal: "Normal",
-    limited: "Limited",
-    priceHistory: "Price History",
-    last7Days: "Last 7 Days",
-    forecast: "Price Forecast",
-    nextDays: "Next 5 Days",
-    forecastText: "Expected market movement based on current trend.",
-    sellDecision: "Smart Sell Decision",
-    sellNow: "Sell Now",
-    wait: "Wait & Watch",
-    reason: "Reason",
-    mandiCompare: "Market Comparison",
-    market: "Market",
-    rate: "Rate",
-    transport: "Transport",
-    netValue: "Net Value",
-    better: "Better option",
-    sellStore: "Sell vs Store",
-    sellToday: "Sell Today",
-    store: "Store & Sell Later",
-    storageCost: "Storage Cost",
-    futureValue: "Expected Future Value",
-    estimatedGain: "Estimated Gain",
-    buyers: "Potential Buyers",
-    trader: "Trader",
-    processor: "Processor",
-    wholesaler: "Wholesaler",
-    buyerRequirements: "Buyer Requirements",
-    grade: "Preferred Grade",
-    moisture: "Moisture",
-    quantity: "Minimum Quantity",
-    alert: "Price Alert",
-    targetPrice: "Target Price",
-    setAlert: "Set Alert",
-    alertSet: "Price alert saved successfully.",
-    checklist: "Selling Checklist",
-    quality: "Quality checked",
-    weighing: "Weight verified",
-    receipt: "Receipt collected",
-    payment: "Payment confirmed",
-    complete: "Complete",
+    title: "Logistics",
+    subtitle: "Choose a transport provider for your selected mandi",
+    selectedMandi: "Selected Mandi",
+    pickup: "Pickup Location",
+    delivery: "Delivery Location",
     crop: "Crop",
-    location: "Location",
+    quantity: "Quantity",
+    estimatedValue: "Estimated Crop Value",
+    available: "Available Logistics Providers",
+    choose: "Choose",
+    selected: "Selected",
+    sendRequest: "Send Request",
+    requestSent: "Request Sent",
+    charge: "Transport Charge",
+    vehicle: "Vehicle",
+    capacity: "Capacity",
+    rating: "Rating",
+    time: "Estimated Time",
+    phone: "Phone",
+    noMandi: "No mandi has been selected yet.",
     back: "Back",
-    dashboard: "Dashboard",
-    disclaimer:
-      "Figures shown here are estimates for decision support and are not real-time quotations.",
+    demo: "Demo transport rates",
   },
 
   hi: {
-    title: "बाज़ार इंटेलिजेंस",
-    subtitle: "आपकी फसल के लिए स्मार्ट बाज़ार जानकारी",
-    marketSnapshot: "बाज़ार की स्थिति",
-    todayRate: "आज का भाव",
-    weeklyChange: "7 दिन का बदलाव",
-    demand: "मांग",
-    supply: "आपूर्ति",
-    strong: "मज़बूत",
-    normal: "सामान्य",
-    limited: "सीमित",
-    priceHistory: "भाव का इतिहास",
-    last7Days: "पिछले 7 दिन",
-    forecast: "भाव का अनुमान",
-    nextDays: "अगले 5 दिन",
-    forecastText: "वर्तमान रुझान के आधार पर संभावित बाज़ार बदलाव।",
-    sellDecision: "स्मार्ट बिक्री निर्णय",
-    sellNow: "अभी बेचें",
-    wait: "इंतज़ार करें",
-    reason: "कारण",
-    mandiCompare: "बाज़ार तुलना",
-    market: "बाज़ार",
-    rate: "भाव",
-    transport: "परिवहन",
-    netValue: "शुद्ध मूल्य",
-    better: "बेहतर विकल्प",
-    sellStore: "बेचें या स्टोर करें",
-    sellToday: "आज बेचें",
-    store: "स्टोर करके बाद में बेचें",
-    storageCost: "भंडारण लागत",
-    futureValue: "भविष्य का अनुमानित मूल्य",
-    estimatedGain: "अनुमानित लाभ",
-    buyers: "संभावित खरीदार",
-    trader: "व्यापारी",
-    processor: "प्रोसेसर",
-    wholesaler: "थोक खरीदार",
-    buyerRequirements: "खरीदार की आवश्यकताएँ",
-    grade: "पसंदीदा गुणवत्ता",
-    moisture: "नमी",
-    quantity: "न्यूनतम मात्रा",
-    alert: "भाव अलर्ट",
-    targetPrice: "लक्ष्य भाव",
-    setAlert: "अलर्ट सेट करें",
-    alertSet: "भाव अलर्ट सफलतापूर्वक सेव हो गया।",
-    checklist: "बिक्री चेकलिस्ट",
-    quality: "गुणवत्ता जाँच",
-    weighing: "वजन सत्यापित",
-    receipt: "रसीद ली",
-    payment: "भुगतान की पुष्टि",
-    complete: "पूरा",
+    title: "लॉजिस्टिक्स",
+    subtitle: "चयनित मंडी के लिए ट्रांसपोर्ट प्रोवाइडर चुनें",
+    selectedMandi: "चयनित मंडी",
+    pickup: "पिकअप स्थान",
+    delivery: "डिलीवरी स्थान",
     crop: "फसल",
-    location: "स्थान",
+    quantity: "मात्रा",
+    estimatedValue: "अनुमानित फसल मूल्य",
+    available: "उपलब्ध लॉजिस्टिक्स प्रोवाइडर",
+    choose: "चुनें",
+    selected: "चयनित",
+    sendRequest: "रिक्वेस्ट भेजें",
+    requestSent: "रिक्वेस्ट भेज दी गई",
+    charge: "ट्रांसपोर्ट चार्ज",
+    vehicle: "वाहन",
+    capacity: "क्षमता",
+    rating: "रेटिंग",
+    time: "अनुमानित समय",
+    phone: "फोन",
+    noMandi: "अभी कोई मंडी चयनित नहीं है।",
     back: "वापस",
-    dashboard: "डैशबोर्ड",
-    disclaimer:
-      "यहाँ दिखाए गए आँकड़े निर्णय सहायता के लिए अनुमान हैं, रियल-टाइम भाव नहीं।",
+    demo: "डेमो ट्रांसपोर्ट रेट",
   },
 
   mr: {
-    title: "बाजार माहिती",
-    subtitle: "तुमच्या पिकासाठी स्मार्ट बाजार माहिती",
-    marketSnapshot: "बाजार स्थिती",
-    todayRate: "आजचा दर",
-    weeklyChange: "7 दिवसांचा बदल",
-    demand: "मागणी",
-    supply: "पुरवठा",
-    strong: "जोरदार",
-    normal: "सामान्य",
-    limited: "मर्यादित",
-    priceHistory: "दर इतिहास",
-    last7Days: "मागील 7 दिवस",
-    forecast: "दर अंदाज",
-    nextDays: "पुढील 5 दिवस",
-    forecastText: "सध्याच्या ट्रेंडवर आधारित बाजार अंदाज.",
-    sellDecision: "स्मार्ट विक्री निर्णय",
-    sellNow: "आता विक्री करा",
-    wait: "थांबा आणि पहा",
-    reason: "कारण",
-    mandiCompare: "बाजार तुलना",
-    market: "बाजार",
-    rate: "दर",
-    transport: "वाहतूक",
-    netValue: "निव्वळ मूल्य",
-    better: "चांगला पर्याय",
-    sellStore: "विका किंवा साठवा",
-    sellToday: "आज विका",
-    store: "साठवून नंतर विका",
-    storageCost: "साठवण खर्च",
-    futureValue: "भविष्यातील अंदाजित मूल्य",
-    estimatedGain: "अंदाजित फायदा",
-    buyers: "संभाव्य खरेदीदार",
-    trader: "व्यापारी",
-    processor: "प्रोसेसर",
-    wholesaler: "घाऊक खरेदीदार",
-    buyerRequirements: "खरेदीदाराच्या आवश्यकता",
-    grade: "पसंतीची गुणवत्ता",
-    moisture: "ओलावा",
-    quantity: "किमान मात्रा",
-    alert: "दर अलर्ट",
-    targetPrice: "लक्ष्य दर",
-    setAlert: "अलर्ट सेट करा",
-    alertSet: "दर अलर्ट सेव्ह झाला.",
-    checklist: "विक्री चेकलिस्ट",
-    quality: "गुणवत्ता तपासली",
-    weighing: "वजन तपासले",
-    receipt: "पावती घेतली",
-    payment: "पेमेंट निश्चित",
-    complete: "पूर्ण",
+    title: "लॉजिस्टिक्स",
+    subtitle: "निवडलेल्या मंडीसाठी ट्रान्सपोर्ट प्रोव्हायडर निवडा",
+    selectedMandi: "निवडलेली मंडी",
+    pickup: "पिकअप स्थान",
+    delivery: "डिलिव्हरी स्थान",
     crop: "पीक",
-    location: "स्थान",
+    quantity: "प्रमाण",
+    estimatedValue: "अंदाजे पीक मूल्य",
+    available: "उपलब्ध लॉजिस्टिक्स प्रोव्हायडर",
+    choose: "निवडा",
+    selected: "निवडले",
+    sendRequest: "विनंती पाठवा",
+    requestSent: "विनंती पाठवली",
+    charge: "ट्रान्सपोर्ट चार्ज",
+    vehicle: "वाहन",
+    capacity: "क्षमता",
+    rating: "रेटिंग",
+    time: "अंदाजे वेळ",
+    phone: "फोन",
+    noMandi: "अजून मंडी निवडलेली नाही.",
     back: "मागे",
-    dashboard: "डॅशबोर्ड",
-    disclaimer: "हे आकडे निर्णयासाठी अंदाज आहेत, रिअल-टाइम भाव नाहीत.",
+    demo: "डेमो ट्रान्सपोर्ट रेट",
   },
 
   bn: {
-    title: "বাজার তথ্য",
-    subtitle: "আপনার ফসলের জন্য স্মার্ট বাজার তথ্য",
-    marketSnapshot: "বাজারের অবস্থা",
-    todayRate: "আজকের দাম",
-    weeklyChange: "৭ দিনের পরিবর্তন",
-    demand: "চাহিদা",
-    supply: "সরবরাহ",
-    strong: "শক্তিশালী",
-    normal: "স্বাভাবিক",
-    limited: "সীমিত",
-    priceHistory: "দামের ইতিহাস",
-    last7Days: "গত ৭ দিন",
-    forecast: "দামের পূর্বাভাস",
-    nextDays: "পরবর্তী ৫ দিন",
-    forecastText: "বর্তমান প্রবণতার ভিত্তিতে সম্ভাব্য বাজার পরিবর্তন।",
-    sellDecision: "স্মার্ট বিক্রির সিদ্ধান্ত",
-    sellNow: "এখন বিক্রি করুন",
-    wait: "অপেক্ষা করুন",
-    reason: "কারণ",
-    mandiCompare: "বাজার তুলনা",
-    market: "বাজার",
-    rate: "দাম",
-    transport: "পরিবহন",
-    netValue: "নিট মূল্য",
-    better: "ভালো বিকল্প",
-    sellStore: "বিক্রি না সংরক্ষণ",
-    sellToday: "আজ বিক্রি",
-    store: "সংরক্ষণ করে পরে বিক্রি",
-    storageCost: "সংরক্ষণ খরচ",
-    futureValue: "ভবিষ্যৎ মূল্য",
-    estimatedGain: "সম্ভাব্য লাভ",
-    buyers: "সম্ভাব্য ক্রেতা",
-    trader: "ব্যবসায়ী",
-    processor: "প্রসেসর",
-    wholesaler: "পাইকার",
-    buyerRequirements: "ক্রেতার প্রয়োজনীয়তা",
-    grade: "পছন্দের মান",
-    moisture: "আর্দ্রতা",
-    quantity: "ন্যূনতম পরিমাণ",
-    alert: "দাম সতর্কতা",
-    targetPrice: "লক্ষ্য দাম",
-    setAlert: "সতর্কতা সেট করুন",
-    alertSet: "দাম সতর্কতা সফলভাবে সংরক্ষিত হয়েছে।",
-    checklist: "বিক্রয় চেকলিস্ট",
-    quality: "মান পরীক্ষা",
-    weighing: "ওজন যাচাই",
-    receipt: "রসিদ সংগ্রহ",
-    payment: "পেমেন্ট নিশ্চিত",
-    complete: "সম্পূর্ণ",
+    title: "লজিস্টিক্স",
+    subtitle: "নির্বাচিত মান্ডির জন্য পরিবহন প্রদানকারী বেছে নিন",
+    selectedMandi: "নির্বাচিত মান্ডি",
+    pickup: "পিকআপ স্থান",
+    delivery: "ডেলিভারি স্থান",
     crop: "ফসল",
-    location: "স্থান",
+    quantity: "পরিমাণ",
+    estimatedValue: "আনুমানিক ফসলের মূল্য",
+    available: "উপলব্ধ লজিস্টিক্স প্রদানকারী",
+    choose: "নির্বাচন করুন",
+    selected: "নির্বাচিত",
+    sendRequest: "অনুরোধ পাঠান",
+    requestSent: "অনুরোধ পাঠানো হয়েছে",
+    charge: "পরিবহন চার্জ",
+    vehicle: "যানবাহন",
+    capacity: "ক্ষমতা",
+    rating: "রেটিং",
+    time: "আনুমানিক সময়",
+    phone: "ফোন",
+    noMandi: "এখনও কোনো মান্ডি নির্বাচন করা হয়নি।",
     back: "ফিরে যান",
-    dashboard: "ড্যাশবোর্ড",
-    disclaimer: "এই তথ্য সিদ্ধান্ত সহায়তার জন্য আনুমানিক, রিয়েল-টাইম দাম নয়।",
+    demo: "ডেমো পরিবহন রেট",
   },
 
   ta: {
-    title: "சந்தை தகவல்",
-    subtitle: "உங்கள் பயிருக்கான ஸ்மார்ட் சந்தை தகவல்",
-    marketSnapshot: "சந்தை நிலவரம்",
-    todayRate: "இன்றைய விலை",
-    weeklyChange: "7 நாள் மாற்றம்",
-    demand: "தேவை",
-    supply: "வழங்கல்",
-    strong: "வலுவான",
-    normal: "சாதாரண",
-    limited: "குறைவு",
-    priceHistory: "விலை வரலாறு",
-    last7Days: "கடந்த 7 நாட்கள்",
-    forecast: "விலை கணிப்பு",
-    nextDays: "அடுத்த 5 நாட்கள்",
-    forecastText: "தற்போதைய போக்கின் அடிப்படையிலான சந்தை கணிப்பு.",
-    sellDecision: "ஸ்மார்ட் விற்பனை முடிவு",
-    sellNow: "இப்போது விற்கவும்",
-    wait: "காத்திருக்கவும்",
-    reason: "காரணம்",
-    mandiCompare: "சந்தை ஒப்பீடு",
-    market: "சந்தை",
-    rate: "விலை",
-    transport: "போக்குவரத்து",
-    netValue: "நிகர மதிப்பு",
-    better: "சிறந்த தேர்வு",
-    sellStore: "விற்கலாமா சேமிக்கலாமா",
-    sellToday: "இன்று விற்கவும்",
-    store: "சேமித்து பின்னர் விற்கவும்",
-    storageCost: "சேமிப்பு செலவு",
-    futureValue: "எதிர்பார்க்கப்படும் மதிப்பு",
-    estimatedGain: "மதிப்பிடப்பட்ட லாபம்",
-    buyers: "சாத்தியமான வாங்குபவர்கள்",
-    trader: "வியாபாரி",
-    processor: "செயலாக்குபவர்",
-    wholesaler: "மொத்த விற்பனையாளர்",
-    buyerRequirements: "வாங்குபவர் தேவைகள்",
-    grade: "விருப்ப தரம்",
-    moisture: "ஈரப்பதம்",
-    quantity: "குறைந்தபட்ச அளவு",
-    alert: "விலை எச்சரிக்கை",
-    targetPrice: "இலக்கு விலை",
-    setAlert: "எச்சரிக்கையை அமைக்கவும்",
-    alertSet: "விலை எச்சரிக்கை சேமிக்கப்பட்டது.",
-    checklist: "விற்பனை சரிபார்ப்பு",
-    quality: "தரம் சரிபார்க்கப்பட்டது",
-    weighing: "எடை சரிபார்க்கப்பட்டது",
-    receipt: "ரசீது பெறப்பட்டது",
-    payment: "பணம் உறுதி",
-    complete: "முடிந்தது",
+    title: "லாஜிஸ்டிக்ஸ்",
+    subtitle:
+      "தேர்ந்தெடுத்த மண்டிக்கான போக்குவரத்து வழங்குநரை தேர்வு செய்யவும்",
+    selectedMandi: "தேர்ந்தெடுத்த மண்டி",
+    pickup: "பிக்கப் இடம்",
+    delivery: "டெலிவரி இடம்",
     crop: "பயிர்",
-    location: "இடம்",
-    back: "பின்னால்",
-    dashboard: "டாஷ்போர்டு",
-    disclaimer: "இவை முடிவு உதவிக்கான மதிப்பீடுகள்; நேரடி சந்தை விலைகள் அல்ல.",
+    quantity: "அளவு",
+    estimatedValue: "மதிப்பிடப்பட்ட பயிர் மதிப்பு",
+    available: "கிடைக்கும் லாஜிஸ்டிக்ஸ் வழங்குநர்கள்",
+    choose: "தேர்வு",
+    selected: "தேர்ந்தெடுக்கப்பட்டது",
+    sendRequest: "கோரிக்கை அனுப்பவும்",
+    requestSent: "கோரிக்கை அனுப்பப்பட்டது",
+    charge: "போக்குவரத்து கட்டணம்",
+    vehicle: "வாகனம்",
+    capacity: "திறன்",
+    rating: "மதிப்பீடு",
+    time: "மதிப்பிடப்பட்ட நேரம்",
+    phone: "தொலைபேசி",
+    noMandi: "மண்டி இன்னும் தேர்ந்தெடுக்கப்படவில்லை.",
+    back: "பின்",
+    demo: "டெமோ போக்குவரத்து விலை",
   },
 
   te: {
-    title: "మార్కెట్ సమాచారం",
-    subtitle: "మీ పంట కోసం స్మార్ట్ మార్కెట్ సమాచారం",
-    marketSnapshot: "మార్కెట్ పరిస్థితి",
-    todayRate: "ఈరోజు ధర",
-    weeklyChange: "7 రోజుల మార్పు",
-    demand: "డిమాండ్",
-    supply: "సరఫరా",
-    strong: "బలమైన",
-    normal: "సాధారణ",
-    limited: "పరిమిత",
-    priceHistory: "ధర చరిత్ర",
-    last7Days: "గత 7 రోజులు",
-    forecast: "ధర అంచనా",
-    nextDays: "తదుపరి 5 రోజులు",
-    forecastText: "ప్రస్తుత ట్రెండ్ ఆధారంగా మార్కెట్ అంచనా.",
-    sellDecision: "స్మార్ట్ అమ్మకం నిర్ణయం",
-    sellNow: "ఇప్పుడే అమ్మండి",
-    wait: "వేచి చూడండి",
-    reason: "కారణం",
-    mandiCompare: "మార్కెట్ పోలిక",
-    market: "మార్కెట్",
-    rate: "ధర",
-    transport: "రవాణా",
-    netValue: "నికర విలువ",
-    better: "మంచి ఎంపిక",
-    sellStore: "అమ్మాలా నిల్వ చేయాలా",
-    sellToday: "ఈరోజు అమ్మండి",
-    store: "నిల్వ చేసి తరువాత అమ్మండి",
-    storageCost: "నిల్వ ఖర్చు",
-    futureValue: "భవిష్యత్ అంచనా విలువ",
-    estimatedGain: "అంచనా లాభం",
-    buyers: "సంభావ్య కొనుగోలుదారులు",
-    trader: "వ్యాపారి",
-    processor: "ప్రాసెసర్",
-    wholesaler: "హోల్‌సేలర్",
-    buyerRequirements: "కొనుగోలుదారు అవసరాలు",
-    grade: "ఇష్టమైన నాణ్యత",
-    moisture: "తేమ",
-    quantity: "కనీస పరిమాణం",
-    alert: "ధర అలర్ట్",
-    targetPrice: "లక్ష్య ధర",
-    setAlert: "అలర్ట్ సెట్ చేయండి",
-    alertSet: "ధర అలర్ట్ విజయవంతంగా సేవ్ అయింది.",
-    checklist: "అమ్మకం చెక్‌లిస్ట్",
-    quality: "నాణ్యత తనిఖీ",
-    weighing: "బరువు ధృవీకరణ",
-    receipt: "రసీదు తీసుకున్నారు",
-    payment: "చెల్లింపు నిర్ధారణ",
-    complete: "పూర్తి",
+    title: "లాజిస్టిక్స్",
+    subtitle: "ఎంచుకున్న మండీకి రవాణా ప్రొవైడర్‌ను ఎంచుకోండి",
+    selectedMandi: "ఎంచుకున్న మండీ",
+    pickup: "పికప్ స్థానం",
+    delivery: "డెలివరీ స్థానం",
     crop: "పంట",
-    location: "స్థానం",
+    quantity: "పరిమాణం",
+    estimatedValue: "అంచనా పంట విలువ",
+    available: "అందుబాటులో ఉన్న లాజిస్టిక్స్ ప్రొవైడర్లు",
+    choose: "ఎంచుకోండి",
+    selected: "ఎంచుకున్నారు",
+    sendRequest: "రిక్వెస్ట్ పంపండి",
+    requestSent: "రిక్వెస్ట్ పంపబడింది",
+    charge: "రవాణా ఛార్జ్",
+    vehicle: "వాహనం",
+    capacity: "సామర్థ్యం",
+    rating: "రేటింగ్",
+    time: "అంచనా సమయం",
+    phone: "ఫోన్",
+    noMandi: "ఇంకా మండీ ఎంచుకోలేదు.",
     back: "వెనుకకు",
-    dashboard: "డాష్‌బోర్డ్",
-    disclaimer: "ఇవి నిర్ణయ సహాయం కోసం అంచనాలు మాత్రమే; రియల్ టైమ్ ధరలు కావు.",
+    demo: "డెమో రవాణా రేటు",
   },
 
   gu: {
-    title: "બજાર માહિતી",
-    subtitle: "તમારા પાક માટે સ્માર્ટ બજાર માહિતી",
-    marketSnapshot: "બજાર સ્થિતિ",
-    todayRate: "આજનો ભાવ",
-    weeklyChange: "7 દિવસનો ફેરફાર",
-    demand: "માંગ",
-    supply: "પુરવઠો",
-    strong: "મજબૂત",
-    normal: "સામાન્ય",
-    limited: "મર્યાદિત",
-    priceHistory: "ભાવ ઇતિહાસ",
-    last7Days: "છેલ્લા 7 દિવસ",
-    forecast: "ભાવ અનુમાન",
-    nextDays: "આગામી 5 દિવસ",
-    forecastText: "હાલના ટ્રેન્ડના આધારે બજાર અનુમાન.",
-    sellDecision: "સ્માર્ટ વેચાણ નિર્ણય",
-    sellNow: "હમણાં વેચો",
-    wait: "રાહ જુઓ",
-    reason: "કારણ",
-    mandiCompare: "બજાર સરખામણી",
-    market: "બજાર",
-    rate: "ભાવ",
-    transport: "પરિવહન",
-    netValue: "ચોખ્ખું મૂલ્ય",
-    better: "સારો વિકલ્પ",
-    sellStore: "વેચવું કે સંગ્રહ કરવો",
-    sellToday: "આજે વેચો",
-    store: "સંગ્રહ કરીને પછી વેચો",
-    storageCost: "સંગ્રહ ખર્ચ",
-    futureValue: "અંદાજિત ભવિષ્ય મૂલ્ય",
-    estimatedGain: "અંદાજિત લાભ",
-    buyers: "સંભવિત ખરીદદારો",
-    trader: "વેપારી",
-    processor: "પ્રોસેસર",
-    wholesaler: "જથ્થાબંધ ખરીદદાર",
-    buyerRequirements: "ખરીદદારની જરૂરિયાતો",
-    grade: "પસંદ ગુણવત્તા",
-    moisture: "ભેજ",
-    quantity: "ન્યૂનતમ જથ્થો",
-    alert: "ભાવ એલર્ટ",
-    targetPrice: "લક્ષ્ય ભાવ",
-    setAlert: "એલર્ટ સેટ કરો",
-    alertSet: "ભાવ એલર્ટ સફળતાપૂર્વક સેવ થયું.",
-    checklist: "વેચાણ ચેકલિસ્ટ",
-    quality: "ગુણવત્તા તપાસી",
-    weighing: "વજન ચકાસ્યું",
-    receipt: "રસીદ મેળવી",
-    payment: "ચુકવણી પુષ્ટિ",
-    complete: "પૂર્ણ",
+    title: "લોજિસ્ટિક્સ",
+    subtitle: "પસંદ કરેલી મંડી માટે ટ્રાન્સપોર્ટ પ્રોવાઇડર પસંદ કરો",
+    selectedMandi: "પસંદ કરેલી મંડી",
+    pickup: "પિકઅપ સ્થાન",
+    delivery: "ડિલિવરી સ્થાન",
     crop: "પાક",
-    location: "સ્થાન",
-    back: "પાછા",
-    dashboard: "ડેશબોર્ડ",
-    disclaimer: "આ આંકડા નિર્ણય સહાય માટે અંદાજ છે, રિયલ-ટાઇમ ભાવ નથી.",
+    quantity: "જથ્થો",
+    estimatedValue: "અંદાજિત પાક મૂલ્ય",
+    available: "ઉપલબ્ધ લોજિસ્ટિક્સ પ્રોવાઇડર્સ",
+    choose: "પસંદ કરો",
+    selected: "પસંદ કરેલ",
+    sendRequest: "રિક્વેસ્ટ મોકલો",
+    requestSent: "રિક્વેસ્ટ મોકલવામાં આવી",
+    charge: "ટ્રાન્સપોર્ટ ચાર્જ",
+    vehicle: "વાહન",
+    capacity: "ક્ષમતા",
+    rating: "રેટિંગ",
+    time: "અંદાજિત સમય",
+    phone: "ફોન",
+    noMandi: "હજુ સુધી મંડી પસંદ કરવામાં આવી નથી.",
+    back: "પાછળ",
+    demo: "ડેમો ટ્રાન્સપોર્ટ રેટ",
   },
 
   kn: {
-    title: "ಮಾರುಕಟ್ಟೆ ಮಾಹಿತಿ",
-    subtitle: "ನಿಮ್ಮ ಬೆಳೆಗೆ ಸ್ಮಾರ್ಟ್ ಮಾರುಕಟ್ಟೆ ಮಾಹಿತಿ",
-    marketSnapshot: "ಮಾರುಕಟ್ಟೆ ಸ್ಥಿತಿ",
-    todayRate: "ಇಂದಿನ ದರ",
-    weeklyChange: "7 ದಿನಗಳ ಬದಲಾವಣೆ",
-    demand: "ಬೇಡಿಕೆ",
-    supply: "ಪೂರೈಕೆ",
-    strong: "ಬಲವಾದ",
-    normal: "ಸಾಮಾನ್ಯ",
-    limited: "ಸೀಮಿತ",
-    priceHistory: "ದರ ಇತಿಹಾಸ",
-    last7Days: "ಕಳೆದ 7 ದಿನಗಳು",
-    forecast: "ದರ ಅಂದಾಜು",
-    nextDays: "ಮುಂದಿನ 5 ದಿನಗಳು",
-    forecastText: "ಪ್ರಸ್ತುತ ಟ್ರೆಂಡ್ ಆಧಾರಿತ ಮಾರುಕಟ್ಟೆ ಅಂದಾಜು.",
-    sellDecision: "ಸ್ಮಾರ್ಟ್ ಮಾರಾಟ ನಿರ್ಧಾರ",
-    sellNow: "ಈಗ ಮಾರಾಟ ಮಾಡಿ",
-    wait: "ಕಾಯಿರಿ",
-    reason: "ಕಾರಣ",
-    mandiCompare: "ಮಾರುಕಟ್ಟೆ ಹೋಲಿಕೆ",
-    market: "ಮಾರುಕಟ್ಟೆ",
-    rate: "ದರ",
-    transport: "ಸಾರಿಗೆ",
-    netValue: "ನಿವ್ವಳ ಮೌಲ್ಯ",
-    better: "ಉತ್ತಮ ಆಯ್ಕೆ",
-    sellStore: "ಮಾರಾಟ ಅಥವಾ ಸಂಗ್ರಹ",
-    sellToday: "ಇಂದು ಮಾರಾಟ ಮಾಡಿ",
-    store: "ಸಂಗ್ರಹಿಸಿ ನಂತರ ಮಾರಾಟ ಮಾಡಿ",
-    storageCost: "ಸಂಗ್ರಹ ವೆಚ್ಚ",
-    futureValue: "ಭವಿಷ್ಯದ ಅಂದಾಜು ಮೌಲ್ಯ",
-    estimatedGain: "ಅಂದಾಜು ಲಾಭ",
-    buyers: "ಸಂಭಾವ್ಯ ಖರೀದಿದಾರರು",
-    trader: "ವ್ಯಾಪಾರಿ",
-    processor: "ಪ್ರೊಸೆಸರ್",
-    wholesaler: "ಸಗಟು ಖರೀದಿದಾರ",
-    buyerRequirements: "ಖರೀದಿದಾರರ ಅವಶ್ಯಕತೆಗಳು",
-    grade: "ಆದ್ಯತೆಯ ಗುಣಮಟ್ಟ",
-    moisture: "ತೇವಾಂಶ",
-    quantity: "ಕನಿಷ್ಠ ಪ್ರಮಾಣ",
-    alert: "ದರ ಎಚ್ಚರಿಕೆ",
-    targetPrice: "ಗುರಿ ದರ",
-    setAlert: "ಎಚ್ಚರಿಕೆ ಹೊಂದಿಸಿ",
-    alertSet: "ದರ ಎಚ್ಚರಿಕೆ ಉಳಿಸಲಾಗಿದೆ.",
-    checklist: "ಮಾರಾಟ ಪರಿಶೀಲನಾ ಪಟ್ಟಿ",
-    quality: "ಗುಣಮಟ್ಟ ಪರಿಶೀಲಿಸಲಾಗಿದೆ",
-    weighing: "ತೂಕ ಪರಿಶೀಲಿಸಲಾಗಿದೆ",
-    receipt: "ರಸೀದಿ ಪಡೆದಿದೆ",
-    payment: "ಪಾವತಿ ದೃಢೀಕರಿಸಲಾಗಿದೆ",
-    complete: "ಪೂರ್ಣ",
+    title: "ಲಾಜಿಸ್ಟಿಕ್ಸ್",
+    subtitle: "ಆಯ್ಕೆ ಮಾಡಿದ ಮಂಡಿಗೆ ಸಾರಿಗೆ ಪೂರೈಕೆದಾರರನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+    selectedMandi: "ಆಯ್ಕೆ ಮಾಡಿದ ಮಂಡಿ",
+    pickup: "ಪಿಕಪ್ ಸ್ಥಳ",
+    delivery: "ಡೆಲಿವರಿ ಸ್ಥಳ",
     crop: "ಬೆಳೆ",
-    location: "ಸ್ಥಳ",
+    quantity: "ಪ್ರಮಾಣ",
+    estimatedValue: "ಅಂದಾಜು ಬೆಳೆ ಮೌಲ್ಯ",
+    available: "ಲಭ್ಯವಿರುವ ಲಾಜಿಸ್ಟಿಕ್ಸ್ ಪೂರೈಕೆದಾರರು",
+    choose: "ಆಯ್ಕೆಮಾಡಿ",
+    selected: "ಆಯ್ಕೆ ಮಾಡಲಾಗಿದೆ",
+    sendRequest: "ವಿನಂತಿ ಕಳುಹಿಸಿ",
+    requestSent: "ವಿನಂತಿ ಕಳುಹಿಸಲಾಗಿದೆ",
+    charge: "ಸಾರಿಗೆ ಶುಲ್ಕ",
+    vehicle: "ವಾಹನ",
+    capacity: "ಸಾಮರ್ಥ್ಯ",
+    rating: "ರೇಟಿಂಗ್",
+    time: "ಅಂದಾಜು ಸಮಯ",
+    phone: "ಫೋನ್",
+    noMandi: "ಇನ್ನೂ ಮಂಡಿ ಆಯ್ಕೆ ಮಾಡಲಾಗಿಲ್ಲ.",
     back: "ಹಿಂದೆ",
-    dashboard: "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
-    disclaimer: "ಇವು ನಿರ್ಧಾರ ಸಹಾಯಕ್ಕಾಗಿ ಅಂದಾಜುಗಳು; ರಿಯಲ್-ಟೈಮ್ ದರಗಳಲ್ಲ.",
+    demo: "ಡೆಮೋ ಸಾರಿಗೆ ದರ",
   },
 
   ml: {
-    title: "വിപണി വിവരങ്ങൾ",
-    subtitle: "നിങ്ങളുടെ വിളയ്ക്കുള്ള സ്മാർട്ട് വിപണി വിവരങ്ങൾ",
-    marketSnapshot: "വിപണി സ്ഥിതി",
-    todayRate: "ഇന്നത്തെ വില",
-    weeklyChange: "7 ദിവസത്തെ മാറ്റം",
-    demand: "ആവശ്യം",
-    supply: "വിതരണം",
-    strong: "ശക്തം",
-    normal: "സാധാരണ",
-    limited: "പരിമിതം",
-    priceHistory: "വില ചരിത്രം",
-    last7Days: "കഴിഞ്ഞ 7 ദിവസം",
-    forecast: "വില പ്രവചനം",
-    nextDays: "അടുത്ത 5 ദിവസം",
-    forecastText: "നിലവിലെ ട്രെൻഡിനെ അടിസ്ഥാനമാക്കിയുള്ള വിപണി പ്രവചനം.",
-    sellDecision: "സ്മാർട്ട് വിൽപ്പന തീരുമാനം",
-    sellNow: "ഇപ്പോൾ വിൽക്കുക",
-    wait: "കാത്തിരിക്കുക",
-    reason: "കാരണം",
-    mandiCompare: "വിപണി താരതമ്യം",
-    market: "വിപണി",
-    rate: "വില",
-    transport: "ഗതാഗതം",
-    netValue: "ശുദ്ധ മൂല്യം",
-    better: "മികച്ച ഓപ്ഷൻ",
-    sellStore: "വിൽക്കണോ സംഭരിക്കണോ",
-    sellToday: "ഇന്ന് വിൽക്കുക",
-    store: "സംഭരിച്ച് പിന്നീട് വിൽക്കുക",
-    storageCost: "സംഭരണ ചെലവ്",
-    futureValue: "ഭാവിയിലെ പ്രതീക്ഷിത മൂല്യം",
-    estimatedGain: "പ്രതീക്ഷിക്കുന്ന ലാഭം",
-    buyers: "സാധ്യതയുള്ള വാങ്ങുന്നവർ",
-    trader: "വ്യാപാരി",
-    processor: "പ്രോസസർ",
-    wholesaler: "മൊത്തവ്യാപാരി",
-    buyerRequirements: "വാങ്ങുന്നവരുടെ ആവശ്യങ്ങൾ",
-    grade: "ആവശ്യമായ ഗുണനിലവാരം",
-    moisture: "ഈർപ്പം",
-    quantity: "കുറഞ്ഞ അളവ്",
-    alert: "വില അലർട്ട്",
-    targetPrice: "ലക്ഷ്യ വില",
-    setAlert: "അലർട്ട് സജ്ജമാക്കുക",
-    alertSet: "വില അലർട്ട് വിജയകരമായി സേവ് ചെയ്തു.",
-    checklist: "വിൽപ്പന ചെക്ക്ലിസ്റ്റ്",
-    quality: "ഗുണനിലവാരം പരിശോധിച്ചു",
-    weighing: "ഭാരം പരിശോധിച്ചു",
-    receipt: "രസീത് ലഭിച്ചു",
-    payment: "പേയ്മെന്റ് സ്ഥിരീകരിച്ചു",
-    complete: "പൂർത്തിയായി",
+    title: "ലോജിസ്റ്റിക്സ്",
+    subtitle:
+      "തിരഞ്ഞെടുത്ത മണ്ഡിക്കായി ഗതാഗത സേവനദാതാവിനെ തിരഞ്ഞെടുക്കുക",
+    selectedMandi: "തിരഞ്ഞെടുത്ത മണ്ഡി",
+    pickup: "പിക്കപ്പ് സ്ഥലം",
+    delivery: "ഡെലിവറി സ്ഥലം",
     crop: "വിള",
-    location: "സ്ഥലം",
+    quantity: "അളവ്",
+    estimatedValue: "അനുമാനിച്ച വിള മൂല്യം",
+    available: "ലഭ്യമായ ലോജിസ്റ്റിക്സ് സേവനദാതാക്കൾ",
+    choose: "തിരഞ്ഞെടുക്കുക",
+    selected: "തിരഞ്ഞെടുത്തു",
+    sendRequest: "അഭ്യർത്ഥന അയയ്ക്കുക",
+    requestSent: "അഭ്യർത്ഥന അയച്ചു",
+    charge: "ഗതാഗത ചാർജ്",
+    vehicle: "വാഹനം",
+    capacity: "ശേഷി",
+    rating: "റേറ്റിംഗ്",
+    time: "അനുമാനിച്ച സമയം",
+    phone: "ഫോൺ",
+    noMandi: "ഇതുവരെ മണ്ഡി തിരഞ്ഞെടുത്തിട്ടില്ല.",
     back: "തിരികെ",
-    dashboard: "ഡാഷ്ബോർഡ്",
-    disclaimer: "ഇവ തീരുമാന സഹായത്തിനുള്ള കണക്കുകൂട്ടലുകളാണ്; തത്സമയ വിലകളല്ല.",
+    demo: "ഡെമോ ഗതാഗത നിരക്ക്",
   },
 
   pa: {
-    title: "ਮਾਰਕੀਟ ਜਾਣਕਾਰੀ",
-    subtitle: "ਤੁਹਾਡੀ ਫਸਲ ਲਈ ਸਮਾਰਟ ਮਾਰਕੀਟ ਜਾਣਕਾਰੀ",
-    marketSnapshot: "ਮਾਰਕੀਟ ਸਥਿਤੀ",
-    todayRate: "ਅੱਜ ਦਾ ਭਾਅ",
-    weeklyChange: "7 ਦਿਨਾਂ ਦਾ ਬਦਲਾਅ",
-    demand: "ਮੰਗ",
-    supply: "ਸਪਲਾਈ",
-    strong: "ਮਜ਼ਬੂਤ",
-    normal: "ਸਧਾਰਣ",
-    limited: "ਸੀਮਿਤ",
-    priceHistory: "ਭਾਅ ਇਤਿਹਾਸ",
-    last7Days: "ਪਿਛਲੇ 7 ਦਿਨ",
-    forecast: "ਭਾਅ ਅਨੁਮਾਨ",
-    nextDays: "ਅਗਲੇ 5 ਦਿਨ",
-    forecastText: "ਮੌਜੂਦਾ ਰੁਝਾਨ ਦੇ ਆਧਾਰ 'ਤੇ ਮਾਰਕੀਟ ਅਨੁਮਾਨ।",
-    sellDecision: "ਸਮਾਰਟ ਵਿਕਰੀ ਫੈਸਲਾ",
-    sellNow: "ਹੁਣੇ ਵੇਚੋ",
-    wait: "ਉਡੀਕ ਕਰੋ",
-    reason: "ਕਾਰਨ",
-    mandiCompare: "ਮਾਰਕੀਟ ਤੁਲਨਾ",
-    market: "ਮਾਰਕੀਟ",
-    rate: "ਭਾਅ",
-    transport: "ਆਵਾਜਾਈ",
-    netValue: "ਸ਼ੁੱਧ ਮੁੱਲ",
-    better: "ਵਧੀਆ ਵਿਕਲਪ",
-    sellStore: "ਵੇਚੋ ਜਾਂ ਸਟੋਰ ਕਰੋ",
-    sellToday: "ਅੱਜ ਵੇਚੋ",
-    store: "ਸਟੋਰ ਕਰਕੇ ਬਾਅਦ ਵਿੱਚ ਵੇਚੋ",
-    storageCost: "ਸਟੋਰੇਜ ਖਰਚ",
-    futureValue: "ਭਵਿੱਖੀ ਅਨੁਮਾਨਿਤ ਮੁੱਲ",
-    estimatedGain: "ਅਨੁਮਾਨਿਤ ਲਾਭ",
-    buyers: "ਸੰਭਾਵਿਤ ਖਰੀਦਦਾਰ",
-    trader: "ਵਪਾਰੀ",
-    processor: "ਪ੍ਰੋਸੈਸਰ",
-    wholesaler: "ਥੋਕ ਖਰੀਦਦਾਰ",
-    buyerRequirements: "ਖਰੀਦਦਾਰ ਦੀਆਂ ਲੋੜਾਂ",
-    grade: "ਪਸੰਦੀਦਾ ਗੁਣਵੱਤਾ",
-    moisture: "ਨਮੀ",
-    quantity: "ਘੱਟੋ-ਘੱਟ ਮਾਤਰਾ",
-    alert: "ਭਾਅ ਅਲਰਟ",
-    targetPrice: "ਲਕਸ਼ ਭਾਅ",
-    setAlert: "ਅਲਰਟ ਸੈੱਟ ਕਰੋ",
-    alertSet: "ਭਾਅ ਅਲਰਟ ਸਫਲਤਾਪੂਰਵਕ ਸੇਵ ਹੋ ਗਿਆ।",
-    checklist: "ਵਿਕਰੀ ਚੈਕਲਿਸਟ",
-    quality: "ਗੁਣਵੱਤਾ ਜਾਂਚੀ",
-    weighing: "ਵਜ਼ਨ ਜਾਂਚਿਆ",
-    receipt: "ਰਸੀਦ ਲਈ",
-    payment: "ਭੁਗਤਾਨ ਦੀ ਪੁਸ਼ਟੀ",
-    complete: "ਪੂਰਾ",
+    title: "ਲੌਜਿਸਟਿਕਸ",
+    subtitle: "ਚੁਣੀ ਹੋਈ ਮੰਡੀ ਲਈ ਟ੍ਰਾਂਸਪੋਰਟ ਪ੍ਰੋਵਾਈਡਰ ਚੁਣੋ",
+    selectedMandi: "ਚੁਣੀ ਹੋਈ ਮੰਡੀ",
+    pickup: "ਪਿਕਅੱਪ ਸਥਾਨ",
+    delivery: "ਡਿਲੀਵਰੀ ਸਥਾਨ",
     crop: "ਫਸਲ",
-    location: "ਸਥਾਨ",
+    quantity: "ਮਾਤਰਾ",
+    estimatedValue: "ਅਨੁਮਾਨਿਤ ਫਸਲ ਮੁੱਲ",
+    available: "ਉਪਲਬਧ ਲੌਜਿਸਟਿਕਸ ਪ੍ਰੋਵਾਈਡਰ",
+    choose: "ਚੁਣੋ",
+    selected: "ਚੁਣਿਆ",
+    sendRequest: "ਬੇਨਤੀ ਭੇਜੋ",
+    requestSent: "ਬੇਨਤੀ ਭੇਜੀ ਗਈ",
+    charge: "ਟ੍ਰਾਂਸਪੋਰਟ ਚਾਰਜ",
+    vehicle: "ਵਾਹਨ",
+    capacity: "ਸਮਰੱਥਾ",
+    rating: "ਰੇਟਿੰਗ",
+    time: "ਅਨੁਮਾਨਿਤ ਸਮਾਂ",
+    phone: "ਫੋਨ",
+    noMandi: "ਅਜੇ ਤੱਕ ਕੋਈ ਮੰਡੀ ਨਹੀਂ ਚੁਣੀ ਗਈ।",
     back: "ਵਾਪਸ",
-    dashboard: "ਡੈਸ਼ਬੋਰਡ",
-    disclaimer: "ਇਹ ਅੰਕੜੇ ਫੈਸਲਾ ਲੈਣ ਲਈ ਅਨੁਮਾਨ ਹਨ, ਰੀਅਲ-ਟਾਈਮ ਭਾਅ ਨਹੀਂ।",
+    demo: "ਡੈਮੋ ਟ੍ਰਾਂਸਪੋਰਟ ਰੇਟ",
+  },
+
+  or: {
+    title: "ଲଜିଷ୍ଟିକ୍ସ",
+    subtitle:
+      "ଚୟନ କରାଯାଇଥିବା ମଣ୍ଡି ପାଇଁ ପରିବହନ ପ୍ରଦାନକାରୀ ବାଛନ୍ତୁ",
+    selectedMandi: "ଚୟନିତ ମଣ୍ଡି",
+    pickup: "ପିକଅପ୍ ସ୍ଥାନ",
+    delivery: "ଡେଲିଭରି ସ୍ଥାନ",
+    crop: "ଫସଲ",
+    quantity: "ପରିମାଣ",
+    estimatedValue: "ଆନୁମାନିକ ଫସଲ ମୂଲ୍ୟ",
+    available: "ଉପଲବ୍ଧ ଲଜିଷ୍ଟିକ୍ସ ପ୍ରଦାନକାରୀ",
+    choose: "ବାଛନ୍ତୁ",
+    selected: "ଚୟନିତ",
+    sendRequest: "ଅନୁରୋଧ ପଠାନ୍ତୁ",
+    requestSent: "ଅନୁରୋଧ ପଠାଯାଇଛି",
+    charge: "ପରିବହନ ଚାର୍ଜ",
+    vehicle: "ଯାନ",
+    capacity: "କ୍ଷମତା",
+    rating: "ରେଟିଂ",
+    time: "ଆନୁମାନିକ ସମୟ",
+    phone: "ଫୋନ",
+    noMandi: "ଏପର୍ଯ୍ୟନ୍ତ କୌଣସି ମଣ୍ଡି ଚୟନ କରାଯାଇନାହିଁ।",
+    back: "ପଛକୁ",
+    demo: "ଡେମୋ ପରିବହନ ହାର",
+  },
+
+  as: {
+    title: "লজিষ্টিক্স",
+    subtitle: "নিৰ্বাচিত মাণ্ডিৰ বাবে পৰিবহণ সেৱা বাছনি কৰক",
+    selectedMandi: "নিৰ্বাচিত মাণ্ডি",
+    pickup: "পিকআপ স্থান",
+    delivery: "ডেলিভাৰী স্থান",
+    crop: "শস্য",
+    quantity: "পৰিমাণ",
+    estimatedValue: "আনুমানিক শস্য মূল্য",
+    available: "উপলব্ধ লজিষ্টিক্স সেৱা",
+    choose: "বাছনি কৰক",
+    selected: "নিৰ্বাচিত",
+    sendRequest: "অনুৰোধ পঠিয়াওক",
+    requestSent: "অনুৰোধ পঠিওৱা হৈছে",
+    charge: "পৰিবহণ মাচুল",
+    vehicle: "যান",
+    capacity: "ক্ষমতা",
+    rating: "ৰেটিং",
+    time: "আনুমানিক সময়",
+    phone: "ফোন",
+    noMandi: "এতিয়ালৈ কোনো মাণ্ডি নিৰ্বাচন কৰা হোৱা নাই।",
+    back: "পিছলৈ",
+    demo: "ডেমো পৰিবহণ হাৰ",
+  },
+
+  ur: {
+    title: "لاجسٹکس",
+    subtitle: "منتخب منڈی کے لیے ٹرانسپورٹ فراہم کنندہ منتخب کریں",
+    selectedMandi: "منتخب منڈی",
+    pickup: "پک اپ مقام",
+    delivery: "ڈیلیوری مقام",
+    crop: "فصل",
+    quantity: "مقدار",
+    estimatedValue: "متوقع فصل کی قیمت",
+    available: "دستیاب لاجسٹکس فراہم کنندگان",
+    choose: "منتخب کریں",
+    selected: "منتخب شدہ",
+    sendRequest: "درخواست بھیجیں",
+    requestSent: "درخواست بھیج دی گئی",
+    charge: "ٹرانسپورٹ چارج",
+    vehicle: "گاڑی",
+    capacity: "صلاحیت",
+    rating: "ریٹنگ",
+    time: "متوقع وقت",
+    phone: "فون",
+    noMandi: "ابھی تک کوئی منڈی منتخب نہیں کی گئی۔",
+    back: "واپس",
+    demo: "ڈیمو ٹرانسپورٹ ریٹ",
   },
 };
 
-/* =========================================================
-   LANGUAGE LABELS
-========================================================= */
-
-const languageLabels: Record<Language, string> = {
-  en: "English",
-  hi: "हिन्दी",
-  mr: "मराठी",
-  bn: "বাংলা",
-  ta: "தமிழ்",
-  te: "తెలుగు",
-  gu: "ગુજરાતી",
-  kn: "ಕನ್ನಡ",
-  ml: "മലയാളം",
-  pa: "ਪੰਜਾਬੀ",
-};
-
-/* =========================================================
-   HELPERS
-========================================================= */
-
-function normalize(value: unknown) {
-  return String(value || "")
-    .toLowerCase()
-    .trim();
-}
-
-function getCropName(crop: Crop | null) {
-  if (!crop) return "Crop";
-
-  return (
-    crop.name ||
-    crop.cropName ||
-    "Crop"
-  );
-}
-
-function detectCropType(name: string) {
-  const n = normalize(name);
-
-  if (
-    /wheat|गेहूं|गेहू|गहू|গম|கோதுமை|గోధుమ|ઘઉં|ಗೋಧಿ|ഗോതമ്പ്|ਕਣਕ/.test(
-      n
-    )
-  ) {
-    return "wheat";
-  }
-
-  if (
-    /rice|paddy|धान|चावल|तांदूळ|ধান|அரிசி|நெல்|బియ్యం|వరి|ચોખા|ಅಕ್ಕಿ|നെല്ല്|ਝੋਨਾ|ਚੌਲ/.test(
-      n
-    )
-  ) {
-    return "rice";
-  }
-
-  if (
-    /maize|corn|मक्का|मकई|मका|ভুট্টা|மக்காச்சோளம்|మొక్కజొన్న|મકાઈ|ಮೆಕ್ಕೆಜೋಳ|ചോളം|ਮੱਕੀ/.test(
-      n
-    )
-  ) {
-    return "maize";
-  }
-
-  if (
-    /potato|aloo|आलू|बटाटा|আলু|உருளைக்கிழங்கு|బంగాళాదుంప|બટાકા|ಆಲೂಗಡ್ಡೆ|ഉരുളക്കിഴങ്ങ്|ਆਲੂ/.test(
-      n
-    )
-  ) {
-    return "potato";
-  }
-
-  if (
-    /tomato|टमाटर|टोमॅटो|টমেটো|தக்காளி|టమాటా|ટામેટા|ಟೊಮೇಟೊ|തക്കാളി|ਟਮਾਟਰ/.test(
-      n
-    )
-  ) {
-    return "tomato";
-  }
-
-  return "other";
-}
-
-function getBasePrice(type: string) {
-  switch (type) {
-    case "wheat":
-      return 2500;
-
-    case "rice":
-      return 2350;
-
-    case "maize":
-      return 2200;
-
-    case "potato":
-      return 1500;
-
-    case "tomato":
-      return 2100;
-
-    default:
-      return 2000;
-  }
-}
-
-function getStorageCost(type: string) {
-  switch (type) {
-    case "potato":
-      return 90;
-
-    case "tomato":
-      return 110;
-
-    case "rice":
-      return 65;
-
-    case "wheat":
-      return 60;
-
-    case "maize":
-      return 55;
-
-    default:
-      return 70;
-  }
-}
-
-/* =========================================================
-   COMPONENT
-========================================================= */
-
-export default function NewMarketPage() {
-  const params = useParams();
+export default function LogisticsPage() {
   const router = useRouter();
+  const params = useParams();
+  const { language } = useLanguage();
 
-  const [language, setLanguage] =
-    useState<Language>("en");
+  const [selectedMandi, setSelectedMandi] =
+    useState<SelectedMandi | null>(null);
 
-  const [crop, setCrop] =
-    useState<Crop | null>(null);
+  const [farmerProfile, setFarmerProfile] =
+    useState<FarmerProfile | null>(null);
 
-  const [profile, setProfile] =
-    useState<Profile>({});
+  const [selectedProvider, setSelectedProvider] =
+    useState<string | null>(null);
 
-  const [targetPrice, setTargetPrice] =
-    useState("");
-
-  const [alertMessage, setAlertMessage] =
-    useState("");
-
-  const [checklist, setChecklist] = useState({
-    quality: false,
-    weighing: false,
-    receipt: false,
-    payment: false,
-  });
-
-  /* =======================================================
-     LOAD EXISTING APP DATA
-  ======================================================= */
+  const [requestSent, setRequestSent] = useState(false);
 
   useEffect(() => {
     try {
-      const savedLanguage =
-        localStorage.getItem(
-          "selectedLanguage"
-        ) as Language | null;
+      const mandiData = localStorage.getItem("selectedMandi");
 
-      if (
-        savedLanguage &&
-        translations[savedLanguage]
-      ) {
-        setLanguage(savedLanguage);
+      if (mandiData) {
+        setSelectedMandi(JSON.parse(mandiData));
       }
-    } catch {}
 
-    try {
-      const savedCrops =
-        localStorage.getItem("farmerCrops");
+      const profileData = localStorage.getItem("farmerProfile");
 
-      if (savedCrops) {
-        const crops: Crop[] =
-          JSON.parse(savedCrops);
-
-        const selectedCrop = crops.find(
-          (item) =>
-            Number(item.id) ===
-            Number(params?.id)
-        );
-
-        if (selectedCrop) {
-          setCrop(selectedCrop);
-        }
+      if (profileData) {
+        setFarmerProfile(JSON.parse(profileData));
       }
-    } catch {}
-
-    try {
-      const savedProfile =
-        localStorage.getItem("farmerProfile");
-
-      if (savedProfile) {
-        setProfile(JSON.parse(savedProfile));
-      }
-    } catch {}
+    } catch (error) {
+      console.error("Failed to load logistics data:", error);
+    }
   }, [params]);
 
-  const t =
-    translations[language] ||
-    translations.en;
+  const currentText = text[language] || text.en;
 
-  /* =======================================================
-     CROP / MARKET DATA
-  ======================================================= */
+  const farmerLocation = useMemo(() => {
+    if (!farmerProfile) return "Farmer Location";
 
-  const cropName = useMemo(
-    () => getCropName(crop),
-    [crop]
-  );
+    return [
+      farmerProfile.address,
+      farmerProfile.village,
+      farmerProfile.district,
+      farmerProfile.state,
+      farmerProfile.pin,
+    ]
+      .filter(Boolean)
+      .join(", ");
+  }, [farmerProfile]);
 
-  const cropType = useMemo(
-    () => detectCropType(cropName),
-    [cropName]
-  );
+  const cropName = selectedMandi?.crop || "Wheat";
 
-  const basePrice = useMemo(
-    () => getBasePrice(cropType),
-    [cropType]
-  );
+  const quantity =
+    selectedMandi?.quantity !== undefined
+      ? `${selectedMandi.quantity} ${selectedMandi.unit || "KG"}`
+      : selectedMandi?.totalKg
+        ? `${selectedMandi.totalKg} KG`
+        : "—";
 
-  const quantity = useMemo(() => {
-    const q =
-      Number(crop?.quantity) ||
-      Number(crop?.area) ||
-      Number(crop?.landArea) ||
-      10;
+  const handleSendRequest = (provider: LogisticsProvider) => {
+    if (!selectedMandi || requestSent) return;
 
-    return q > 0 ? q : 10;
-  }, [crop]);
+    const deliveryAddress =
+      selectedMandi.address ||
+      `${selectedMandi.district || ""}, ${selectedMandi.state || ""}`;
 
-  /* =======================================================
-     MARKET SNAPSHOT
-  ======================================================= */
+    const request = {
+      id: `logistics-request-${Date.now()}`,
 
-  const weeklyChange =
-    cropType === "potato"
-      ? 6.8
-      : cropType === "tomato"
-      ? -3.2
-      : cropType === "rice"
-      ? 4.4
-      : 2.7;
+      providerId: provider.id,
+      providerName: provider.name,
+      vehicle: provider.vehicle,
+      providerPhone: provider.phone,
+      transportCharge: provider.charge,
+      providerRating: provider.rating,
+      providerCapacity: provider.capacity,
+      estimatedTime: provider.estimatedTime,
 
-  const demand =
-    cropType === "potato" ||
-    cropType === "tomato"
-      ? t.strong
-      : t.normal;
+      farmerName:
+        farmerProfile?.fullName ||
+        farmerProfile?.name ||
+        "Farmer",
 
-  const supply =
-    cropType === "potato"
-      ? t.limited
-      : t.normal;
+      farmerPhone: farmerProfile?.phone || "",
 
-  /* =======================================================
-     HISTORY
-  ======================================================= */
+      farmerLocation,
 
-  const history = useMemo(() => {
-    const multipliers = [
-      0.95,
-      0.97,
-      0.96,
-      1.0,
-      1.015,
-      1.03,
-      1,
-    ];
+      farmerPickupAddress:
+        farmerProfile?.address ||
+        [
+          farmerProfile?.village,
+          farmerProfile?.district,
+          farmerProfile?.state,
+          farmerProfile?.pin,
+        ]
+          .filter(Boolean)
+          .join(", "),
 
-    return multipliers.map(
-      (m) =>
-        Math.round(basePrice * m)
-    );
-  }, [basePrice]);
+      mandiId: selectedMandi.id || "",
+      mandiName: selectedMandi.name || "",
+      mandiDistrict: selectedMandi.district || "",
+      mandiState: selectedMandi.state || "",
 
-  const maxHistory = Math.max(
-    ...history
-  );
+      mandiAddress: deliveryAddress,
 
-  const minHistory = Math.min(
-    ...history
-  );
+      deliveryAddress,
 
-  /* =======================================================
-     FORECAST
-  ======================================================= */
+      mandiLat: selectedMandi.lat,
+      mandiLng: selectedMandi.lng,
 
-  const forecastValues = useMemo(() => {
-    const direction =
-      weeklyChange >= 0 ? 1 : -1;
+      crop: cropName,
+      quantity,
+      quantityValue: selectedMandi.quantity || 0,
+      quantityUnit: selectedMandi.unit || "KG",
+      totalKg: selectedMandi.totalKg || 0,
 
-    return [1, 2, 3, 4, 5].map(
-      (day) =>
-        Math.round(
-          basePrice *
-            (1 +
-              direction *
-                day *
-                Math.abs(weeklyChange) /
-                100 /
-                8)
-        )
-    );
-  }, [basePrice, weeklyChange]);
+      estimatedAmount:
+        selectedMandi.estimatedAmount || 0,
 
-  const futureAverage = Math.round(
-    forecastValues.reduce(
-      (sum, value) => sum + value,
-      0
-    ) / forecastValues.length
-  );
+      status: "pending",
+      logisticsStatus: "request_sent",
 
-  /* =======================================================
-     SMART DECISION
-  ======================================================= */
-
-  const shouldSell =
-    futureAverage <= basePrice * 1.025;
-
-  const decision = shouldSell
-    ? t.sellNow
-    : t.wait;
-
-  const decisionReason = shouldSell
-    ? t.forecastText
-    : `${t.weeklyChange}: +${weeklyChange.toFixed(
-        1
-      )}%`;
-
-  /* =======================================================
-     MANDI / MARKET COMPARISON
-  ======================================================= */
-
-  const markets = [
-    {
-      name: "Local Market",
-      rate: basePrice,
-      transport: 120,
-    },
-    {
-      name: "Regional Market",
-      rate: Math.round(
-        basePrice * 1.035
-      ),
-      transport: 280,
-    },
-    {
-      name: "Wholesale Market",
-      rate: Math.round(
-        basePrice * 1.06
-      ),
-      transport: 420,
-    },
-  ].map((item) => ({
-    ...item,
-    net: item.rate - item.transport,
-  }));
-
-  const bestMarket = markets.reduce(
-    (best, current) =>
-      current.net > best.net
-        ? current
-        : best,
-    markets[0]
-  );
-
-  /* =======================================================
-     SELL VS STORE
-  ======================================================= */
-
-  const storageCost =
-    getStorageCost(cropType);
-
-  const futurePrice =
-    futureAverage;
-
-  const sellTodayValue =
-    basePrice * quantity;
-
-  const storeFutureValue =
-    futurePrice * quantity -
-    storageCost * quantity;
-
-  const storageDifference =
-    storeFutureValue -
-    sellTodayValue;
-
-  /* =======================================================
-     BUYER REQUIREMENTS
-  ======================================================= */
-
-  const buyerRequirements = {
-    grade:
-      cropType === "wheat"
-        ? "FAQ / Premium"
-        : cropType === "rice"
-        ? "Good milling quality"
-        : "Clean & graded",
-
-    moisture:
-      cropType === "wheat"
-        ? "≤ 14%"
-        : cropType === "rice"
-        ? "≤ 17%"
-        : "≤ 14%",
-
-    quantity:
-      cropType === "potato" ||
-      cropType === "tomato"
-        ? "500 kg+"
-        : "1 Ton+",
-  };
-
-  /* =======================================================
-     ALERT
-  ======================================================= */
-
-  const saveAlert = () => {
-    const price =
-      Number(targetPrice);
-
-    if (!price || price <= 0) {
-      setAlertMessage(
-        `${t.targetPrice} required`
-      );
-      return;
-    }
+      createdAt: new Date().toISOString(),
+    };
 
     try {
-      localStorage.setItem(
-        `marketPriceAlert_${crop?.id || cropName}`,
-        JSON.stringify({
-          crop: cropName,
-          targetPrice: price,
-          createdAt:
-            new Date().toISOString(),
-        })
+      const existingRequests = JSON.parse(
+        localStorage.getItem("logisticsRequests") || "[]",
       );
-    } catch {}
 
-    setAlertMessage(t.alertSet);
+      const updatedRequests = [
+        ...existingRequests.filter(
+          (item: {
+            providerId?: string;
+            mandiId?: string;
+          }) =>
+            !(
+              item.mandiId === selectedMandi.id
+            ),
+        ),
+        request,
+      ];
 
-    setTimeout(() => {
-      setAlertMessage("");
-    }, 3000);
+      localStorage.setItem(
+        "logisticsRequests",
+        JSON.stringify(updatedRequests),
+      );
+
+      localStorage.setItem(
+        "selectedLogisticsProvider",
+        JSON.stringify(request),
+      );
+
+      setSelectedProvider(provider.id);
+      setRequestSent(true);
+    } catch (error) {
+      console.error(
+        "Failed to send logistics request:",
+        error,
+      );
+    }
   };
-
-  /* =======================================================
-     CHECKLIST
-  ======================================================= */
-
-  const completedCount = Object.values(
-    checklist
-  ).filter(Boolean).length;
-
-  const toggleChecklist = (
-    key: keyof typeof checklist
-  ) => {
-    setChecklist((previous) => ({
-      ...previous,
-      [key]: !previous[key],
-    }));
-  };
-
-  /* =======================================================
-     LOCATION
-  ======================================================= */
-
-  const location = [
-    profile.village ||
-      profile.villageName,
-    profile.city ||
-      profile.cityName,
-    profile.district ||
-      profile.districtName,
-    profile.state ||
-      profile.stateName,
-  ]
-    .filter(Boolean)
-    .join(", ");
-
-  /* =======================================================
-     LOADING / EMPTY
-  ======================================================= */
-
-  if (!crop) {
-    return (
-      <main className="min-h-screen bg-[#f6f8f5] p-6">
-        <div className="mx-auto max-w-4xl rounded-3xl bg-white p-8 shadow-sm">
-          <button
-            onClick={() => router.back()}
-            className="mb-6 rounded-xl border px-4 py-2 text-sm"
-          >
-            ← {t.back}
-          </button>
-
-          <h1 className="text-2xl font-bold text-gray-900">
-            {t.marketSnapshot}
-          </h1>
-
-          <p className="mt-2 text-gray-500">
-            Crop information could not be
-            loaded.
-          </p>
-        </div>
-      </main>
-    );
-  }
-
-  /* =======================================================
-     UI
-  ======================================================= */
 
   return (
-    <main className="min-h-screen bg-[#f6f8f5] text-gray-900">
+    <main
+      className="min-h-screen bg-slate-50"
+      dir={language === "ur" ? "rtl" : "ltr"}
+    >
       {/* HEADER */}
-
       <header className="sticky top-0 z-30 border-b bg-white/95 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 md:px-6">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
           <div>
-            <button
-              onClick={() =>
-                router.back()
-              }
-              className="mb-1 text-sm text-gray-500 hover:text-gray-900"
-            >
-              ← {t.back}
-            </button>
-
-            <h1 className="text-2xl font-extrabold tracking-tight md:text-3xl">
-              {t.title}
+            <h1 className="text-2xl font-bold text-green-700">
+              🚚 {currentText.title}
             </h1>
 
-            <p className="text-sm text-gray-500">
-              {t.subtitle}
+            <p className="mt-1 text-sm text-gray-500">
+              {currentText.subtitle}
             </p>
           </div>
 
-          {/* LANGUAGE */}
-
-          <select
-            value={language}
-            onChange={(e) => {
-              const next =
-                e.target.value as Language;
-
-              setLanguage(next);
-
-              try {
-                localStorage.setItem(
-                  "selectedLanguage",
-                  next
-                );
-              } catch {}
-            }}
-            className="rounded-xl border bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-green-500"
+          <button
+            onClick={() => router.back()}
+            className="rounded-xl border px-4 py-2 text-sm font-medium hover:bg-gray-50"
           >
-            {(
-              Object.keys(
-                languageLabels
-              ) as Language[]
-            ).map((key) => (
-              <option
-                key={key}
-                value={key}
-              >
-                {languageLabels[key]}
-              </option>
-            ))}
-          </select>
+            ← {currentText.back}
+          </button>
         </div>
       </header>
 
-      <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 md:px-6">
-        {/* CROP INFO */}
-
-        <section className="rounded-3xl bg-gradient-to-r from-green-700 to-green-600 p-6 text-white shadow-sm">
-          <div className="flex flex-col justify-between gap-5 md:flex-row md:items-center">
-            <div>
-              <p className="text-sm font-medium text-green-100">
-                {t.crop}
-              </p>
-
-              <h2 className="mt-1 text-3xl font-black">
-                {cropName}
-              </h2>
-
-              {location && (
-                <p className="mt-2 text-sm text-green-100">
-                  📍 {location}
-                </p>
-              )}
-            </div>
-
-            <div className="rounded-2xl bg-white/15 p-5 backdrop-blur">
-              <p className="text-sm text-green-100">
-                {t.todayRate}
-              </p>
-
-              <p className="text-3xl font-black">
-                ₹
-                {basePrice.toLocaleString(
-                  "en-IN"
-                )}
-              </p>
-
-              <p className="mt-1 text-sm text-green-100">
-                {t.rate}
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* =================================================
-            MARKET SNAPSHOT
-        ================================================= */}
-
-        <section>
-          <SectionTitle
-            title={t.marketSnapshot}
-          />
-
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            <StatCard
-              icon="₹"
-              title={t.todayRate}
-              value={`₹${basePrice.toLocaleString(
-                "en-IN"
-              )}`}
-              subtitle="/ unit"
-            />
-
-            <StatCard
-              icon="↗"
-              title={t.weeklyChange}
-              value={`${
-                weeklyChange >= 0
-                  ? "+"
-                  : ""
-              }${weeklyChange.toFixed(
-                1
-              )}%`}
-              subtitle={
-                weeklyChange >= 0
-                  ? t.strong
-                  : t.limited
-              }
-            />
-
-            <StatCard
-              icon="●"
-              title={t.demand}
-              value={demand}
-              subtitle={t.market}
-            />
-
-            <StatCard
-              icon="◒"
-              title={t.supply}
-              value={supply}
-              subtitle={t.market}
-            />
-          </div>
-        </section>
-
-        {/* =================================================
-            PRICE HISTORY + FORECAST
-        ================================================= */}
-
-        <div className="grid gap-6 lg:grid-cols-2">
-          {/* HISTORY */}
-
-          <section className="rounded-3xl bg-white p-6 shadow-sm">
-            <div className="mb-5 flex items-center justify-between">
-              <div>
-                <h2 className="text-xl font-bold">
-                  {t.priceHistory}
-                </h2>
-
-                <p className="text-sm text-gray-500">
-                  {t.last7Days}
-                </p>
-              </div>
-
-              <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">
-                {weeklyChange >= 0
-                  ? `+${weeklyChange}%`
-                  : `${weeklyChange}%`}
-              </span>
-            </div>
-
-            <div className="flex h-56 items-end gap-2">
-              {history.map(
-                (price, index) => {
-                  const range =
-                    maxHistory -
-                    minHistory ||
-                    1;
-
-                  const height =
-                    35 +
-                    ((price -
-                      minHistory) /
-                      range) *
-                      55;
-
-                  return (
-                    <div
-                      key={index}
-                      className="group flex flex-1 flex-col items-center justify-end"
-                    >
-                      <div className="mb-2 opacity-0 transition group-hover:opacity-100">
-                        <span className="rounded-lg bg-gray-900 px-2 py-1 text-[10px] text-white">
-                          ₹
-                          {price.toLocaleString(
-                            "en-IN"
-                          )}
-                        </span>
-                      </div>
-
-                      <div
-                        style={{
-                          height: `${height}%`,
-                        }}
-                        className="w-full rounded-t-xl bg-green-500 transition-all hover:bg-green-600"
-                      />
-
-                      <span className="mt-2 text-[10px] text-gray-400">
-                        D{index + 1}
-                      </span>
-                    </div>
-                  );
-                }
-              )}
-            </div>
-          </section>
-
-          {/* FORECAST */}
-
-          <section className="rounded-3xl bg-white p-6 shadow-sm">
-            <div className="mb-5">
-              <h2 className="text-xl font-bold">
-                {t.forecast}
-              </h2>
-
-              <p className="text-sm text-gray-500">
-                {t.nextDays}
-              </p>
-            </div>
-
-            <div className="space-y-3">
-              {forecastValues.map(
-                (price, index) => {
-                  const change =
-                    ((price -
-                      basePrice) /
-                      basePrice) *
-                    100;
-
-                  return (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between rounded-2xl bg-gray-50 p-4"
-                    >
-                      <div>
-                        <p className="font-semibold">
-                          Day {index + 1}
-                        </p>
-
-                        <p className="text-xs text-gray-500">
-                          {t.forecast}
-                        </p>
-                      </div>
-
-                      <div className="text-right">
-                        <p className="font-bold">
-                          ₹
-                          {price.toLocaleString(
-                            "en-IN"
-                          )}
-                        </p>
-
-                        <p
-                          className={`text-xs font-semibold ${
-                            change >= 0
-                              ? "text-green-600"
-                              : "text-red-600"
-                          }`}
-                        >
-                          {change >= 0
-                            ? "+"
-                            : ""}
-                          {change.toFixed(
-                            1
-                          )}
-                          %
-                        </p>
-                      </div>
-                    </div>
-                  );
-                }
-              )}
-            </div>
-          </section>
-        </div>
-
-        {/* =================================================
-            SMART SELL DECISION
-        ================================================= */}
-
-        <section className="overflow-hidden rounded-3xl bg-white shadow-sm">
-          <div className="border-b p-6">
-            <SectionTitle
-              title={t.sellDecision}
-              noMargin
-            />
-          </div>
-
-          <div className="grid gap-6 p-6 md:grid-cols-[1fr_auto]">
-            <div>
-              <div
-                className={`inline-flex rounded-full px-4 py-2 text-sm font-bold ${
-                  shouldSell
-                    ? "bg-green-100 text-green-700"
-                    : "bg-amber-100 text-amber-700"
-                }`}
-              >
-                {shouldSell
-                  ? "✓"
-                  : "◷"}{" "}
-                {decision}
-              </div>
-
-              <p className="mt-4 text-sm leading-6 text-gray-600">
-                <strong>
-                  {t.reason}:
-                </strong>{" "}
-                {decisionReason}
-              </p>
-            </div>
-
-            <div className="rounded-2xl bg-gray-50 p-5 md:min-w-[230px]">
-              <p className="text-xs text-gray-500">
-                {t.futureValue}
-              </p>
-
-              <p className="mt-1 text-2xl font-black">
-                ₹
-                {futureAverage.toLocaleString(
-                  "en-IN"
-                )}
-              </p>
-
-              <p className="mt-1 text-xs text-gray-500">
-                {t.forecast}
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* =================================================
-            MARKET COMPARISON
-        ================================================= */}
-
-        <section className="rounded-3xl bg-white p-6 shadow-sm">
-          <SectionTitle
-            title={t.mandiCompare}
-          />
-
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[650px] border-collapse">
-              <thead>
-                <tr className="border-b text-left text-xs uppercase tracking-wide text-gray-400">
-                  <th className="px-3 py-3">
-                    {t.market}
-                  </th>
-
-                  <th className="px-3 py-3">
-                    {t.rate}
-                  </th>
-
-                  <th className="px-3 py-3">
-                    {t.transport}
-                  </th>
-
-                  <th className="px-3 py-3">
-                    {t.netValue}
-                  </th>
-
-                  <th className="px-3 py-3">
-                    {t.better}
-                  </th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {markets.map(
-                  (market) => (
-                    <tr
-                      key={market.name}
-                      className="border-b last:border-0"
-                    >
-                      <td className="px-3 py-4 font-semibold">
-                        {market.name}
-                      </td>
-
-                      <td className="px-3 py-4">
-                        ₹
-                        {market.rate.toLocaleString(
-                          "en-IN"
-                        )}
-                      </td>
-
-                      <td className="px-3 py-4 text-gray-500">
-                        ₹
-                        {market.transport.toLocaleString(
-                          "en-IN"
-                        )}
-                      </td>
-
-                      <td className="px-3 py-4 font-bold">
-                        ₹
-                        {market.net.toLocaleString(
-                          "en-IN"
-                        )}
-                      </td>
-
-                      <td className="px-3 py-4">
-                        {market.name ===
-                        bestMarket.name ? (
-                          <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-bold text-green-700">
-                            ✓
-                          </span>
-                        ) : (
-                          <span className="text-gray-300">
-                            —
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  )
-                )}
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        {/* =================================================
-            SELL VS STORE
-        ================================================= */}
-
-        <section className="rounded-3xl bg-white p-6 shadow-sm">
-          <SectionTitle
-            title={t.sellStore}
-          />
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <CompareCard
-              title={t.sellToday}
-              value={`₹${Math.round(
-                sellTodayValue
-              ).toLocaleString(
-                "en-IN"
-              )}`}
-              label={t.todayRate}
-              highlight={
-                storageDifference <= 0
-              }
-            />
-
-            <CompareCard
-              title={t.store}
-              value={`₹${Math.round(
-                storeFutureValue
-              ).toLocaleString(
-                "en-IN"
-              )}`}
-              label={`${
-                t.futureValue
-              } − ${t.storageCost}`}
-              highlight={
-                storageDifference > 0
-              }
-            />
-          </div>
-
-          <div className="mt-5 rounded-2xl bg-gray-50 p-5">
-            <div className="grid gap-4 sm:grid-cols-3">
-              <MiniMetric
-                label={t.storageCost}
-                value={`₹${storageCost}/unit`}
-              />
-
-              <MiniMetric
-                label={t.futureValue}
-                value={`₹${futurePrice.toLocaleString(
-                  "en-IN"
-                )}`}
-              />
-
-              <MiniMetric
-                label={t.estimatedGain}
-                value={`${
-                  storageDifference >=
-                  0
-                    ? "+"
-                    : ""
-                }₹${Math.round(
-                  storageDifference
-                ).toLocaleString(
-                  "en-IN"
-                )}`}
-              />
-            </div>
-          </div>
-        </section>
-
-        {/* =================================================
-            BUYERS
-        ================================================= */}
-
-        <section>
-          <SectionTitle
-            title={t.buyers}
-          />
-
-          <div className="grid gap-4 md:grid-cols-3">
-            <BuyerCard
-              icon="🤝"
-              title={t.trader}
-              description="Local crop traders"
-            />
-
-            <BuyerCard
-              icon="🏭"
-              title={t.processor}
-              description="Food & grain processors"
-            />
-
-            <BuyerCard
-              icon="📦"
-              title={t.wholesaler}
-              description="Bulk market buyers"
-            />
-          </div>
-        </section>
-
-        {/* =================================================
-            BUYER REQUIREMENTS
-        ================================================= */}
-
-        <section className="rounded-3xl bg-white p-6 shadow-sm">
-          <SectionTitle
-            title={t.buyerRequirements}
-          />
-
-          <div className="grid gap-4 md:grid-cols-3">
-            <RequirementCard
-              label={t.grade}
-              value={
-                buyerRequirements.grade
-              }
-            />
-
-            <RequirementCard
-              label={t.moisture}
-              value={
-                buyerRequirements.moisture
-              }
-            />
-
-            <RequirementCard
-              label={t.quantity}
-              value={
-                buyerRequirements.quantity
-              }
-            />
-          </div>
-        </section>
-
-        {/* =================================================
-            PRICE ALERT
-        ================================================= */}
-
-        <section className="rounded-3xl bg-gray-900 p-6 text-white shadow-sm">
-          <div className="grid gap-6 md:grid-cols-[1fr_auto] md:items-end">
-            <div>
-              <h2 className="text-xl font-bold">
-                🔔 {t.alert}
-              </h2>
-
-              <p className="mt-1 text-sm text-gray-400">
-                {t.targetPrice}
-              </p>
-
-              <div className="mt-4 flex max-w-md gap-3">
-                <input
-                  value={targetPrice}
-                  onChange={(e) =>
-                    setTargetPrice(
-                      e.target.value
-                    )
-                  }
-                  type="number"
-                  min="0"
-                  placeholder="₹ 3000"
-                  className="w-full rounded-xl border border-gray-700 bg-gray-800 px-4 py-3 text-white outline-none placeholder:text-gray-500 focus:border-green-500"
-                />
-
-                <button
-                  onClick={saveAlert}
-                  className="whitespace-nowrap rounded-xl bg-green-500 px-5 py-3 font-bold text-white transition hover:bg-green-400"
-                >
-                  {t.setAlert}
-                </button>
-              </div>
-
-              {alertMessage && (
-                <p className="mt-3 text-sm text-green-400">
-                  ✓ {alertMessage}
-                </p>
-              )}
-            </div>
-
-            <div className="rounded-2xl bg-white/10 p-5">
-              <p className="text-xs text-gray-400">
-                {t.todayRate}
-              </p>
-
-              <p className="mt-1 text-2xl font-black">
-                ₹
-                {basePrice.toLocaleString(
-                  "en-IN"
-                )}
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* =================================================
-            CHECKLIST
-        ================================================= */}
-
-        <section className="rounded-3xl bg-white p-6 shadow-sm">
-          <div className="mb-5 flex items-center justify-between gap-4">
-            <SectionTitle
-              title={t.checklist}
-              noMargin
-            />
-
-            <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-bold text-green-700">
-              {completedCount}/4{" "}
-              {t.complete}
+      <div className="mx-auto max-w-6xl space-y-6 px-4 py-6">
+
+        {/* SELECTED MANDI */}
+        <section className="rounded-2xl border bg-white p-5 shadow-sm">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-lg font-bold text-gray-900">
+              📍 {currentText.selectedMandi}
+            </h2>
+
+            <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">
+              {currentText.demo}
             </span>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2">
-            <ChecklistItem
-              checked={
-                checklist.quality
-              }
-              onClick={() =>
-                toggleChecklist(
-                  "quality"
-                )
-              }
-              text={t.quality}
-            />
+          {!selectedMandi ? (
+            <div className="rounded-xl bg-yellow-50 p-4 text-sm text-yellow-800">
+              {currentText.noMandi}
+            </div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2">
 
-            <ChecklistItem
-              checked={
-                checklist.weighing
-              }
-              onClick={() =>
-                toggleChecklist(
-                  "weighing"
-                )
-              }
-              text={t.weighing}
-            />
+              {/* DELIVERY */}
+              <div className="rounded-xl bg-green-50 p-4">
+                <p className="text-xs font-medium text-green-700">
+                  {currentText.delivery}
+                </p>
 
-            <ChecklistItem
-              checked={
-                checklist.receipt
-              }
-              onClick={() =>
-                toggleChecklist(
-                  "receipt"
-                )
-              }
-              text={t.receipt}
-            />
+                <p className="mt-1 text-lg font-bold text-gray-900">
+                  {selectedMandi.name || "Selected Mandi"}
+                </p>
 
-            <ChecklistItem
-              checked={
-                checklist.payment
-              }
-              onClick={() =>
-                toggleChecklist(
-                  "payment"
-                )
-              }
-              text={t.payment}
-            />
-          </div>
+                <p className="mt-1 text-sm text-gray-600">
+                  {selectedMandi.address ||
+                    `${selectedMandi.district || ""}, ${
+                      selectedMandi.state || ""
+                    }`}
+                </p>
+              </div>
+
+              {/* PICKUP */}
+              <div className="rounded-xl bg-blue-50 p-4">
+                <p className="text-xs font-medium text-blue-700">
+                  {currentText.pickup}
+                </p>
+
+                <p className="mt-1 text-lg font-bold text-gray-900">
+                  {farmerProfile?.fullName ||
+                    farmerProfile?.name ||
+                    "Farmer"}
+                </p>
+
+                <p className="mt-1 text-sm text-gray-600">
+                  {farmerLocation}
+                </p>
+              </div>
+
+              {/* CROP */}
+              <div className="rounded-xl border p-4">
+                <p className="text-xs text-gray-500">
+                  {currentText.crop}
+                </p>
+
+                <p className="mt-1 font-bold text-gray-900">
+                  {cropName}
+                </p>
+              </div>
+
+              {/* QUANTITY */}
+              <div className="rounded-xl border p-4">
+                <p className="text-xs text-gray-500">
+                  {currentText.quantity}
+                </p>
+
+                <p className="mt-1 font-bold text-gray-900">
+                  {quantity}
+                </p>
+              </div>
+
+            </div>
+          )}
         </section>
 
-        {/* DISCLAIMER */}
+        {/* PROVIDERS */}
+        {selectedMandi && (
+          <section>
+            <div className="mb-4">
+              <h2 className="text-xl font-bold text-gray-900">
+                🚛 {currentText.available}
+              </h2>
 
-        <p className="pb-8 text-center text-xs leading-5 text-gray-400">
-          {t.disclaimer}
-        </p>
+              <p className="mt-1 text-sm text-gray-500">
+                Select one logistics provider. Your request will be sent only
+                to the provider you choose.
+              </p>
+            </div>
+
+            <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+
+              {logisticsProviders.map((provider) => {
+                const isSelected =
+                  selectedProvider === provider.id;
+
+                const anotherProviderAlreadySelected =
+                  requestSent &&
+                  selectedProvider !== provider.id;
+
+                return (
+                  <div
+                    key={provider.id}
+                    className={`rounded-2xl border bg-white p-5 shadow-sm transition ${
+                      isSelected
+                        ? "border-green-500 ring-2 ring-green-100"
+                        : "hover:-translate-y-1 hover:shadow-md"
+                    }`}
+                  >
+
+                    {/* PROVIDER NAME */}
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <h3 className="text-lg font-bold text-gray-900">
+                          {provider.name}
+                        </h3>
+
+                        <p className="mt-1 text-sm text-gray-500">
+                          🚚 {provider.vehicle}
+                        </p>
+                      </div>
+
+                      <div className="rounded-lg bg-yellow-50 px-2 py-1 text-sm font-semibold text-yellow-700">
+                        ⭐ {provider.rating}
+                      </div>
+                    </div>
+
+                    {/* TRANSPORT CHARGE */}
+                    <div className="mt-5 rounded-xl bg-green-50 p-4">
+                      <p className="text-xs text-green-700">
+                        {currentText.charge}
+                      </p>
+
+                      <p className="mt-1 text-2xl font-bold text-green-700">
+                        ₹{provider.charge.toLocaleString("en-IN")}
+                      </p>
+                    </div>
+
+                    {/* DETAILS */}
+                    <div className="mt-4 space-y-2 text-sm text-gray-600">
+
+                      <div className="flex justify-between">
+                        <span>
+                          {currentText.vehicle}
+                        </span>
+
+                        <span className="font-medium text-gray-900">
+                          {provider.vehicle}
+                        </span>
+                      </div>
+
+                      <div className="flex justify-between">
+                        <span>
+                          {currentText.capacity}
+                        </span>
+
+                        <span className="font-medium text-gray-900">
+                          {provider.capacity}
+                        </span>
+                      </div>
+
+                      <div className="flex justify-between">
+                        <span>
+                          {currentText.time}
+                        </span>
+
+                        <span className="font-medium text-gray-900">
+                          {provider.estimatedTime}
+                        </span>
+                      </div>
+
+                      <div className="flex justify-between">
+                        <span>
+                          {currentText.phone}
+                        </span>
+
+                        <span className="font-medium text-gray-900">
+                          {provider.phone}
+                        </span>
+                      </div>
+
+                    </div>
+
+                    {/* SELECT PROVIDER */}
+                    <button
+                      onClick={() =>
+                        handleSendRequest(provider)
+                      }
+                      disabled={
+                        isSelected ||
+                        anotherProviderAlreadySelected
+                      }
+                      className={`mt-5 w-full rounded-xl px-4 py-3 font-semibold transition ${
+                        isSelected
+                          ? "cursor-default bg-green-100 text-green-700"
+                          : anotherProviderAlreadySelected
+                            ? "cursor-not-allowed bg-gray-100 text-gray-400"
+                            : "bg-green-600 text-white hover:bg-green-700"
+                      }`}
+                    >
+                      {isSelected
+                        ? `✓ ${currentText.requestSent}`
+                        : `${currentText.choose} →`}
+                    </button>
+
+                  </div>
+                );
+              })}
+
+            </div>
+          </section>
+        )}
+
+        {/* REQUEST SUCCESS */}
+        {requestSent && selectedProvider && (
+          <section className="rounded-2xl border border-green-200 bg-green-50 p-5">
+            <div className="flex items-start gap-3">
+
+              <div className="text-2xl">
+                ✅
+              </div>
+
+              <div>
+                <h3 className="font-bold text-green-800">
+                  {currentText.requestSent}
+                </h3>
+
+                <p className="mt-1 text-sm text-green-700">
+                  Your selected logistics provider has received the request.
+                  The provider can now accept or reject it from the Logistics
+                  Dashboard.
+                </p>
+
+              </div>
+
+            </div>
+          </section>
+        )}
+
       </div>
     </main>
-  );
-}
-
-/* =========================================================
-   SMALL COMPONENTS
-========================================================= */
-
-function SectionTitle({
-  title,
-  noMargin = false,
-}: {
-  title: string;
-  noMargin?: boolean;
-}) {
-  return (
-    <h2
-      className={`text-xl font-bold ${
-        noMargin ? "" : "mb-5"
-      }`}
-    >
-      {title}
-    </h2>
-  );
-}
-
-function StatCard({
-  icon,
-  title,
-  value,
-  subtitle,
-}: {
-  icon: string;
-  title: string;
-  value: string;
-  subtitle: string;
-}) {
-  return (
-    <div className="rounded-3xl bg-white p-5 shadow-sm">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-xs font-medium text-gray-500">
-            {title}
-          </p>
-
-          <p className="mt-2 text-xl font-black md:text-2xl">
-            {value}
-          </p>
-
-          <p className="mt-1 text-xs text-gray-400">
-            {subtitle}
-          </p>
-        </div>
-
-        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-green-50 font-bold text-green-600">
-          {icon}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function CompareCard({
-  title,
-  value,
-  label,
-  highlight,
-}: {
-  title: string;
-  value: string;
-  label: string;
-  highlight: boolean;
-}) {
-  return (
-    <div
-      className={`rounded-3xl border p-5 ${
-        highlight
-          ? "border-green-200 bg-green-50"
-          : "border-gray-100 bg-gray-50"
-      }`}
-    >
-      <p className="text-sm font-semibold text-gray-600">
-        {title}
-      </p>
-
-      <p className="mt-3 text-3xl font-black">
-        {value}
-      </p>
-
-      <p className="mt-1 text-xs text-gray-500">
-        {label}
-      </p>
-    </div>
-  );
-}
-
-function MiniMetric({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
-  return (
-    <div>
-      <p className="text-xs text-gray-500">
-        {label}
-      </p>
-
-      <p className="mt-1 font-bold">
-        {value}
-      </p>
-    </div>
-  );
-}
-
-function BuyerCard({
-  icon,
-  title,
-  description,
-}: {
-  icon: string;
-  title: string;
-  description: string;
-}) {
-  return (
-    <button className="group rounded-3xl bg-white p-6 text-left shadow-sm transition hover:-translate-y-1 hover:shadow-md">
-      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-green-50 text-2xl">
-        {icon}
-      </div>
-
-      <h3 className="mt-4 font-bold">
-        {title}
-      </h3>
-
-      <p className="mt-1 text-sm text-gray-500">
-        {description}
-      </p>
-
-      <p className="mt-4 text-xs font-bold text-green-600 opacity-0 transition group-hover:opacity-100">
-        View →
-      </p>
-    </button>
-  );
-}
-
-function RequirementCard({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="rounded-2xl bg-gray-50 p-5">
-      <p className="text-xs text-gray-500">
-        {label}
-      </p>
-
-      <p className="mt-2 font-bold text-gray-900">
-        {value}
-      </p>
-    </div>
-  );
-}
-
-function ChecklistItem({
-  checked,
-  onClick,
-  text,
-}: {
-  checked: boolean;
-  onClick: () => void;
-  text: string;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={`flex items-center gap-4 rounded-2xl border p-4 text-left transition ${
-        checked
-          ? "border-green-200 bg-green-50"
-          : "border-gray-100 bg-gray-50 hover:bg-gray-100"
-      }`}
-    >
-      <span
-        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-sm font-bold ${
-          checked
-            ? "border-green-500 bg-green-500 text-white"
-            : "border-gray-300 bg-white text-transparent"
-        }`}
-      >
-        ✓
-      </span>
-
-      <span
-        className={
-          checked
-            ? "font-semibold text-green-800 line-through"
-            : "font-medium text-gray-700"
-        }
-      >
-        {text}
-      </span>
-    </button>
   );
 }
