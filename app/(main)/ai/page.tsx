@@ -151,8 +151,7 @@ const text: Record<
     thinking: "AI ചിന്തിക്കുന്നു...",
     clear: "ചാറ്റ് മായ്ക്കുക",
     speak: "മൈക്രോഫോൺ അമർത്തി സംസാരിക്കുക",
-    voiceNotSupported:
-      "ഈ ബ്രൗസറിൽ voice input ലഭ്യമല്ല.",
+    voiceNotSupported: "ഈ ബ്രൗസറിൽ voice input ലഭ്യമല്ല.",
     welcome:
       "നമസ്കാരം! ഞാൻ നിങ്ങളുടെ AI കൃഷി മിത്രയാണ്. മൈക്രോഫോൺ അമർത്തി കൃഷി, വിളകൾ, ജലസേചനം, വളം, രോഗങ്ങൾ, കാലാവസ്ഥ അല്ലെങ്കിൽ വിപണി എന്നിവയെക്കുറിച്ച് ചോദിക്കൂ.",
   },
@@ -234,33 +233,48 @@ export default function AIPage() {
   // The chat UI still shows the original AI response.
   const cleanSpeechText = (text: string) => {
     return text
-      // Remove headings: ### Heading, ## Heading, # Heading
+      // Convert number ranges for speech:
+      // 30-40 -> 30 to 40
+      // 20 - 30 kg -> 20 to 30 kg
+      .replace(/(\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)/g, "$1 to $2")
+
+      // Remove headings
       .replace(/^#{1,6}\s*/gm, "")
-      // Remove bold and italic markdown
+
+      // Remove bold markdown
       .replace(/\*\*(.*?)\*\*/g, "$1")
+
+      // Remove italic markdown
       .replace(/__(.*?)__/g, "$1")
       .replace(/\*(.*?)\*/g, "$1")
       .replace(/_(.*?)_/g, "$1")
+
       // Remove bullet points
       .replace(/^\s*[-•]\s+/gm, "")
+
       // Remove numbered list formatting
       .replace(/^\s*\d+\.\s+/gm, "")
+
       // Remove markdown links but keep visible text
       .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+
       // Remove backticks
       .replace(/`/g, "")
+
       // Remove remaining markdown symbols commonly spoken by TTS
       .replace(/[*#_~]/g, "")
+
       // Clean extra spaces
       .replace(/[ \t]+/g, " ")
+
       // Clean excessive blank lines
       .replace(/\n{2,}/g, "\n")
+
       .trim();
   };
 
   const speak = (answer: string) => {
     if (typeof window === "undefined") return;
-
     if (!window.speechSynthesis) return;
 
     const cleanText = cleanSpeechText(answer);
@@ -393,7 +407,11 @@ export default function AIPage() {
     };
 
     recognition.onerror = (event: any) => {
-      console.error("Speech recognition error:", event.error);
+      console.error(
+        "Speech recognition error:",
+        event.error
+      );
+
       setListening(false);
     };
 
@@ -407,7 +425,11 @@ export default function AIPage() {
     try {
       recognition.start();
     } catch (error) {
-      console.error("Could not start speech recognition:", error);
+      console.error(
+        "Could not start speech recognition:",
+        error
+      );
+
       setListening(false);
     }
   };
@@ -484,7 +506,9 @@ export default function AIPage() {
 
                     {message.role === "assistant" && (
                       <button
-                        onClick={() => speak(message.content)}
+                        onClick={() =>
+                          speak(message.content)
+                        }
                         className="mt-3 rounded-lg bg-white px-3 py-1.5 text-sm font-medium text-[#008c3a] shadow-sm"
                         title="Listen"
                       >
@@ -528,7 +552,9 @@ export default function AIPage() {
               <div className="mt-6 flex w-full max-w-3xl gap-2">
                 <input
                   value={input}
-                  onChange={(e) => setInput(e.target.value)}
+                  onChange={(e) =>
+                    setInput(e.target.value)
+                  }
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
                       sendTypedMessage();
