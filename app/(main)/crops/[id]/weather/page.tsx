@@ -2,8 +2,48 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useLanguage } from "../../../../lib/LanguageProvider";
+import type { LanguageCode } from "../../../../lib/language";
 
-const translations = {
+const translations: Record<
+  LanguageCode,
+  {
+    title: string;
+    subtitle: string;
+    loading: string;
+    loadingDesc: string;
+    unavailable: string;
+    unavailableDesc: string;
+    tryAgain: string;
+    back: string;
+    currentConditions: string;
+    feelsLike: string;
+    humidity: string;
+    windSpeed: string;
+    rainProbability: string;
+    farmingAdvice: string;
+    irrigation: string;
+    irrigationDesc: string;
+    cropCare: string;
+    cropCareDesc: string;
+    rainAlert: string;
+    rainAlertDesc: string;
+    forecast: string;
+    rain: string;
+    clearSky: string;
+    partlyCloudy: string;
+    foggy: string;
+    drizzle: string;
+    rainText: string;
+    snow: string;
+    rainShowers: string;
+    thunderstorm: string;
+    unknown: string;
+    location: string;
+    coordinates: string;
+    editProfile: string;
+  }
+> = {
   en: {
     title: "Weather",
     subtitle: "Current weather information for your farming area.",
@@ -41,6 +81,7 @@ const translations = {
     unknown: "Unknown",
     location: "Location",
     coordinates: "Coordinates",
+    editProfile: "Edit Profile",
   },
 
   hi: {
@@ -80,6 +121,7 @@ const translations = {
     unknown: "अज्ञात",
     location: "स्थान",
     coordinates: "निर्देशांक",
+    editProfile: "प्रोफ़ाइल संपादित करें",
   },
 
   bn: {
@@ -119,6 +161,7 @@ const translations = {
     unknown: "অজানা",
     location: "অবস্থান",
     coordinates: "স্থানাঙ্ক",
+    editProfile: "প্রোফাইল সম্পাদনা করুন",
   },
 
   mr: {
@@ -158,6 +201,7 @@ const translations = {
     unknown: "अज्ञात",
     location: "स्थान",
     coordinates: "निर्देशांक",
+    editProfile: "प्रोफाइल संपादित करा",
   },
 
   ta: {
@@ -197,6 +241,7 @@ const translations = {
     unknown: "தெரியவில்லை",
     location: "இடம்",
     coordinates: "ஆயத்தொலைவுகள்",
+    editProfile: "சுயவிவரத்தைத் திருத்து",
   },
 
   te: {
@@ -236,6 +281,7 @@ const translations = {
     unknown: "తెలియదు",
     location: "స్థానం",
     coordinates: "కోఆర్డినేట్లు",
+    editProfile: "ప్రొఫైల్‌ను సవరించండి",
   },
 
   gu: {
@@ -275,6 +321,7 @@ const translations = {
     unknown: "અજ્ઞાત",
     location: "સ્થળ",
     coordinates: "કોઓર્ડિનેટ્સ",
+    editProfile: "પ્રોફાઇલ સંપાદિત કરો",
   },
 
   kn: {
@@ -314,6 +361,7 @@ const translations = {
     unknown: "ತಿಳಿದಿಲ್ಲ",
     location: "ಸ್ಥಳ",
     coordinates: "ನಿರ್ದೇಶಾಂಕಗಳು",
+    editProfile: "ಪ್ರೊಫೈಲ್ ಸಂಪಾದಿಸಿ",
   },
 
   ml: {
@@ -353,6 +401,7 @@ const translations = {
     unknown: "അജ്ഞാതം",
     location: "സ്ഥലം",
     coordinates: "കോർഡിനേറ്റുകൾ",
+    editProfile: "പ്രൊഫൈൽ എഡിറ്റ് ചെയ്യുക",
   },
 
   pa: {
@@ -392,6 +441,7 @@ const translations = {
     unknown: "ਅਣਜਾਣ",
     location: "ਸਥਾਨ",
     coordinates: "ਕੋਆਰਡੀਨੇਟ",
+    editProfile: "ਪ੍ਰੋਫਾਈਲ ਸੰਪਾਦਿਤ ਕਰੋ",
   },
 
   or: {
@@ -431,6 +481,7 @@ const translations = {
     unknown: "ଅଜ୍ଞାତ",
     location: "ସ୍ଥାନ",
     coordinates: "ସ୍ଥାନାଙ୍କ",
+    editProfile: "ପ୍ରୋଫାଇଲ୍ ସମ୍ପାଦନ କରନ୍ତୁ",
   },
 
   as: {
@@ -470,6 +521,7 @@ const translations = {
     unknown: "অজ্ঞাত",
     location: "স্থান",
     coordinates: "স্থানাংক",
+    editProfile: "প্ৰ'ফাইল সম্পাদনা কৰক",
   },
 
   ur: {
@@ -509,10 +561,9 @@ const translations = {
     unknown: "نامعلوم",
     location: "مقام",
     coordinates: "مقام کے نقاط",
+    editProfile: "پروفائل میں ترمیم کریں",
   },
-} as const;
-
-type Language = keyof typeof translations;
+};
 
 type WeatherData = {
   current: {
@@ -545,7 +596,7 @@ type FarmerProfile = {
   pinCode?: string;
 };
 
-const localeMap: Record<Language, string> = {
+const localeMap: Record<LanguageCode, string> = {
   en: "en-IN",
   hi: "hi-IN",
   bn: "bn-IN",
@@ -561,16 +612,6 @@ const localeMap: Record<Language, string> = {
   ur: "ur-IN",
 };
 
-/*
- * Get farmer profile directly from localStorage.
- *
- * Your profile page saves the data using:
- *
- * localStorage.setItem(
- *   "farmerProfile",
- *   JSON.stringify(form)
- * );
- */
 function getFarmerProfile(): FarmerProfile | null {
   if (typeof window === "undefined") {
     return null;
@@ -595,12 +636,6 @@ function getFarmerProfile(): FarmerProfile | null {
   }
 }
 
-/*
- * Get coordinates from PIN code.
- *
- * We first try the PIN because it is much more reliable
- * than sending village + district + state as one long name.
- */
 async function getCoordinatesFromPin(
   pinCode: string
 ): Promise<Coordinates | null> {
@@ -645,21 +680,10 @@ async function getCoordinatesFromPin(
   return {
     latitude: indianResult.latitude,
     longitude: indianResult.longitude,
-    name:
-      indianResult.name ||
-      `${cleanPin}, India`,
+    name: indianResult.name || `${cleanPin}, India`,
   };
 }
 
-/*
- * Fallback location search.
- *
- * If PIN geocoding does not work, we try:
- *
- * village + district + state
- *
- * and then district + state.
- */
 async function searchLocation(
   query: string
 ): Promise<Coordinates | null> {
@@ -705,16 +729,6 @@ async function searchLocation(
   };
 }
 
-/*
- * Main coordinate function.
- *
- * Order:
- *
- * 1. PIN code
- * 2. Village + District + State
- * 3. District + State
- * 4. State
- */
 async function getFarmerCoordinates(
   profile: FarmerProfile
 ): Promise<Coordinates | null> {
@@ -723,10 +737,6 @@ async function getFarmerCoordinates(
   const district = profile.district?.trim() || "";
   const state = profile.state?.trim() || "";
 
-  /*
-   * STEP 1:
-   * Try PIN code.
-   */
   if (pinCode) {
     try {
       const pinCoordinates =
@@ -738,22 +748,14 @@ async function getFarmerCoordinates(
           name:
             [village, district, state]
               .filter(Boolean)
-              .join(", ") ||
-            pinCoordinates.name,
+              .join(", ") || pinCoordinates.name,
         };
       }
     } catch (error) {
-      console.warn(
-        "PIN geocoding failed:",
-        error
-      );
+      console.warn("PIN geocoding failed:", error);
     }
   }
 
-  /*
-   * STEP 2:
-   * Village + District + State
-   */
   if (village || district || state) {
     const detailedLocation = [
       village,
@@ -779,10 +781,6 @@ async function getFarmerCoordinates(
     }
   }
 
-  /*
-   * STEP 3:
-   * District + State
-   */
   if (district || state) {
     const districtLocation = [
       district,
@@ -807,10 +805,6 @@ async function getFarmerCoordinates(
     }
   }
 
-  /*
-   * STEP 4:
-   * State only.
-   */
   if (state) {
     try {
       const coordinates =
@@ -832,9 +826,6 @@ async function getFarmerCoordinates(
   return null;
 }
 
-/*
- * Get actual weather from Open-Meteo.
- */
 async function getWeather(
   latitude: number,
   longitude: number
@@ -851,17 +842,13 @@ async function getWeather(
   const response = await fetch(url);
 
   if (!response.ok) {
-    throw new Error(
-      "Weather service unavailable."
-    );
+    throw new Error("Weather service unavailable.");
   }
 
   const data = await response.json();
 
   if (!data.current || !data.daily) {
-    throw new Error(
-      "Weather data is incomplete."
-    );
+    throw new Error("Weather data is incomplete.");
   }
 
   return data as WeatherData;
@@ -871,8 +858,7 @@ export default function WeatherPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
 
-  const [language, setLanguage] =
-    useState<Language>("en");
+  const { language } = useLanguage();
 
   const [weather, setWeather] =
     useState<WeatherData | null>(null);
@@ -889,34 +875,15 @@ export default function WeatherPage() {
   const [coordinates, setCoordinates] =
     useState<Coordinates | null>(null);
 
+  const t = translations[language];
+
   useEffect(() => {
-    const savedLanguage =
-      localStorage.getItem(
-        "selectedLanguage"
-      );
-
-    if (
-      savedLanguage &&
-      Object.prototype.hasOwnProperty.call(
-        translations,
-        savedLanguage
-      )
-    ) {
-      setLanguage(
-        savedLanguage as Language
-      );
-    }
-
     const loadWeather = async () => {
       try {
         setLoading(true);
         setError("");
 
-        /*
-         * Get exact profile saved by Profile page.
-         */
-        const profile =
-          getFarmerProfile();
+        const profile = getFarmerProfile();
 
         if (!profile) {
           throw new Error(
@@ -924,9 +891,6 @@ export default function WeatherPage() {
           );
         }
 
-        /*
-         * Build a readable location.
-         */
         const displayLocation = [
           profile.village,
           profile.district,
@@ -942,19 +906,10 @@ export default function WeatherPage() {
           );
         }
 
-        setFarmerLocation(
-          displayLocation
-        );
+        setFarmerLocation(displayLocation);
 
-        /*
-         * Find coordinates.
-         *
-         * PIN is tried first.
-         */
         const coords =
-          await getFarmerCoordinates(
-            profile
-          );
+          await getFarmerCoordinates(profile);
 
         if (!coords) {
           throw new Error(
@@ -964,9 +919,6 @@ export default function WeatherPage() {
 
         setCoordinates(coords);
 
-        /*
-         * Get actual weather.
-         */
         const weatherData =
           await getWeather(
             coords.latitude,
@@ -975,10 +927,7 @@ export default function WeatherPage() {
 
         setWeather(weatherData);
       } catch (err) {
-        console.error(
-          "Weather error:",
-          err
-        );
+        console.error("Weather error:", err);
 
         setError(
           err instanceof Error
@@ -992,8 +941,6 @@ export default function WeatherPage() {
 
     loadWeather();
   }, []);
-
-  const t = translations[language];
 
   const getWeatherText = (
     code: number
@@ -1037,23 +984,14 @@ export default function WeatherPage() {
     return localeMap[language];
   };
 
-  /*
-   * Loading screen.
-   */
   if (loading) {
     return (
       <main
         className="min-h-screen bg-green-50 flex items-center justify-center px-5"
-        dir={
-          language === "ur"
-            ? "rtl"
-            : "ltr"
-        }
+        dir={language === "ur" ? "rtl" : "ltr"}
       >
         <div className="bg-white rounded-3xl shadow-lg p-8 text-center">
-          <div className="text-6xl mb-4">
-            🌦️
-          </div>
+          <div className="text-6xl mb-4">🌦️</div>
 
           <h1 className="text-2xl font-bold text-green-800">
             {t.loading}
@@ -1067,49 +1005,35 @@ export default function WeatherPage() {
     );
   }
 
-  /*
-   * Error screen.
-   */
   if (error || !weather) {
     return (
       <main
         className="min-h-screen bg-green-50 flex items-center justify-center px-5"
-        dir={
-          language === "ur"
-            ? "rtl"
-            : "ltr"
-        }
+        dir={language === "ur" ? "rtl" : "ltr"}
       >
         <div className="bg-white rounded-3xl shadow-lg p-8 text-center max-w-lg">
-          <div className="text-5xl mb-4">
-            ⚠️
-          </div>
+          <div className="text-5xl mb-4">⚠️</div>
 
           <h1 className="text-2xl font-bold text-gray-900">
             {t.unavailable}
           </h1>
 
           <p className="text-gray-600 mt-2">
-            {error ||
-              t.unavailableDesc}
+            {error || t.unavailableDesc}
           </p>
 
           <button
-            onClick={() =>
-              window.location.reload()
-            }
+            onClick={() => window.location.reload()}
             className="mt-6 px-6 py-3 rounded-xl bg-green-700 text-white font-bold hover:bg-green-800"
           >
             {t.tryAgain}
           </button>
 
           <button
-            onClick={() =>
-              router.push("/profile")
-            }
+            onClick={() => router.push("/profile")}
             className="mt-3 block w-full px-6 py-3 rounded-xl border border-green-700 text-green-700 font-bold hover:bg-green-50"
           >
-            Edit Profile
+            {t.editProfile}
           </button>
         </div>
       </main>
@@ -1122,20 +1046,14 @@ export default function WeatherPage() {
   return (
     <main
       className="min-h-screen bg-green-50 px-5 py-10"
-      dir={
-        language === "ur"
-          ? "rtl"
-          : "ltr"
-      }
+      dir={language === "ur" ? "rtl" : "ltr"}
     >
       <div className="max-w-5xl mx-auto">
 
         {/* Back */}
         <button
           onClick={() =>
-            router.push(
-              `/crops/${params.id}`
-            )
+            router.push(`/crops/${params.id}`)
           }
           className="text-green-700 font-semibold mb-6 hover:text-green-900"
         >
@@ -1144,9 +1062,7 @@ export default function WeatherPage() {
 
         {/* Header */}
         <div className="mb-8">
-          <div className="text-6xl mb-3">
-            🌦️
-          </div>
+          <div className="text-6xl mb-3">🌦️</div>
 
           <h1 className="text-3xl font-bold text-green-800">
             {t.title}
@@ -1163,20 +1079,14 @@ export default function WeatherPage() {
             </p>
 
             <p className="text-lg font-bold text-green-800 mt-1">
-              {coordinates?.name ||
-                farmerLocation}
+              {coordinates?.name || farmerLocation}
             </p>
 
             {coordinates && (
               <p className="text-sm text-gray-500 mt-1">
                 {t.coordinates}:{" "}
-                {coordinates.latitude.toFixed(
-                  4
-                )}
-                ,{" "}
-                {coordinates.longitude.toFixed(
-                  4
-                )}
+                {coordinates.latitude.toFixed(4)},{" "}
+                {coordinates.longitude.toFixed(4)}
               </p>
             )}
           </div>
@@ -1189,29 +1099,21 @@ export default function WeatherPage() {
           </p>
 
           <div className="flex flex-col sm:flex-row sm:items-center gap-6 mt-4">
-            <div className="text-7xl">
-              🌤️
-            </div>
+            <div className="text-7xl">🌤️</div>
 
             <div>
               <div className="text-5xl font-bold text-green-800">
-                {Math.round(
-                  current.temperature_2m
-                )}
+                {Math.round(current.temperature_2m)}
                 °C
               </div>
 
               <h2 className="text-xl font-bold text-gray-900 mt-2">
-                {getWeatherText(
-                  current.weather_code
-                )}
+                {getWeatherText(current.weather_code)}
               </h2>
 
               <p className="text-gray-500 mt-1">
                 {t.feelsLike}{" "}
-                {Math.round(
-                  current.apparent_temperature
-                )}
+                {Math.round(current.apparent_temperature)}
                 °C
               </p>
             </div>
@@ -1221,9 +1123,7 @@ export default function WeatherPage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-7">
 
             <div className="bg-green-50 rounded-2xl p-5">
-              <div className="text-3xl mb-2">
-                💧
-              </div>
+              <div className="text-3xl mb-2">💧</div>
 
               <p className="text-sm text-gray-500">
                 {t.humidity}
@@ -1235,36 +1135,26 @@ export default function WeatherPage() {
             </div>
 
             <div className="bg-green-50 rounded-2xl p-5">
-              <div className="text-3xl mb-2">
-                💨
-              </div>
+              <div className="text-3xl mb-2">💨</div>
 
               <p className="text-sm text-gray-500">
                 {t.windSpeed}
               </p>
 
               <p className="text-xl font-bold text-green-800">
-                {Math.round(
-                  current.wind_speed_10m
-                )}{" "}
-                km/h
+                {Math.round(current.wind_speed_10m)} km/h
               </p>
             </div>
 
             <div className="bg-green-50 rounded-2xl p-5">
-              <div className="text-3xl mb-2">
-                🌧️
-              </div>
+              <div className="text-3xl mb-2">🌧️</div>
 
               <p className="text-sm text-gray-500">
                 {t.rainProbability}
               </p>
 
               <p className="text-xl font-bold text-green-800">
-                {daily
-                  .precipitation_probability_max?.[0] ??
-                  0}
-                %
+                {daily.precipitation_probability_max?.[0] ?? 0}%
               </p>
             </div>
 
@@ -1321,62 +1211,47 @@ export default function WeatherPage() {
 
           <div className="space-y-3">
 
-            {daily.time.map(
-              (date, index) => (
-                <div
-                  key={date}
-                  className="flex items-center justify-between gap-4 border border-green-100 rounded-2xl p-4"
-                >
+            {daily.time.map((date, index) => (
+              <div
+                key={date}
+                className="flex items-center justify-between gap-4 border border-green-100 rounded-2xl p-4"
+              >
 
-                  <div className="font-semibold text-gray-700">
-                    {new Date(
-                      date
-                    ).toLocaleDateString(
-                      getLocale(),
-                      {
-                        weekday:
-                          "short",
-                        day: "numeric",
-                        month: "short",
-                      }
-                    )}
-                  </div>
-
-                  <div className="text-2xl">
-                    🌦️
-                  </div>
-
-                  <div className="text-right">
-                    <p className="font-bold text-green-800">
-                      {Math.round(
-                        daily
-                          .temperature_2m_max[
-                          index
-                        ]
-                      )}
-                      ° /{" "}
-                      {Math.round(
-                        daily
-                          .temperature_2m_min[
-                          index
-                        ]
-                      )}
-                      °
-                    </p>
-
-                    <p className="text-sm text-gray-500">
-                      {t.rain}{" "}
-                      {daily
-                        .precipitation_probability_max[
-                        index
-                      ] ?? 0}
-                      %
-                    </p>
-                  </div>
-
+                <div className="font-semibold text-gray-700">
+                  {new Date(date).toLocaleDateString(
+                    getLocale(),
+                    {
+                      weekday: "short",
+                      day: "numeric",
+                      month: "short",
+                    }
+                  )}
                 </div>
-              )
-            )}
+
+                <div className="text-2xl">
+                  🌦️
+                </div>
+
+                <div className="text-right">
+                  <p className="font-bold text-green-800">
+                    {Math.round(
+                      daily.temperature_2m_max[index]
+                    )}
+                    ° /{" "}
+                    {Math.round(
+                      daily.temperature_2m_min[index]
+                    )}
+                    °
+                  </p>
+
+                  <p className="text-sm text-gray-500">
+                    {t.rain}{" "}
+                    {daily.precipitation_probability_max[index] ?? 0}%
+                  </p>
+                </div>
+
+              </div>
+            ))}
 
           </div>
         </div>

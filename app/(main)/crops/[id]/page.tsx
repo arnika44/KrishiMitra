@@ -1,8 +1,9 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useLanguage } from "../../../lib/LanguageProvider";
+import type { LanguageCode } from "../../../lib/language";
 
 type Crop = {
   id: number;
@@ -53,13 +54,21 @@ type Translation = {
   alertMessage: string;
 };
 
-const translations: Record<string, Translation> = {
+const translations: Record<
+  LanguageCode,
+  Translation
+> = {
+  /* =====================================================
+     ENGLISH
+  ===================================================== */
+
   en: {
     back: "← Back to My Crops",
     season: "Season",
     landArea: "Land Area",
     services: "Services",
-    servicesDesc: "Everything you need to manage your crop.",
+    servicesDesc:
+      "Everything you need to manage your crop.",
     loading: "Loading crop...",
     pleaseWait: "Please wait...",
     notFound: "Crop not found",
@@ -104,6 +113,10 @@ const translations: Record<string, Translation> = {
 
     alertMessage: "will be connected next.",
   },
+
+  /* =====================================================
+     HINDI
+  ===================================================== */
 
   hi: {
     back: "← मेरी फसलों पर वापस जाएँ",
@@ -156,24 +169,649 @@ const translations: Record<string, Translation> = {
 
     alertMessage: "की सेवा जल्द जोड़ी जाएगी।",
   },
+
+  /* =====================================================
+     BENGALI
+  ===================================================== */
+
+  bn: {
+    back: "← আমার ফসলে ফিরে যান",
+    season: "মরসুম",
+    landArea: "জমির পরিমাণ",
+    services: "পরিষেবা",
+    servicesDesc:
+      "আপনার ফসল পরিচালনার জন্য প্রয়োজনীয় সব পরিষেবা।",
+    loading: "ফসল লোড হচ্ছে...",
+    pleaseWait: "অনুগ্রহ করে অপেক্ষা করুন...",
+    notFound: "ফসল পাওয়া যায়নি",
+    backToCrops: "← ফসলে ফিরে যান",
+    explore: "দেখুন →",
+
+    mandi: "মান্ডি ও বাজার",
+    mandiDesc:
+      "মান্ডির তথ্য, কাছাকাছি বাজার এবং ফসল বিক্রির সুযোগ দেখুন।",
+
+    waste: "ফসলের বর্জ্য ব্যবস্থাপনা",
+    wasteDesc:
+      "ফসলের বর্জ্য কীভাবে পুনর্ব্যবহার বা কাজে লাগানো যায় তা জানুন।",
+
+    storage: "সংরক্ষণ ও স্টোরেজ",
+    storageDesc:
+      "সঠিক সংরক্ষণ এবং ফসল কাটার পর ব্যবস্থাপনা সম্পর্কে জানুন।",
+
+    disease: "রোগ ও কীটপতঙ্গ শনাক্তকরণ",
+    diseaseDesc:
+      "AI-এর সাহায্যে ফসলের সম্ভাব্য রোগ, কীটপতঙ্গ ও ক্ষতি শনাক্ত করুন।",
+
+    aiDetector: "AI ফসল শনাক্তকারী",
+    aiDetectorDesc:
+      "ফসলের ছবি আপলোড করে রোগ ও ক্ষতি শনাক্ত করুন।",
+
+    irrigation: "সেচ",
+    irrigationDesc:
+      "ফসলের প্রয়োজন অনুযায়ী সেচের নির্দেশনা পান।",
+
+    fertilizer: "সার ও পুষ্টি",
+    fertilizerDesc:
+      "ফসল অনুযায়ী সার ও পুষ্টি ব্যবস্থাপনার তথ্য পান।",
+
+    weather: "আবহাওয়া",
+    weatherDesc:
+      "ফসল ব্যবস্থাপনার জন্য প্রয়োজনীয় আবহাওয়ার তথ্য দেখুন।",
+
+    price: "দামের তথ্য",
+    priceDesc:
+      "ফসলের বাজারদর এবং বাজারের প্রবণতা দেখুন।",
+
+    alertMessage: "পরিষেবাটি শীঘ্রই যুক্ত করা হবে।",
+  },
+
+  /* =====================================================
+     MARATHI
+  ===================================================== */
+
+  mr: {
+    back: "← माझ्या पिकांकडे परत जा",
+    season: "हंगाम",
+    landArea: "जमिनीचे क्षेत्रफळ",
+    services: "सेवा",
+    servicesDesc:
+      "तुमच्या पिकाचे व्यवस्थापन करण्यासाठी आवश्यक सर्व सेवा.",
+    loading: "पीक लोड होत आहे...",
+    pleaseWait: "कृपया प्रतीक्षा करा...",
+    notFound: "पीक सापडले नाही",
+    backToCrops: "← पिकांकडे परत जा",
+    explore: "पहा →",
+
+    mandi: "मंडी आणि बाजार",
+    mandiDesc:
+      "मंडीची माहिती, जवळचे बाजार आणि पीक विक्रीच्या संधी पहा.",
+
+    waste: "पीक अवशेष व्यवस्थापन",
+    wasteDesc:
+      "पीक अवशेषांचा पुनर्वापर आणि योग्य वापर कसा करावा ते जाणून घ्या.",
+
+    storage: "साठवण आणि संरक्षण",
+    storageDesc:
+      "योग्य साठवण आणि काढणीनंतरच्या व्यवस्थापनाची माहिती मिळवा.",
+
+    disease: "रोग आणि कीड ओळख",
+    diseaseDesc:
+      "AI च्या मदतीने पिकातील संभाव्य रोग, कीड आणि नुकसान ओळखा.",
+
+    aiDetector: "AI पीक डिटेक्टर",
+    aiDetectorDesc:
+      "पिकाचा फोटो अपलोड करून रोग आणि नुकसान ओळखा.",
+
+    irrigation: "सिंचन",
+    irrigationDesc:
+      "पिकाच्या गरजेनुसार सिंचनाचे मार्गदर्शन मिळवा.",
+
+    fertilizer: "खते आणि पोषक तत्त्वे",
+    fertilizerDesc:
+      "पिकानुसार खत आणि पोषक तत्त्व व्यवस्थापनाची माहिती मिळवा.",
+
+    weather: "हवामान",
+    weatherDesc:
+      "पीक व्यवस्थापनासाठी उपयुक्त हवामानाची माहिती पहा.",
+
+    price: "किंमत माहिती",
+    priceDesc:
+      "पिकाच्या बाजारभावाची आणि बाजारातील बदलांची माहिती पहा.",
+
+    alertMessage: "ही सेवा लवकरच जोडली जाईल.",
+  },
+
+  /* =====================================================
+     TAMIL
+  ===================================================== */
+
+  ta: {
+    back: "← என் பயிர்களுக்குத் திரும்பு",
+    season: "பருவம்",
+    landArea: "நிலப்பரப்பு",
+    services: "சேவைகள்",
+    servicesDesc:
+      "உங்கள் பயிரை நிர்வகிக்க தேவையான அனைத்து சேவைகளும்.",
+    loading: "பயிர் ஏற்றப்படுகிறது...",
+    pleaseWait: "தயவுசெய்து காத்திருக்கவும்...",
+    notFound: "பயிர் கிடைக்கவில்லை",
+    backToCrops: "← பயிர்களுக்குத் திரும்பு",
+    explore: "பார்க்கவும் →",
+
+    mandi: "மண்டி மற்றும் சந்தை",
+    mandiDesc:
+      "மண்டி தகவல், அருகிலுள்ள சந்தைகள் மற்றும் விற்பனை வாய்ப்புகளைப் பார்க்கவும்.",
+
+    waste: "பயிர் கழிவு பயன்பாடு",
+    wasteDesc:
+      "பயிர் கழிவுகளை மீண்டும் பயன்படுத்துவது மற்றும் மறுசுழற்சி செய்வது பற்றி அறியவும்.",
+
+    storage: "சேமிப்பு மற்றும் பாதுகாப்பு",
+    storageDesc:
+      "சரியான சேமிப்பு மற்றும் அறுவடைக்குப் பிந்தைய பராமரிப்பு பற்றிய வழிகாட்டுதலைப் பெறவும்.",
+
+    disease: "நோய் மற்றும் பூச்சி கண்டறிதல்",
+    diseaseDesc:
+      "AI உதவியுடன் பயிர் நோய்கள், பூச்சிகள் மற்றும் சேதங்களை கண்டறியவும்.",
+
+    aiDetector: "AI பயிர் கண்டறிதல்",
+    aiDetectorDesc:
+      "பயிரின் படத்தை பதிவேற்றி நோய் மற்றும் சேதத்தை கண்டறியவும்.",
+
+    irrigation: "நீர்ப்பாசனம்",
+    irrigationDesc:
+      "பயிரின் தேவைக்கு ஏற்ப நீர்ப்பாசன வழிகாட்டுதலைப் பெறவும்.",
+
+    fertilizer: "உரம் மற்றும் ஊட்டச்சத்துக்கள்",
+    fertilizerDesc:
+      "பயிருக்கு ஏற்ற உரம் மற்றும் ஊட்டச்சத்து மேலாண்மை தகவலைப் பெறவும்.",
+
+    weather: "வானிலை",
+    weatherDesc:
+      "பயிர் மேலாண்மைக்கு தேவையான வானிலை தகவலைப் பார்க்கவும்.",
+
+    price: "விலை தகவல்",
+    priceDesc:
+      "பயிர் விலை மற்றும் சந்தை நிலவரத்தைப் பார்க்கவும்.",
+
+    alertMessage: "சேவை விரைவில் இணைக்கப்படும்.",
+  },
+
+  /* =====================================================
+     TELUGU
+  ===================================================== */
+
+  te: {
+    back: "← నా పంటలకు తిరిగి వెళ్లండి",
+    season: "సీజన్",
+    landArea: "భూమి విస్తీర్ణం",
+    services: "సేవలు",
+    servicesDesc:
+      "మీ పంటను నిర్వహించడానికి అవసరమైన అన్ని సేవలు.",
+    loading: "పంట లోడ్ అవుతోంది...",
+    pleaseWait: "దయచేసి వేచి ఉండండి...",
+    notFound: "పంట కనుగొనబడలేదు",
+    backToCrops: "← పంటలకు తిరిగి వెళ్లండి",
+    explore: "చూడండి →",
+
+    mandi: "మండి & మార్కెట్",
+    mandiDesc:
+      "మండి సమాచారం, సమీప మార్కెట్లు మరియు పంట విక్రయ అవకాశాలను చూడండి.",
+
+    waste: "పంట వ్యర్థాల వినియోగం",
+    wasteDesc:
+      "పంట వ్యర్థాలను తిరిగి ఉపయోగించడం మరియు రీసైకిల్ చేయడం గురించి తెలుసుకోండి.",
+
+    storage: "నిల్వ & సంరక్షణ",
+    storageDesc:
+      "సరైన నిల్వ మరియు పంట కోత తర్వాత నిర్వహణపై మార్గదర్శకత్వం పొందండి.",
+
+    disease: "వ్యాధి & తెగుళ్ల గుర్తింపు",
+    diseaseDesc:
+      "AI సహాయంతో పంట వ్యాధులు, తెగుళ్లు మరియు నష్టాలను గుర్తించండి.",
+
+    aiDetector: "AI పంట గుర్తింపు",
+    aiDetectorDesc:
+      "పంట చిత్రాన్ని అప్‌లోడ్ చేసి వ్యాధి మరియు నష్టాన్ని గుర్తించండి.",
+
+    irrigation: "నీటిపారుదల",
+    irrigationDesc:
+      "పంట అవసరాల ఆధారంగా నీటిపారుదల మార్గదర్శకత్వం పొందండి.",
+
+    fertilizer: "ఎరువులు & పోషకాలు",
+    fertilizerDesc:
+      "పంటకు అనుగుణమైన ఎరువులు మరియు పోషకాల నిర్వహణ సమాచారాన్ని పొందండి.",
+
+    weather: "వాతావరణం",
+    weatherDesc:
+      "పంట నిర్వహణకు ఉపయోగపడే వాతావరణ సమాచారాన్ని చూడండి.",
+
+    price: "ధర సమాచారం",
+    priceDesc:
+      "పంట ధరలు మరియు మార్కెట్ పరిస్థితులను చూడండి.",
+
+    alertMessage: "సేవ త్వరలో జోడించబడుతుంది.",
+  },
+
+  /* =====================================================
+     GUJARATI
+  ===================================================== */
+
+  gu: {
+    back: "← મારા પાક પર પાછા જાઓ",
+    season: "સિઝન",
+    landArea: "જમીનનું ક્ષેત્રફળ",
+    services: "સેવાઓ",
+    servicesDesc:
+      "તમારા પાકનું સંચાલન કરવા માટે જરૂરી તમામ સેવાઓ.",
+    loading: "પાક લોડ થઈ રહ્યો છે...",
+    pleaseWait: "કૃપા કરીને રાહ જુઓ...",
+    notFound: "પાક મળ્યો નથી",
+    backToCrops: "← પાક પર પાછા જાઓ",
+    explore: "જુઓ →",
+
+    mandi: "મંડી અને બજાર",
+    mandiDesc:
+      "મંડીની માહિતી, નજીકના બજારો અને પાક વેચવાની તકો જુઓ.",
+
+    waste: "પાકના કચરાનો ઉપયોગ",
+    wasteDesc:
+      "પાકના કચરાનો પુનઃઉપયોગ અને રિસાયકલ કેવી રીતે કરવો તે જાણો.",
+
+    storage: "સંગ્રહ અને સંરક્ષણ",
+    storageDesc:
+      "યોગ્ય સંગ્રહ અને લણણી પછીની વ્યવસ્થાપન માહિતી મેળવો.",
+
+    disease: "રોગ અને જીવાતની ઓળખ",
+    diseaseDesc:
+      "AI ની મદદથી પાકના રોગો, જીવાતો અને નુકસાનને ઓળખો.",
+
+    aiDetector: "AI પાક ડિટેક્ટર",
+    aiDetectorDesc:
+      "પાકનો ફોટો અપલોડ કરીને રોગ અને નુકસાન શોધો.",
+
+    irrigation: "સિંચાઈ",
+    irrigationDesc:
+      "પાકની જરૂરિયાત અનુસાર સિંચાઈ માટે માર્ગદર્શન મેળવો.",
+
+    fertilizer: "ખાતર અને પોષક તત્વો",
+    fertilizerDesc:
+      "પાક અનુસાર ખાતર અને પોષક તત્વોની માહિતી મેળવો.",
+
+    weather: "હવામાન",
+    weatherDesc:
+      "પાક વ્યવસ્થાપન માટે ઉપયોગી હવામાનની માહિતી જુઓ.",
+
+    price: "ભાવ માહિતી",
+    priceDesc:
+      "પાકના બજાર ભાવ અને બજારની સ્થિતિ જુઓ.",
+
+    alertMessage: "સેવા ટૂંક સમયમાં ઉમેરવામાં આવશે.",
+  },
+
+  /* =====================================================
+     KANNADA
+  ===================================================== */
+
+  kn: {
+    back: "← ನನ್ನ ಬೆಳೆಗಳಿಗೆ ಹಿಂತಿರುಗಿ",
+    season: "ಋತು",
+    landArea: "ಜಮೀನಿನ ವಿಸ್ತೀರ್ಣ",
+    services: "ಸೇವೆಗಳು",
+    servicesDesc:
+      "ನಿಮ್ಮ ಬೆಳೆಯನ್ನು ನಿರ್ವಹಿಸಲು ಅಗತ್ಯವಿರುವ ಎಲ್ಲಾ ಸೇವೆಗಳು.",
+    loading: "ಬೆಳೆ ಲೋಡ್ ಆಗುತ್ತಿದೆ...",
+    pleaseWait: "ದಯವಿಟ್ಟು ಕಾಯಿರಿ...",
+    notFound: "ಬೆಳೆ ಕಂಡುಬಂದಿಲ್ಲ",
+    backToCrops: "← ಬೆಳೆಗಳಿಗೆ ಹಿಂತಿರುಗಿ",
+    explore: "ವೀಕ್ಷಿಸಿ →",
+
+    mandi: "ಮಂಡಿ ಮತ್ತು ಮಾರುಕಟ್ಟೆ",
+    mandiDesc:
+      "ಮಂಡಿ ಮಾಹಿತಿ, ಹತ್ತಿರದ ಮಾರುಕಟ್ಟೆಗಳು ಮತ್ತು ಮಾರಾಟದ ಅವಕಾಶಗಳನ್ನು ನೋಡಿ.",
+
+    waste: "ಬೆಳೆ ತ್ಯಾಜ್ಯ ಬಳಕೆ",
+    wasteDesc:
+      "ಬೆಳೆ ತ್ಯಾಜ್ಯವನ್ನು ಮರುಬಳಕೆ ಮತ್ತು ಮರುಸಂಸ್ಕರಣೆ ಮಾಡುವ ವಿಧಾನಗಳನ್ನು ತಿಳಿಯಿರಿ.",
+
+    storage: "ಸಂಗ್ರಹಣೆ ಮತ್ತು ಸಂರಕ್ಷಣೆ",
+    storageDesc:
+      "ಸರಿಯಾದ ಸಂಗ್ರಹಣೆ ಮತ್ತು ಕೊಯ್ಲಿನ ನಂತರದ ನಿರ್ವಹಣೆಯ ಬಗ್ಗೆ ಮಾರ್ಗದರ್ಶನ ಪಡೆಯಿರಿ.",
+
+    disease: "ರೋಗ ಮತ್ತು ಕೀಟ ಪತ್ತೆ",
+    diseaseDesc:
+      "AI ಸಹಾಯದಿಂದ ಬೆಳೆ ರೋಗಗಳು, ಕೀಟಗಳು ಮತ್ತು ಹಾನಿಯನ್ನು ಗುರುತಿಸಿ.",
+
+    aiDetector: "AI ಬೆಳೆ ಪತ್ತೆ",
+    aiDetectorDesc:
+      "ಬೆಳೆಯ ಚಿತ್ರವನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ ರೋಗ ಮತ್ತು ಹಾನಿಯನ್ನು ಪತ್ತೆಹಚ್ಚಿ.",
+
+    irrigation: "ನೀರಾವರಿ",
+    irrigationDesc:
+      "ಬೆಳೆಯ ಅಗತ್ಯಕ್ಕೆ ಅನುಗುಣವಾಗಿ ನೀರಾವರಿ ಮಾರ್ಗದರ್ಶನ ಪಡೆಯಿರಿ.",
+
+    fertilizer: "ರಸಗೊಬ್ಬರ ಮತ್ತು ಪೋಷಕಾಂಶಗಳು",
+    fertilizerDesc:
+      "ಬೆಳೆಗೆ ಅನುಗುಣವಾದ ರಸಗೊಬ್ಬರ ಮತ್ತು ಪೋಷಕಾಂಶಗಳ ಮಾಹಿತಿಯನ್ನು ಪಡೆಯಿರಿ.",
+
+    weather: "ಹವಾಮಾನ",
+    weatherDesc:
+      "ಬೆಳೆ ನಿರ್ವಹಣೆಗೆ ಉಪಯುಕ್ತವಾದ ಹವಾಮಾನ ಮಾಹಿತಿಯನ್ನು ನೋಡಿ.",
+
+    price: "ಬೆಲೆ ಮಾಹಿತಿ",
+    priceDesc:
+      "ಬೆಳೆಯ ಮಾರುಕಟ್ಟೆ ಬೆಲೆ ಮತ್ತು ಮಾರುಕಟ್ಟೆ ಪರಿಸ್ಥಿತಿಯನ್ನು ನೋಡಿ.",
+
+    alertMessage: "ಸೇವೆಯನ್ನು ಶೀಘ್ರದಲ್ಲೇ ಸೇರಿಸಲಾಗುತ್ತದೆ.",
+  },
+
+  /* =====================================================
+     MALAYALAM
+  ===================================================== */
+
+  ml: {
+    back: "← എന്റെ വിളകളിലേക്ക് മടങ്ങുക",
+    season: "സീസൺ",
+    landArea: "ഭൂവിസ്തീർണ്ണം",
+    services: "സേവനങ്ങൾ",
+    servicesDesc:
+      "നിങ്ങളുടെ വിള നിയന്ത്രിക്കാൻ ആവശ്യമായ എല്ലാ സേവനങ്ങളും.",
+    loading: "വിള ലോഡ് ചെയ്യുന്നു...",
+    pleaseWait: "ദയവായി കാത്തിരിക്കുക...",
+    notFound: "വിള കണ്ടെത്തിയില്ല",
+    backToCrops: "← വിളകളിലേക്ക് മടങ്ങുക",
+    explore: "കാണുക →",
+
+    mandi: "മണ്ടിയും മാർക്കറ്റും",
+    mandiDesc:
+      "മണ്ടി വിവരങ്ങൾ, സമീപത്തെ മാർക്കറ്റുകൾ, വിൽപ്പന അവസരങ്ങൾ എന്നിവ കാണുക.",
+
+    waste: "വിള മാലിന്യ ഉപയോഗം",
+    wasteDesc:
+      "വിള മാലിന്യം പുനരുപയോഗിക്കാനും റീസൈക്കിൾ ചെയ്യാനും എങ്ങനെ കഴിയുമെന്ന് അറിയുക.",
+
+    storage: "സംഭരണവും സംരക്ഷണവും",
+    storageDesc:
+      "ശരിയായ സംഭരണവും വിളവെടുപ്പിന് ശേഷമുള്ള പരിപാലനവും സംബന്ധിച്ച മാർഗനിർദ്ദേശം നേടുക.",
+
+    disease: "രോഗവും കീടങ്ങളും കണ്ടെത്തൽ",
+    diseaseDesc:
+      "AI ഉപയോഗിച്ച് വിളയിലെ രോഗങ്ങൾ, കീടങ്ങൾ, നാശനഷ്ടങ്ങൾ എന്നിവ കണ്ടെത്തുക.",
+
+    aiDetector: "AI വിള ഡിറ്റക്ടർ",
+    aiDetectorDesc:
+      "വിളയുടെ ചിത്രം അപ്‌ലോഡ് ചെയ്ത് രോഗവും നാശവും കണ്ടെത്തുക.",
+
+    irrigation: "ജലസേചനം",
+    irrigationDesc:
+      "വിളയുടെ ആവശ്യകത അനുസരിച്ച് ജലസേചന മാർഗനിർദ്ദേശം നേടുക.",
+
+    fertilizer: "വളവും പോഷകങ്ങളും",
+    fertilizerDesc:
+      "വിളയ്ക്ക് അനുയോജ്യമായ വളവും പോഷക പരിപാലന വിവരങ്ങളും നേടുക.",
+
+    weather: "കാലാവസ്ഥ",
+    weatherDesc:
+      "വിള പരിപാലനത്തിന് ആവശ്യമായ കാലാവസ്ഥാ വിവരങ്ങൾ കാണുക.",
+
+    price: "വില വിവരങ്ങൾ",
+    priceDesc:
+      "വിളയുടെ വിപണി വിലയും വിപണി പ്രവണതകളും പരിശോധിക്കുക.",
+
+    alertMessage: "സേവനം ഉടൻ ചേർക്കും.",
+  },
+
+  /* =====================================================
+     PUNJABI
+  ===================================================== */
+
+  pa: {
+    back: "← ਮੇਰੀਆਂ ਫਸਲਾਂ ਤੇ ਵਾਪਸ ਜਾਓ",
+    season: "ਸੀਜ਼ਨ",
+    landArea: "ਜ਼ਮੀਨ ਦਾ ਖੇਤਰਫਲ",
+    services: "ਸੇਵਾਵਾਂ",
+    servicesDesc:
+      "ਤੁਹਾਡੀ ਫਸਲ ਨੂੰ ਸੰਭਾਲਣ ਲਈ ਲੋੜੀਂਦੀਆਂ ਸਾਰੀਆਂ ਸੇਵਾਵਾਂ।",
+    loading: "ਫਸਲ ਲੋਡ ਹੋ ਰਹੀ ਹੈ...",
+    pleaseWait: "ਕਿਰਪਾ ਕਰਕੇ ਉਡੀਕ ਕਰੋ...",
+    notFound: "ਫਸਲ ਨਹੀਂ ਮਿਲੀ",
+    backToCrops: "← ਫਸਲਾਂ ਤੇ ਵਾਪਸ ਜਾਓ",
+    explore: "ਵੇਖੋ →",
+
+    mandi: "ਮੰਡੀ ਅਤੇ ਬਾਜ਼ਾਰ",
+    mandiDesc:
+      "ਮੰਡੀ ਦੀ ਜਾਣਕਾਰੀ, ਨੇੜਲੇ ਬਾਜ਼ਾਰ ਅਤੇ ਫਸਲ ਵੇਚਣ ਦੇ ਮੌਕੇ ਵੇਖੋ।",
+
+    waste: "ਫਸਲਾਂ ਦੀ ਰਹਿੰਦ-ਖੂੰਹਦ ਦੀ ਵਰਤੋਂ",
+    wasteDesc:
+      "ਫਸਲਾਂ ਦੀ ਰਹਿੰਦ-ਖੂੰਹਦ ਨੂੰ ਦੁਬਾਰਾ ਵਰਤਣ ਅਤੇ ਰੀਸਾਈਕਲ ਕਰਨ ਬਾਰੇ ਜਾਣੋ।",
+
+    storage: "ਸਟੋਰੇਜ ਅਤੇ ਸੰਭਾਲ",
+    storageDesc:
+      "ਸਹੀ ਸਟੋਰੇਜ ਅਤੇ ਵਾਢੀ ਤੋਂ ਬਾਅਦ ਦੀ ਸੰਭਾਲ ਬਾਰੇ ਜਾਣਕਾਰੀ ਪ੍ਰਾਪਤ ਕਰੋ।",
+
+    disease: "ਬਿਮਾਰੀ ਅਤੇ ਕੀੜਿਆਂ ਦੀ ਪਛਾਣ",
+    diseaseDesc:
+      "AI ਦੀ ਮਦਦ ਨਾਲ ਫਸਲਾਂ ਦੀਆਂ ਬਿਮਾਰੀਆਂ, ਕੀੜਿਆਂ ਅਤੇ ਨੁਕਸਾਨ ਦੀ ਪਛਾਣ ਕਰੋ।",
+
+    aiDetector: "AI ਫਸਲ ਡਿਟੈਕਟਰ",
+    aiDetectorDesc:
+      "ਫਸਲ ਦੀ ਤਸਵੀਰ ਅੱਪਲੋਡ ਕਰਕੇ ਬਿਮਾਰੀ ਅਤੇ ਨੁਕਸਾਨ ਦੀ ਪਛਾਣ ਕਰੋ।",
+
+    irrigation: "ਸਿੰਚਾਈ",
+    irrigationDesc:
+      "ਫਸਲ ਦੀ ਲੋੜ ਅਨੁਸਾਰ ਸਿੰਚਾਈ ਲਈ ਮਾਰਗਦਰਸ਼ਨ ਪ੍ਰਾਪਤ ਕਰੋ।",
+
+    fertilizer: "ਖਾਦ ਅਤੇ ਪੋਸ਼ਕ ਤੱਤ",
+    fertilizerDesc:
+      "ਫਸਲ ਅਨੁਸਾਰ ਖਾਦ ਅਤੇ ਪੋਸ਼ਕ ਤੱਤਾਂ ਦੀ ਜਾਣਕਾਰੀ ਪ੍ਰਾਪਤ ਕਰੋ।",
+
+    weather: "ਮੌਸਮ",
+    weatherDesc:
+      "ਫਸਲ ਪ੍ਰਬੰਧਨ ਲਈ ਲਾਭਦਾਇਕ ਮੌਸਮ ਦੀ ਜਾਣਕਾਰੀ ਵੇਖੋ।",
+
+    price: "ਕੀਮਤ ਜਾਣਕਾਰੀ",
+    priceDesc:
+      "ਫਸਲ ਦੇ ਬਾਜ਼ਾਰ ਭਾਅ ਅਤੇ ਬਾਜ਼ਾਰ ਦੀ ਸਥਿਤੀ ਵੇਖੋ।",
+
+    alertMessage: "ਸੇਵਾ ਜਲਦੀ ਜੋੜੀ ਜਾਵੇਗੀ।",
+  },
+
+  /* =====================================================
+     ODIA
+  ===================================================== */
+
+  or: {
+    back: "← ମୋ ଫସଲକୁ ଫେରନ୍ତୁ",
+    season: "ଋତୁ",
+    landArea: "ଜମିର କ୍ଷେତ୍ରଫଳ",
+    services: "ସେବା",
+    servicesDesc:
+      "ଆପଣଙ୍କ ଫସଲ ପରିଚାଳନା ପାଇଁ ଆବଶ୍ୟକ ସମସ୍ତ ସେବା।",
+    loading: "ଫସଲ ଲୋଡ୍ ହେଉଛି...",
+    pleaseWait: "ଦୟାକରି ଅପେକ୍ଷା କରନ୍ତୁ...",
+    notFound: "ଫସଲ ମିଳିଲା ନାହିଁ",
+    backToCrops: "← ଫସଲକୁ ଫେରନ୍ତୁ",
+    explore: "ଦେଖନ୍ତୁ →",
+
+    mandi: "ମଣ୍ଡି ଏବଂ ବଜାର",
+    mandiDesc:
+      "ମଣ୍ଡି ସୂଚନା, ନିକଟସ୍ଥ ବଜାର ଏବଂ ଫସଲ ବିକ୍ରୟ ସୁଯୋଗ ଦେଖନ୍ତୁ।",
+
+    waste: "ଫସଲ ଅବଶିଷ୍ଟ ବ୍ୟବହାର",
+    wasteDesc:
+      "ଫସଲ ଅବଶିଷ୍ଟକୁ ପୁନଃବ୍ୟବହାର ଏବଂ ପୁନଃଚକ୍ରଣ କରିବା ବିଷୟରେ ଜାଣନ୍ତୁ।",
+
+    storage: "ସଂରକ୍ଷଣ ଏବଂ ଷ୍ଟୋରେଜ୍",
+    storageDesc:
+      "ଉପଯୁକ୍ତ ସଂରକ୍ଷଣ ଏବଂ ଅମଳ ପରବର୍ତ୍ତୀ ପରିଚାଳନା ବିଷୟରେ ଜାଣନ୍ତୁ।",
+
+    disease: "ରୋଗ ଏବଂ କୀଟ ଚିହ୍ନଟ",
+    diseaseDesc:
+      "AI ସାହାଯ୍ୟରେ ଫସଲର ରୋଗ, କୀଟ ଏବଂ କ୍ଷତି ଚିହ୍ନଟ କରନ୍ତୁ।",
+
+    aiDetector: "AI ଫସଲ ଚିହ୍ନଟ",
+    aiDetectorDesc:
+      "ଫସଲର ଫଟୋ ଅପଲୋଡ୍ କରି ରୋଗ ଏବଂ କ୍ଷତି ଚିହ୍ନଟ କରନ୍ତୁ।",
+
+    irrigation: "ଜଳସେଚନ",
+    irrigationDesc:
+      "ଫସଲର ଆବଶ୍ୟକତା ଅନୁସାରେ ଜଳସେଚନ ମାର୍ଗଦର୍ଶନ ପାଆନ୍ତୁ।",
+
+    fertilizer: "ସାର ଏବଂ ପୋଷକ ତତ୍ତ୍ୱ",
+    fertilizerDesc:
+      "ଫସଲ ଅନୁସାରେ ସାର ଏବଂ ପୋଷକ ତତ୍ତ୍ୱ ପରିଚାଳନା ସୂଚନା ପାଆନ୍ତୁ।",
+
+    weather: "ପାଣିପାଗ",
+    weatherDesc:
+      "ଫସଲ ପରିଚାଳନା ପାଇଁ ଉପଯୋଗୀ ପାଣିପାଗ ସୂଚନା ଦେଖନ୍ତୁ।",
+
+    price: "ମୂଲ୍ୟ ସୂଚନା",
+    priceDesc:
+      "ଫସଲର ବଜାର ମୂଲ୍ୟ ଏବଂ ବଜାର ସ୍ଥିତି ଦେଖନ୍ତୁ।",
+
+    alertMessage: "ସେବା ଶୀଘ୍ର ଯୋଡାଯିବ।",
+  },
+
+  /* =====================================================
+     ASSAMESE
+  ===================================================== */
+
+  as: {
+    back: "← মোৰ শস্যলৈ উভতি যাওক",
+    season: "ঋতু",
+    landArea: "মাটিৰ পৰিমাণ",
+    services: "সেৱাসমূহ",
+    servicesDesc:
+      "আপোনাৰ শস্য পৰিচালনা কৰিবলৈ প্ৰয়োজনীয় সকলো সেৱা।",
+    loading: "শস্য লোড হৈ আছে...",
+    pleaseWait: "অনুগ্ৰহ কৰি অপেক্ষা কৰক...",
+    notFound: "শস্য পোৱা নগ'ল",
+    backToCrops: "← শস্যলৈ উভতি যাওক",
+    explore: "চাওক →",
+
+    mandi: "মাণ্ডী আৰু বজাৰ",
+    mandiDesc:
+      "মাণ্ডীৰ তথ্য, ওচৰৰ বজাৰ আৰু শস্য বিক্ৰীৰ সুযোগ চাওক।",
+
+    waste: "শস্যৰ আৱৰ্জনা ব্যৱহাৰ",
+    wasteDesc:
+      "শস্যৰ আৱৰ্জনা পুনৰ ব্যৱহাৰ আৰু পুনঃচক্ৰীয়কৰণৰ বিষয়ে জানক।",
+
+    storage: "সংৰক্ষণ আৰু ষ্ট'ৰেজ",
+    storageDesc:
+      "সঠিক সংৰক্ষণ আৰু শস্য চপোৱাৰ পিছৰ পৰিচালনাৰ বিষয়ে জানক।",
+
+    disease: "ৰোগ আৰু কীট-পতংগ চিনাক্তকৰণ",
+    diseaseDesc:
+      "AI ৰ সহায়ত শস্যৰ ৰোগ, কীট-পতংগ আৰু ক্ষতি চিনাক্ত কৰক।",
+
+    aiDetector: "AI শস্য চিনাক্তকৰণ",
+    aiDetectorDesc:
+      "শস্যৰ ছবি আপলোড কৰি ৰোগ আৰু ক্ষতি চিনাক্ত কৰক।",
+
+    irrigation: "জলসিঞ্চন",
+    irrigationDesc:
+      "শস্যৰ প্ৰয়োজন অনুসৰি জলসিঞ্চনৰ পৰামৰ্শ লাভ কৰক।",
+
+    fertilizer: "সাৰ আৰু পুষ্টি",
+    fertilizerDesc:
+      "শস্য অনুসৰি সাৰ আৰু পুষ্টি ব্যৱস্থাপনাৰ তথ্য লাভ কৰক।",
+
+    weather: "বতৰ",
+    weatherDesc:
+      "শস্য পৰিচালনাৰ বাবে উপযোগী বতৰৰ তথ্য চাওক।",
+
+    price: "মূল্যৰ তথ্য",
+    priceDesc:
+      "শস্যৰ বজাৰ মূল্য আৰু বজাৰৰ অৱস্থা চাওক।",
+
+    alertMessage: "সেৱাটো সোনকালে যোগ কৰা হ'ব।",
+  },
+
+  /* =====================================================
+     URDU
+  ===================================================== */
+
+  ur: {
+    back: "← میری فصلوں پر واپس جائیں",
+    season: "موسم",
+    landArea: "زمین کا رقبہ",
+    services: "خدمات",
+    servicesDesc:
+      "آپ کی فصل کو سنبھالنے کے لیے تمام ضروری خدمات۔",
+    loading: "فصل لوڈ ہو رہی ہے...",
+    pleaseWait: "براہ کرم انتظار کریں...",
+    notFound: "فصل نہیں ملی",
+    backToCrops: "← فصلوں پر واپس جائیں",
+    explore: "دیکھیں ←",
+
+    mandi: "منڈی اور بازار",
+    mandiDesc:
+      "منڈی کی معلومات، قریبی بازار اور فصل فروخت کرنے کے مواقع دیکھیں۔",
+
+    waste: "فصل کے فضلے کا استعمال",
+    wasteDesc:
+      "فصل کے فضلے کو دوبارہ استعمال اور ری سائیکل کرنے کے طریقے جانیں۔",
+
+    storage: "ذخیرہ اور تحفظ",
+    storageDesc:
+      "مناسب ذخیرہ اور فصل کی کٹائی کے بعد دیکھ بھال کے بارے میں رہنمائی حاصل کریں۔",
+
+    disease: "بیماری اور کیڑوں کی شناخت",
+    diseaseDesc:
+      "AI کی مدد سے فصل کی بیماریوں، کیڑوں اور نقصان کی شناخت کریں۔",
+
+    aiDetector: "AI فصل ڈیٹیکٹر",
+    aiDetectorDesc:
+      "فصل کی تصویر اپ لوڈ کرکے بیماری اور نقصان کی شناخت کریں۔",
+
+    irrigation: "آبپاشی",
+    irrigationDesc:
+      "فصل کی ضرورت کے مطابق آبپاشی کے بارے میں رہنمائی حاصل کریں۔",
+
+    fertilizer: "کھاد اور غذائی اجزاء",
+    fertilizerDesc:
+      "فصل کے مطابق کھاد اور غذائی اجزاء کے انتظام کی معلومات حاصل کریں۔",
+
+    weather: "موسم",
+    weatherDesc:
+      "فصل کے انتظام کے لیے مفید موسمی معلومات دیکھیں۔",
+
+    price: "قیمت کی معلومات",
+    priceDesc:
+      "فصل کی مارکیٹ قیمت اور مارکیٹ کے رجحانات دیکھیں۔",
+
+    alertMessage: "یہ سروس جلد شامل کی جائے گی۔",
+  },
 };
+
+/* =========================================================
+   MAIN COMPONENT
+========================================================= */
 
 export default function CropDetailsPage() {
   const router = useRouter();
   const params = useParams();
 
-  const [crop, setCrop] = useState<Crop | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [language, setLanguage] = useState("en");
+  const { language } = useLanguage();
+
+  const [crop, setCrop] =
+    useState<Crop | null>(null);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  /* =======================================================
+     LOAD CROP
+  ======================================================= */
 
   useEffect(() => {
-    const savedLanguage = localStorage.getItem("selectedLanguage");
-
-    if (savedLanguage && translations[savedLanguage]) {
-      setLanguage(savedLanguage);
-    }
-
-    const savedCrops = localStorage.getItem("farmerCrops");
+    const savedCrops =
+      localStorage.getItem(
+        "farmerCrops"
+      );
 
     if (!savedCrops) {
       setLoading(false);
@@ -181,14 +819,20 @@ export default function CropDetailsPage() {
     }
 
     try {
-      const crops: Crop[] = JSON.parse(savedCrops);
+      const crops: Crop[] =
+        JSON.parse(savedCrops);
 
-      const selectedCrop = crops.find(
-        (item) => item.id === Number(params.id)
-      );
+      const selectedCrop =
+        crops.find(
+          (item) =>
+            item.id ===
+            Number(params.id)
+        );
 
       if (selectedCrop) {
-        setCrop(selectedCrop);
+        setCrop(
+          selectedCrop
+        );
       }
     } catch {
       setCrop(null);
@@ -197,68 +841,104 @@ export default function CropDetailsPage() {
     }
   }, [params.id]);
 
-  const t = translations[language] || translations.en;
+  const t =
+    translations[language] ||
+    translations.en;
 
-  const handleFeatureClick = (key: string) => {
+  /* =======================================================
+     FEATURE CLICK
+  ======================================================= */
+
+  const handleFeatureClick = (
+    key: string
+  ) => {
     if (!crop) return;
 
     if (key === "Mandi") {
-      router.push(`/crops/${crop.id}/market`);
+      router.push(
+        `/crops/${crop.id}/market`
+      );
       return;
     }
 
     if (key === "Weather") {
-      router.push(`/crops/${crop.id}/weather`);
+      router.push(
+        `/crops/${crop.id}/weather`
+      );
       return;
     }
 
     if (key === "Irrigation") {
-      router.push(`/crops/${crop.id}/irrigation`);
+      router.push(
+        `/crops/${crop.id}/irrigation`
+      );
       return;
     }
 
     if (key === "Waste") {
-      router.push(`/crops/${crop.id}/waste`);
+      router.push(
+        `/crops/${crop.id}/waste`
+      );
       return;
     }
 
     if (key === "Storage") {
-      router.push(`/crops/${crop.id}/storage`);
+      router.push(
+        `/crops/${crop.id}/storage`
+      );
       return;
     }
 
     if (key === "Disease") {
-      router.push(`/crops/${crop.id}/disease`);
+      router.push(
+        `/crops/${crop.id}/disease`
+      );
       return;
     }
 
-    if (key === "AI Crop Detector") {
-      router.push(`/crops/${crop.id}/ai-detector`);
+    if (
+      key ===
+      "AI Crop Detector"
+    ) {
+      router.push(
+        `/crops/${crop.id}/ai-detector`
+      );
       return;
     }
 
     if (key === "Fertilizer") {
-      router.push(`/crops/${crop.id}/fertilizer`);
+      router.push(
+        `/crops/${crop.id}/fertilizer`
+      );
       return;
     }
 
     if (key === "Price") {
       alert(
-        language === "en"
-          ? `${key} for ${crop.crop} ${t.alertMessage}`
-          : `${key} - ${crop.crop} ${t.alertMessage}`
+        `${t.price} - ${crop.crop} ${t.alertMessage}`
       );
     }
   };
+
+  /* =======================================================
+     LOADING
+  ======================================================= */
 
   if (loading) {
     return (
       <main
         className="min-h-screen bg-green-50 flex items-center justify-center px-5"
-        dir={language === "hi" ? "ltr" : "ltr"}
+        dir={
+          language === "ur"
+            ? "rtl"
+            : "ltr"
+        }
       >
         <div className="bg-white rounded-3xl shadow-lg p-8 text-center">
-          <div className="text-5xl mb-4">🌱</div>
+
+          <div className="text-5xl mb-4">
+            🌱
+          </div>
 
           <h1 className="text-2xl font-bold text-green-800">
             {t.loading}
@@ -267,107 +947,156 @@ export default function CropDetailsPage() {
           <p className="text-gray-500 mt-2">
             {t.pleaseWait}
           </p>
+
         </div>
       </main>
     );
   }
 
+  /* =======================================================
+     CROP NOT FOUND
+  ======================================================= */
+
   if (!crop) {
     return (
       <main
         className="min-h-screen bg-green-50 flex items-center justify-center px-5"
-        dir="ltr"
+        dir={
+          language === "ur"
+            ? "rtl"
+            : "ltr"
+        }
       >
         <div className="bg-white rounded-3xl shadow-lg p-8 text-center">
-          <div className="text-5xl mb-4">🌱</div>
+
+          <div className="text-5xl mb-4">
+            🌱
+          </div>
 
           <h1 className="text-2xl font-bold text-gray-900">
             {t.notFound}
           </h1>
 
           <button
-            onClick={() => router.push("/crops")}
+            type="button"
+            onClick={() =>
+              router.push(
+                "/crops"
+              )
+            }
             className="mt-6 px-6 py-3 rounded-xl bg-green-700 text-white font-bold"
           >
             {t.backToCrops}
           </button>
+
         </div>
       </main>
     );
   }
+
+  /* =======================================================
+     FEATURES
+  ======================================================= */
 
   const features = [
     {
       icon: "🏪",
       title: t.mandi,
       key: "Mandi",
-      description: t.mandiDesc,
+      description:
+        t.mandiDesc,
     },
     {
       icon: "♻️",
       title: t.waste,
       key: "Waste",
-      description: t.wasteDesc,
+      description:
+        t.wasteDesc,
     },
     {
       icon: "📦",
       title: t.storage,
       key: "Storage",
-      description: t.storageDesc,
+      description:
+        t.storageDesc,
     },
     {
       icon: "🦠",
       title: t.disease,
       key: "Disease",
-      description: t.diseaseDesc,
+      description:
+        t.diseaseDesc,
     },
     {
       icon: "🤖",
       title: t.aiDetector,
       key: "AI Crop Detector",
-      description: t.aiDetectorDesc,
+      description:
+        t.aiDetectorDesc,
     },
     {
       icon: "💧",
       title: t.irrigation,
       key: "Irrigation",
-      description: t.irrigationDesc,
+      description:
+        t.irrigationDesc,
     },
     {
       icon: "🌱",
       title: t.fertilizer,
       key: "Fertilizer",
-      description: t.fertilizerDesc,
+      description:
+        t.fertilizerDesc,
     },
     {
       icon: "🌦️",
       title: t.weather,
       key: "Weather",
-      description: t.weatherDesc,
+      description:
+        t.weatherDesc,
     },
     {
       icon: "💰",
       title: t.price,
       key: "Price",
-      description: t.priceDesc,
+      description:
+        t.priceDesc,
     },
   ];
+
+  /* =======================================================
+     UI
+  ======================================================= */
 
   return (
     <main
       className="min-h-screen bg-green-50 px-5 py-10"
-      dir="ltr"
+      dir={
+        language === "ur"
+          ? "rtl"
+          : "ltr"
+      }
     >
       <div className="max-w-5xl mx-auto">
 
+        {/* BACK */}
+
         <button
-          onClick={() => router.push("/crops")}
+          type="button"
+          onClick={() =>
+            router.push(
+              "/crops"
+            )
+          }
           className="text-green-700 font-semibold mb-6 hover:text-green-900"
         >
           {t.back}
         </button>
 
+        {/* CROP HEADER */}
+
         <div className="bg-white rounded-3xl shadow-lg p-7 mb-8">
+
           <div className="flex flex-col sm:flex-row sm:items-center gap-5">
 
             <div className="w-20 h-20 bg-green-100 rounded-3xl flex items-center justify-center text-5xl">
@@ -375,8 +1104,10 @@ export default function CropDetailsPage() {
             </div>
 
             <div>
+
               <p className="text-sm text-green-600 font-semibold">
-                {crop.season} {t.season}
+                {crop.season}{" "}
+                {t.season}
               </p>
 
               <h1 className="text-3xl font-bold text-green-800 mt-1">
@@ -389,46 +1120,66 @@ export default function CropDetailsPage() {
                   {crop.land} acres
                 </span>
               </p>
+
             </div>
 
           </div>
+
         </div>
 
+        {/* SERVICES HEADING */}
+
         <div className="mb-6">
+
           <h2 className="text-2xl font-bold text-green-800">
-            {crop.crop} {t.services}
+            {crop.crop}{" "}
+            {t.services}
           </h2>
 
           <p className="text-gray-600 mt-2">
             {t.servicesDesc}
           </p>
+
         </div>
+
+        {/* SERVICES */}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
 
-          {features.map((feature) => (
-            <button
-              key={feature.key}
-              onClick={() => handleFeatureClick(feature.key)}
-              className="bg-white rounded-3xl p-6 text-left border-2 border-transparent hover:border-green-500 hover:shadow-xl transition"
-            >
-              <div className="text-4xl mb-4">
-                {feature.icon}
-              </div>
+          {features.map(
+            (feature) => (
+              <button
+                type="button"
+                key={feature.key}
+                onClick={() =>
+                  handleFeatureClick(
+                    feature.key
+                  )
+                }
+                className="bg-white rounded-3xl p-6 text-left border-2 border-transparent hover:border-green-500 hover:shadow-xl transition"
+              >
 
-              <h3 className="text-xl font-bold text-gray-900">
-                {feature.title}
-              </h3>
+                <div className="text-4xl mb-4">
+                  {feature.icon}
+                </div>
 
-              <p className="text-gray-600 mt-2 leading-relaxed">
-                {feature.description}
-              </p>
+                <h3 className="text-xl font-bold text-gray-900">
+                  {feature.title}
+                </h3>
 
-              <div className="mt-5 text-green-700 font-bold">
-                {t.explore}
-              </div>
-            </button>
-          ))}
+                <p className="text-gray-600 mt-2 leading-relaxed">
+                  {
+                    feature.description
+                  }
+                </p>
+
+                <div className="mt-5 text-green-700 font-bold">
+                  {t.explore}
+                </div>
+
+              </button>
+            )
+          )}
 
         </div>
 
