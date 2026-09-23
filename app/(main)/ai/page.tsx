@@ -1,9 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-
 import { useLanguage } from "../../lib/LanguageProvider";
-
 import type { LanguageCode } from "../../lib/language";
 
 type Message = {
@@ -231,22 +229,28 @@ export default function AIPage() {
     ]);
   }, [language, ui.welcome]);
 
-  // This function ONLY cleans the text before Text-to-Speech.
-  // The original AI response shown on screen is not changed.
+  /*
+   * ONLY used before Text-to-Speech.
+   *
+   * The original AI response shown on screen
+   * remains completely unchanged.
+   *
+   * This function aggressively removes symbols so
+   * SpeechSynthesis does not read them aloud.
+   */
   const cleanSpeechText = (value: string) => {
     let cleaned = value;
 
     /*
-     * STEP 1
-     * Convert numeric ranges BEFORE removing hyphens.
+     * 1. Convert numeric ranges FIRST.
      *
      * English:
-     * 5-6       -> 5 to 6
-     * 30 - 40   -> 30 to 40
+     * 5-6     -> 5 to 6
+     * 30 - 40 -> 30 to 40
      *
      * Hindi:
-     * 5-6       -> 5 से 6
-     * 30 - 40   -> 30 से 40
+     * 5-6     -> 5 से 6
+     * 30 - 40 -> 30 से 40
      */
     if (language === "hi") {
       cleaned = cleaned.replace(
@@ -261,104 +265,120 @@ export default function AIPage() {
     }
 
     /*
-     * STEP 2
-     * Remove ALL unwanted symbols explicitly.
+     * 2. Remove Markdown headings.
      *
-     * # is removed first and replaced with a space.
-     * This ensures SpeechSynthesis never receives #.
+     * ### Heading
+     * ## Heading
+     * # Heading
      */
-    cleaned = cleaned.replace(/#/g, " ");
+    cleaned = cleaned.replace(/^\s*#{1,6}\s*/gm, "");
 
     /*
-     * Remove symbols that have no useful meaning in speech.
+     * 3. Remove Markdown bold / italic markers.
      */
-    cleaned = cleaned.replace(/[@$%^&*_+=|~<>]/g, " ");
+    cleaned = cleaned.replace(/\*\*(.*?)\*\*/gs, "$1");
+    cleaned = cleaned.replace(/__(.*?)__/gs, "$1");
+    cleaned = cleaned.replace(/\*(.*?)\*/gs, "$1");
+    cleaned = cleaned.replace(/_(.*?)_/gs, "$1");
 
     /*
-     * STEP 3
-     * Remove Markdown headings.
+     * 4. Remove bullet symbols at the beginning of lines.
      */
-    cleaned = cleaned.replace(/^#{1,6}\s*/gm, "");
+    cleaned = cleaned.replace(/^\s*[-•▪◾●◆◇★☆✓✔]\s+/gm, "");
 
     /*
-     * STEP 4
-     * Remove Markdown bold and italic formatting.
-     */
-    cleaned = cleaned.replace(/\*\*(.*?)\*\*/g, "$1");
-    cleaned = cleaned.replace(/__(.*?)__/g, "$1");
-    cleaned = cleaned.replace(/\*(.*?)\*/g, "$1");
-    cleaned = cleaned.replace(/_(.*?)_/g, "$1");
-
-    /*
-     * STEP 5
-     * Remove bullet formatting.
-     */
-    cleaned = cleaned.replace(/^\s*[-•]\s+/gm, "");
-
-    /*
-     * STEP 6
-     * Remove numbered-list formatting.
+     * 5. Remove numbered-list markers.
+     *
+     * 1. Water
+     * 2. Fertilizer
      */
     cleaned = cleaned.replace(/^\s*\d+\.\s+/gm, "");
 
     /*
-     * STEP 7
-     * Remove Markdown links but keep visible text.
+     * 6. Markdown links:
+     * [Google](https://...)
+     *
+     * Keep only visible text.
      */
-    cleaned = cleaned.replace(
-      /\[([^\]]+)\]\([^)]+\)/g,
-      "$1"
-    );
+    cleaned = cleaned.replace(/\[([^\]]+)\]\([^)]+\)/g, "$1");
 
     /*
-     * STEP 8
-     * Remove backticks.
+     * 7. Remove backticks.
      */
     cleaned = cleaned.replace(/`/g, "");
 
     /*
-     * STEP 9
-     * Remove slash/backslash when they are being used
-     * only as separators.
+     * 8. HARD REMOVE unwanted symbols.
+     *
+     * These symbols will NEVER be sent to SpeechSynthesis:
+     *
+     * # @ $ % ^ & * _ = + | ~ < >
+     * { } [ ] \ /
      */
-    cleaned = cleaned.replace(/\s*[\\/]\s*/g, " ");
+    cleaned = cleaned.replace(/[#@$%^&*_+=|~<>]/g, " ");
+    cleaned = cleaned.replace(/[{}[\]\\\/]/g, " ");
 
     /*
-     * STEP 10
-     * Remove brackets and other decorative symbols.
+     * 9. Remove decorative Unicode symbols.
      */
-    cleaned = cleaned.replace(/[{}[\]<>\\]/g, " ");
+    cleaned = cleaned.replace(
+      /[•▪◾●◆◇★☆✓✔→←⇒]/g,
+      " "
+    );
 
     /*
-     * IMPORTANT:
-     * Normal punctuation is intentionally kept:
-     *
-     * . , ? ! : ;
-     *
-     * Hyphen is also kept for normal words.
+     * 10. Remove standalone hyphens.
      *
      * Numeric ranges were already converted above.
+     *
+     * Normal words such as:
+     * well-known
+     *
+     * are preserved.
+     */
+    cleaned = cleaned.replace(
+      /(^|\s)-(\s|$)/g,
+      " "
+    );
+
+    /*
+     * 11. Remove standalone sentence dots.
+     *
+     * This prevents TTS from saying "point"
+     * for a normal sentence dot.
+     *
+     * Decimal numbers such as 2.5 are preserved.
+     */
+    cleaned = cleaned.replace(
+      /(?<!\d)\.(?!\d)/g,
+      " "
+    );
+
+    /*
+     * 12. Keep useful normal punctuation.
+     *
+     * Comma, question mark, exclamation mark,
+     * colon and semicolon are retained.
      */
 
     /*
-     * STEP 11
-     * Clean repeated punctuation.
+     * 13. Clean repeated punctuation.
      */
-    cleaned = cleaned.replace(/\.{2,}/g, ".");
     cleaned = cleaned.replace(/,{2,}/g, ",");
     cleaned = cleaned.replace(/!{2,}/g, "!");
     cleaned = cleaned.replace(/\?{2,}/g, "?");
+    cleaned = cleaned.replace(/:{2,}/g, ":");
+    cleaned = cleaned.replace(/;{2,}/g, ";");
 
     /*
-     * STEP 12
-     * Clean extra spaces.
+     * 14. Remove any remaining control characters.
+     */
+    cleaned = cleaned.replace(/[\u0000-\u001F\u007F]/g, " ");
+
+    /*
+     * 15. Clean spaces.
      */
     cleaned = cleaned.replace(/[ \t]+/g, " ");
-
-    /*
-     * STEP 13
-     * Clean excessive blank lines.
-     */
     cleaned = cleaned.replace(/\n{2,}/g, "\n");
 
     return cleaned.trim();
@@ -366,7 +386,6 @@ export default function AIPage() {
 
   const speak = (answer: string) => {
     if (typeof window === "undefined") return;
-
     if (!window.speechSynthesis) return;
 
     const cleanText = cleanSpeechText(answer);
@@ -430,7 +449,6 @@ export default function AIPage() {
         },
       ]);
 
-      // Automatically speak AI response.
       speak(answer);
     } catch (error) {
       console.error("AI error:", error);
@@ -494,7 +512,6 @@ export default function AIPage() {
 
       setInput(spokenText);
 
-      // Automatically send voice question to AI.
       askAI(spokenText);
     };
 
