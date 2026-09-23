@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+
 import { useLanguage } from "../../lib/LanguageProvider";
 import type { LanguageCode } from "../../lib/language";
 
@@ -229,48 +230,68 @@ export default function AIPage() {
     ]);
   }, [language, ui.welcome]);
 
-  // Cleans AI markdown formatting before sending text to speech.
-  // The chat UI still shows the original AI response.
-  const cleanSpeechText = (text: string) => {
-    return text
-      // Convert number ranges for speech:
-      // 30-40 -> 30 to 40
-      // 20 - 30 kg -> 20 to 30 kg
-      .replace(/(\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)/g, "$1 to $2")
+  // Only cleans the text used by Text-to-Speech.
+  // The original AI response shown on screen remains unchanged.
+  const cleanSpeechText = (value: string) => {
+    let cleaned = value;
 
-      // Remove headings
-      .replace(/^#{1,6}\s*/gm, "")
+    // Convert numeric ranges before removing symbols.
+    // English: 5-6 -> 5 to 6
+    // Hindi: 5-6 -> 5 से 6
+    if (language === "hi") {
+      cleaned = cleaned.replace(
+        /(\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)/g,
+        "$1 से $2"
+      );
+    } else {
+      cleaned = cleaned.replace(
+        /(\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)/g,
+        "$1 to $2"
+      );
+    }
 
-      // Remove bold markdown
-      .replace(/\*\*(.*?)\*\*/g, "$1")
+    // Remove markdown headings.
+    cleaned = cleaned.replace(/^#{1,6}\s*/gm, "");
 
-      // Remove italic markdown
-      .replace(/__(.*?)__/g, "$1")
-      .replace(/\*(.*?)\*/g, "$1")
-      .replace(/_(.*?)_/g, "$1")
+    // Remove markdown bold / italic markers but keep the words.
+    cleaned = cleaned.replace(/\*\*(.*?)\*\*/g, "$1");
+    cleaned = cleaned.replace(/__(.*?)__/g, "$1");
+    cleaned = cleaned.replace(/\*(.*?)\*/g, "$1");
+    cleaned = cleaned.replace(/_(.*?)_/g, "$1");
 
-      // Remove bullet points
-      .replace(/^\s*[-•]\s+/gm, "")
+    // Remove markdown bullet symbols.
+    cleaned = cleaned.replace(/^\s*[-•]\s+/gm, "");
 
-      // Remove numbered list formatting
-      .replace(/^\s*\d+\.\s+/gm, "")
+    // Remove numbered-list formatting.
+    cleaned = cleaned.replace(/^\s*\d+\.\s+/gm, "");
 
-      // Remove markdown links but keep visible text
-      .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    // Remove markdown links but keep visible text.
+    cleaned = cleaned.replace(/\[([^\]]+)\]\([^)]+\)/g, "$1");
 
-      // Remove backticks
-      .replace(/`/g, "")
+    // Remove backticks.
+    cleaned = cleaned.replace(/`/g, "");
 
-      // Remove remaining markdown symbols commonly spoken by TTS
-      .replace(/[*#_~]/g, "")
+    // Remove unnecessary special symbols.
+    // Keep normal punctuation such as . , ? ! :
+    // Keep hyphen only when it is part of a normal word.
+    cleaned = cleaned.replace(/[@#$%^&*_=+|~<>]/g, "");
 
-      // Clean extra spaces
-      .replace(/[ \t]+/g, " ")
+    // Remove decorative slash/backslash when they are isolated.
+    cleaned = cleaned.replace(/\s*[\\/]\s*/g, " ");
 
-      // Clean excessive blank lines
-      .replace(/\n{2,}/g, "\n")
+    // Remove repeated punctuation.
+    cleaned = cleaned.replace(/\.{2,}/g, ".");
+    cleaned = cleaned.replace(/,{2,}/g, ",");
+    cleaned = cleaned.replace(/!{2,}/g, "!");
+    cleaned = cleaned.replace(/\?{2,}/g, "?");
 
-      .trim();
+    // Clean extra spaces.
+    cleaned = cleaned.replace(/[ \t]+/g, " ");
+
+    // Clean excessive blank lines.
+    cleaned = cleaned.replace(/\n{2,}/g, "\n");
+
+    return cleaned.trim();
   };
 
   const speak = (answer: string) => {
@@ -338,7 +359,6 @@ export default function AIPage() {
         },
       ]);
 
-      // Automatically speak AI response
       speak(answer);
     } catch (error) {
       console.error("AI error:", error);
@@ -402,7 +422,6 @@ export default function AIPage() {
 
       setInput(spokenText);
 
-      // Automatically send voice question to AI
       askAI(spokenText);
     };
 
